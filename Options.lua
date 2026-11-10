@@ -158,10 +158,13 @@ local function BuildAllBars(page)
         tip = L["Positions, rows, padding, scale and alpha. Only while Bartender4 is loaded."] }))
 
     local edit = page:Add(1, UI.Card(page.content, L["Editing"]))
-    edit:Add(UI.Buttons(edit, {
-        { L["Lock / unlock bars"], function() ns.SetBarsLocked(not ns.P.bars.locked) UI.RefreshAll() end },
-        { L["Keybinding mode"], function() ns.SetBindMode(not ns.bindMode) UI.RefreshAll() end },
-    }, { enableIf = active }))
+    -- switches: their state is visible (also in the window header)
+    edit:Add(UI.Switch(edit, L["Bars unlocked"], function() return not ns.P.bars.locked end,
+        function(v) ns.SetBarsLocked(not v) end, { enableIf = active,
+            tip = L["Drag a bar to move it, click it to edit it."] }))
+    edit:Add(UI.Switch(edit, L["Keybinding mode"], function() return ns.bindMode and true or false end,
+        function(v) ns.SetBindMode(v) end, { enableIf = active,
+            tip = L["Hover a button and press a key. Esc to leave."] }))
     edit:Add(UI.Check(edit, L["Snap while moving"], function() return ns.P.bars.snap end,
         function(v) ns.P.bars.snap = v end, { enableIf = active,
             tip = L["A bar you drag sticks to the edges and centers of other bars, the screen center lines and the screen borders."] }))
@@ -638,6 +641,15 @@ end
 local function Build()
     win = UI.Window({ name = "TidyOptions", title = "Tidy", version = ns.version,
         width = 680, height = 520, navWidth = 110 })
+    -- header buttons, lit while on (any page)
+    win:AddHeaderButton(L["Keybinding mode"], function()
+        if ns.barsActive then ns.SetBindMode(not ns.bindMode) end
+        UI.RefreshAll()
+    end, function() return ns.bindMode and true or false end, L["Hover a button and press a key. Esc to leave."])
+    win:AddHeaderButton(L["Unlock bars"], function()
+        if ns.barsActive then ns.SetBarsLocked(not ns.P.bars.locked) end
+        UI.RefreshAll()
+    end, function() return not ns.P.bars.locked end, L["Drag a bar to move it, click it to edit it."])
     win:AddNav("general", L["General"], BuildGeneral)
     win:AddNav("bars", L["Bars"], BuildBars, active)
     win:AddNav("buttons", L["Buttons"], BuildButtons)
@@ -647,7 +659,9 @@ local function Build()
         win:SetSubtitle((L["Profile: %s"]):format(ns.profileName or ""))
         UpdateStatus()
     end
+    -- changes made outside the window (minimap, Esc, combat) refresh it
     ns.OnBindMode = function() UI.RefreshAll() end
+    ns.OnBarsLocked = function() UI.RefreshAll() end
     win:Select("general")
 end
 

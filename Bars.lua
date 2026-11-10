@@ -712,6 +712,7 @@ function ns.SetBarsLocked(locked)
         for _, id in ipairs(BAR_IDS) do ns.ApplyBar(id) end
         for _, id in ipairs(ns.HOLDER_IDS) do ns.ApplyHolder(id) end
     end
+    if ns.OnBarsLocked then ns.OnBarsLocked() end
 end
 
 -------------------------------------------------------------------------------

@@ -153,6 +153,11 @@ ns.translations.esES = {
     ["The decorative frame around the extra button and the zone ability."] =
         "El marco decorativo del botón extra y de la habilidad de zona.",
 
+    ["Bars unlocked"] = "Barras desbloqueadas",
+    ["Unlock bars"] = "Desbloquear barras",
+    ["Drag a bar to move it, click it to edit it."] = "Arrastra una barra para moverla, haz clic para editarla.",
+    ["Hover a button and press a key. Esc to leave."] = "Pasa el ratón por un botón y pulsa una tecla. Esc para salir.",
+
     -- Keybinding mode
     ["no key"] = "sin tecla",
     ["Press a key to bind it"] = "Pulsa una tecla para asignarla",
