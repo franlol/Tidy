@@ -126,12 +126,16 @@ local function BuildGeneral(container)
             -- (the old window and every control in it are forgotten: they
             -- would keep refreshing and answering for the new one)
             local page = win.current
+            local point, _, relPoint, x, y = win:GetPoint(1)
             win:Hide()
             win = nil
             wipe(UI.widgets)
             wipe(UI.pages)
             wipe(tabBars)
             ns.ToggleOptions()
+            -- in the same place on screen
+            win:ClearAllPoints()
+            win:SetPoint(point, UIParent, relPoint, x, y)
             win:Select(page)
         end))
 end
