@@ -140,6 +140,7 @@ ns.translations.esES = {
     ["Off: this text is hidden on every bar. Each bar can also hide it (Bars, Buttons tab)."] =
         "Desactivado: este texto se oculta en todas las barras. Cada barra también puede ocultarlo (Barras, pestaña Botones).",
 
+    ["Bars recorded. Type /reload so they are saved."] = "Barras registradas. Escribe /reload para guardarlas.",
     ["Put the mouse over it: recording in 3 seconds..."] = "Pon el ratón encima: se registra en 3 segundos...",
     ["%d frames recorded. Type /reload so they are saved."] = "%d marcos registrados. Escribe /reload para guardarlos.",
 

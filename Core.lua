@@ -345,6 +345,8 @@ SlashCmdList.TIDY = function(msg)
         ns.db.language = lang == "es" and "esES" or "enUS"
         ApplyLanguage()
         ns.Print(L["Language: English"] .. " " .. L["(reload to update the window)"])
+    elseif msg == "dump" then
+        ns.DumpHolders()
     elseif msg == "probe" then
         ns.Probe()
     elseif msg == "help" then

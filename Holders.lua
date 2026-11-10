@@ -554,6 +554,51 @@ function ns.ReleaseHolders()
     for _, id in ipairs(ns.HOLDER_IDS) do ns.ReleaseHolder(id) end
 end
 
+-- /tidy dump: the state of every holder and its buttons, saved in
+-- TidyDB.dump (read after a /reload) to see what is wrong without guessing
+function ns.DumpHolders()
+    local function Name(f) return f and (f.GetDebugName and f:GetDebugName() or tostring(f:GetName())) or "nil" end
+    local function Num(v) return v and math.floor(v + 0.5) or "nil" end
+    local function Region(r)
+        local pts = {}
+        for i = 1, r:GetNumPoints() do
+            local p, rel, rp, x, y = r:GetPoint(i)
+            pts[#pts + 1] = ("%s>%s:%s(%s,%s)"):format(p, Name(rel), rp, Num(x), Num(y))
+        end
+        local icon = r.icon or r.Icon
+        return {
+            name = Name(r), parent = Name(r:GetParent()),
+            shown = r:IsShown(), visible = r:IsVisible(), alpha = r:GetAlpha(),
+            size = ("%sx%s"):format(Num(r:GetWidth()), Num(r:GetHeight())),
+            left = Num(r:GetLeft()), top = Num(r:GetTop()), points = table.concat(pts, " "),
+            icon = icon and tostring(icon:GetTexture()) or nil,
+        }
+    end
+    local out = {
+        class = select(2, UnitClass("player")),
+        forms = GetNumShapeshiftForms and GetNumShapeshiftForms() or "nil",
+        screen = ("%dx%d"):format(UIParent:GetWidth(), UIParent:GetHeight()),
+        locked = ns.P.bars.locked, barsActive = ns.barsActive, holders = {},
+    }
+    for _, id in ipairs(ns.HOLDER_IDS) do
+        local def, h = DEFS[id], holders[id]
+        local e = { exists = Exists(id), config = ns.Copy(ns.BarConfig(id)) }
+        if h then
+            e.holder = Region(h)
+            e.active = h.active
+        end
+        e.regions = {}
+        if def.group then
+            for _, b in ipairs(GroupButtons(def)) do e.regions[#e.regions + 1] = Region(b) end
+        elseif Content(def) then
+            e.regions[1] = Region(Content(def))
+        end
+        out.holders[id] = e
+    end
+    ns.db.dump = out
+    ns.Print(L["Bars recorded. Type /reload so they are saved."])
+end
+
 -- Holders that exist in this game version (for the options)
 function ns.HolderIDs()
     local list = {}
