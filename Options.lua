@@ -193,7 +193,7 @@ local function BuildBars(container)
     end
     S(card, L["Buttons"], "buttons", 1, 12, 1, nil, IsAction)
     S(card, L["Rows"], "rows", 1, 12, 1, nil, HasRows)
-    S(card, L["Padding"], "padding", -5, 10, 0.1, function(v) return ("%.1f px"):format(v) end, HasRows)
+    S(card, L["Padding"], "padding", -10, 50, 0.5, function(v) return ("%.1f px"):format(v) end, HasRows)
     S(card, L["Scale"], "scale", 0.5, 2, 0.05, UI.pct)
     S(card, L["Opacity"], "alpha", 0, 1, 0.05, UI.pct)
     S(card, L["Width"], "width", 200, 1500, 1, UI.px, function() return selected == "status" end)
