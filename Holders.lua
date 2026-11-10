@@ -342,7 +342,7 @@ local function Layout(id)
         if def.width then LayoutStatus(h, c, f) else LayoutFrame(h, c, def, f) end
         if id == "extra" then ns.ExtraArt(not c.hideArt) end
     end
-    h.mover:SetShown(not ns.P.bars.locked)
+    h.mover:SetShown(not ns.P.bars.locked and c.enabled)
 end
 
 -- Blizzard moved something of ours: put it back (after combat if secure)
@@ -476,10 +476,8 @@ function ns.ApplyHolder(id)
     ns.RunOOC("holder" .. id, function()
         local c = ns.BarConfig(id)
         local h = holders[id]
-        if not c.enabled then
-            if h and h.active then ns.ReleaseHolder(id) end
-            return
-        end
+        -- "Show this bar" off: the bar stays with Tidy, hidden (like an
+        -- action bar). Blizzard only gets it back when Tidy's bars are off.
         FixCorner(id, c)
         CapturePosition(id, c)
         h = h or CreateHolder(id)
@@ -490,8 +488,13 @@ function ns.ApplyHolder(id)
         -- the user's hide conditions first, then the bar's own (pet: only
         -- with a pet...); unlocked: always visible, to move it
         local vis = "show"
-        if ns.P.bars.locked then vis = ns.VisibilityDriver(c, DEFS[id].visibility) end
+        if not c.enabled then
+            vis = "hide"
+        elseif ns.P.bars.locked then
+            vis = ns.VisibilityDriver(c, DEFS[id].visibility)
+        end
         RegisterStateDriver(h, "visibility", vis)
+        h.mover:SetShown(c.enabled and not ns.P.bars.locked)
         ns.SetFade(h, c)
     end)
 end

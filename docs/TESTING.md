@@ -16,7 +16,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 9. **Gryphons on bar 1** on/off.
 
 ## One bar (Bar 1, then Pet bar, then Bags)
-10. Layout: buttons, rows, padding, button width/height, icon fit, scale, opacity, fill direction, click-through all change it at once.
+10. **Show this bar** off hides it (Blizzard's does not come back). Layout: buttons, rows, padding, button width/height, icon fit, scale, opacity, fill direction, click-through all change it at once.
 11. X / Y typed values move it; **Center horizontally / vertically**.
 12. **Reset this bar** puts it back.
 13. Visibility: fade (mouse out → faded after the delay), each hide option, custom `[combat] show; hide`.
