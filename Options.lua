@@ -452,6 +452,8 @@ local function BuildButtons(container)
             }, rg, rs, { tip = L["What turns red when the target is out of range: the button or its keybind."] }))
             card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars, { alpha = true }))
             card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars, { alpha = true }))
+            card:Add(UI.Swatch(card, L["Pressed on cooldown"], function() return G().cdPressColor end, ApplyAllBars,
+                { alpha = true, tip = L["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] }))
 
             card = page:Add(2, UI.Card(page.content, L["Defaults"]))
             local reset = UI.Buttons(card, { { L["Defaults"], function()

@@ -251,6 +251,9 @@ ns.translations.esES = {
     ["Nothing"] = "Nada",
     ["Out of range color"] = "Color fuera de alcance",
     ["Out of mana color"] = "Color sin maná",
+    ["Pressed on cooldown"] = "Pulsado en reutilización",
+    ["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] =
+        "Un destello corto al pulsar un botón que está en reutilización. Con opacidad 0 se desactiva.",
     ["Lock buttons"] = "Bloquear botones",
     ["Spells cannot be dragged off the bars (Shift + drag still can)."] =
         "Los hechizos no se pueden sacar de las barras (Mayús + arrastrar sí).",

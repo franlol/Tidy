@@ -52,6 +52,7 @@ ns.defaults = {
             manaColor = { r = 0.5, g = 0.5, b = 1, a = 1 },
             castVFX = true,       -- cast animation on the button
             cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon
+            cdPressColor = { r = 1, g = 0.15, b = 0.15, a = 0.55 }, -- flash when pressed on cooldown (alpha 0: off)
             lock = false,         -- no dragging spells off (Shift drags)
             texts = {
                 hotkey = { show = true, font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,

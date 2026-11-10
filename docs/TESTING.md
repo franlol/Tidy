@@ -30,6 +30,8 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 19. Drag a spell between buttons: it moves, it is **not** cast.
 20. Texts: show / hide, font, size, outline, color, position for keybind, count, macro name.
 21. Casting: self-cast key, focus-cast key, mouse-over, right click on yourself.
+21b. Click a button while moving the mouse (starts a drag): it never stays darker afterwards.
+21c. Press the key of a spell on cooldown: short red flash. Not on a normal cast, not during the global cooldown only. **Pressed on cooldown** color / opacity 0 = off.
 
 ## Icons
 22. Each place on/off: icons square ↔ Blizzard's look, live.

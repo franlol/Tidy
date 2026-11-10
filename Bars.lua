@@ -400,10 +400,68 @@ local function CapSwipe(cd, r, g, bl, a)
     end
 end
 
+-- Pressed while on cooldown: a short flash of a color over the button.
+-- Cooldown times are secret on this client; only the flags (active, on the
+-- global cooldown) are read, and anything unreadable counts as "no".
+local function Readable(v)
+    if v == nil then return false end
+    if type(issecretvalue) == "function" then
+        local ok, secret = pcall(issecretvalue, v)
+        if not ok or secret then return false end
+    end
+    return true
+end
+
+local function OnCooldown(b)
+    local ok, info = pcall(b.GetCooldownInfo, b)
+    if not ok or type(info) ~= "table" then return false end
+    local active = info.isActive
+    if not Readable(active) or not active then return false end
+    -- the global cooldown alone is not a cooldown (pressing during it is normal)
+    if Readable(info.isOnGCD) then return not info.isOnGCD end
+    local gcd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(61304)
+    if gcd and Readable(gcd.isActive) and gcd.isActive then return false end
+    return true
+end
+
+local function CooldownFlash(b)
+    local c = B.buttons.cdPressColor
+    if not c or (c.a or 1) <= 0 or not OnCooldown(b) then return end
+    local t = b.tidyCdFlash
+    if not t then
+        t = b:CreateTexture(nil, "OVERLAY", nil, 7)
+        t:SetAllPoints(b)
+        t:SetAlpha(0)
+        local ag = t:CreateAnimationGroup()
+        local a = ag:CreateAnimation("Alpha")
+        a:SetFromAlpha(1)
+        a:SetToAlpha(0)
+        a:SetDuration(0.35)
+        a:SetSmoothing("OUT")
+        t.anim = ag
+        b.tidyCdFlash = t
+    end
+    t:SetColorTexture(c.r, c.g, c.b, c.a or 1)
+    t.anim:Stop()
+    t.anim:Play()
+end
+
+-- PreClick: before the cast (after it the spell is on cooldown). A key sends
+-- a click on press and on release: the release after a press is skipped.
+local function CooldownPress(self, _, down)
+    if down == false and self.tidyDownSeen then
+        self.tidyDownSeen = nil
+        return
+    end
+    if down then self.tidyDownSeen = true end
+    CooldownFlash(self)
+end
+
 local function CreateButton(header, id, i)
     local b = LAB:CreateButton((id - 1) * 12 + i, "TidyBar" .. id .. "Button" .. i, header)
     b.tidyCommand = COMMANDS[id] and (COMMANDS[id] .. i) -- Blizzard binding it uses
     b.GetHotkey = GetHotkey
+    b:HookScript("PreClick", CooldownPress)
     if b.cooldown then
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
         CapSwipe(b.cooldown, 0, 0, 0, 1)

@@ -119,6 +119,20 @@ local function Unhide(s, region)
     end
 end
 
+-- Pressed overlays shown (states -> { b = button, mouse = mouse button }):
+-- hidden as soon as that mouse button is up or the mouse is off the button
+local pushed = {}
+local pushWatch = CreateFrame("Frame")
+local function PushTick()
+    for st, p in pairs(pushed) do
+        if not IsMouseButtonDown(p.mouse) or not p.b:IsVisible() or not p.b:IsMouseOver() then
+            st.push:Hide()
+            pushed[st] = nil
+        end
+    end
+    if not next(pushed) then pushWatch:SetScript("OnUpdate", nil) end
+end
+
 local function FlatStates(b, s)
     local st = s.states
     if not st then
@@ -133,9 +147,17 @@ local function FlatStates(b, s)
         st.check:Hide()
         for _, t in ipairs({ st.hover, st.push, st.check }) do t:SetAllPoints(b) end
         -- pressed: only while the mouse button is held; cleared on release,
-        -- when the mouse leaves and when hidden (never stays)
-        b:HookScript("OnMouseDown", function() if st.flat and not s.off then st.push:Show() end end)
-        local function Release() st.push:Hide() end
+        -- when the mouse leaves and when hidden (never stays). The game does
+        -- not send OnMouseUp once a drag started (a click while moving the
+        -- mouse), so a watcher also checks the mouse button itself.
+        b:HookScript("OnMouseDown", function(_, mouse)
+            if st.flat and not s.off then
+                st.push:Show()
+                pushed[st] = { b = b, mouse = mouse }
+                pushWatch:SetScript("OnUpdate", PushTick)
+            end
+        end)
+        local function Release() st.push:Hide(); pushed[st] = nil end
         -- (not PostClick: with "cast on key down" the click happens on the
         -- press itself, the overlay would never show)
         for _, script in ipairs({ "OnMouseUp", "OnLeave", "OnHide" }) do
