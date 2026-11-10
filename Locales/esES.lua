@@ -252,6 +252,15 @@ ns.translations.esES = {
     ["Out of range color"] = "Color fuera de alcance",
     ["Out of mana color"] = "Color sin maná",
     ["Pressed on cooldown"] = "Pulsado en reutilización",
+    ["Global cooldown darkness"] = "Oscuridad del tiempo de reutilización global",
+    ["How dark the global cooldown alone is, so a real cooldown stands out. If the game does not tell which one it is, the cooldown darkness is used."] =
+        "Lo oscuro que se ve el tiempo de reutilización global solo, para que uno de verdad destaque. Si el juego no dice cuál es, se usa la oscuridad del tiempo de reutilización.",
+    ["Not usable color"] = "Color no utilizable",
+    ["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] =
+        "El icono cuando no se puede usar ahora (forma equivocada, necesita objetivo, sin componentes...).",
+    ["Pressed when not usable"] = "Pulsado sin poder usarse",
+    ["A short flash when you press a button you cannot use now: out of range, not enough power or not usable. Opacity 0 turns it off."] =
+        "Un destello corto al pulsar un botón que no puedes usar ahora: fuera de alcance, sin recurso suficiente o no utilizable. Con opacidad 0 se desactiva.",
     ["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] =
         "Un destello corto al pulsar un botón que está en reutilización. Con opacidad 0 se desactiva.",
     ["Lock buttons"] = "Bloquear botones",

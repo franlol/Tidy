@@ -442,6 +442,9 @@ local function BuildButtons(container)
             local cg, cs = GB("cooldownAlpha")
             card:Add(UI.Slider(card, L["Cooldown darkness"], 0, 1, 0.05, cg, cs, { format = UI.pct,
                 tip = L["How dark the cooldown is over the icon. Lower it to see the icon better."] }))
+            local gg, gs = GB("gcdAlpha")
+            card:Add(UI.Slider(card, L["Global cooldown darkness"], 0, 1, 0.05, gg, gs, { format = UI.pct,
+                tip = L["How dark the global cooldown alone is, so a real cooldown stands out. If the game does not tell which one it is, the cooldown darkness is used."] }))
             card:Add(UI.Check(card, L["Cast on key down"], function() return GetCVarBool("ActionButtonUseKeyDown") end,
                 function(v) SetCVar("ActionButtonUseKeyDown", v and "1" or "0") end, { tip = L["A game setting: for every bar."] }))
 
@@ -452,8 +455,12 @@ local function BuildButtons(container)
             }, rg, rs, { tip = L["What turns red when the target is out of range: the button or its keybind."] }))
             card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars, { alpha = true }))
             card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars, { alpha = true }))
+            card:Add(UI.Swatch(card, L["Not usable color"], function() return G().unusableColor end, ApplyAllBars,
+                { alpha = true, tip = L["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] }))
             card:Add(UI.Swatch(card, L["Pressed on cooldown"], function() return G().cdPressColor end, ApplyAllBars,
                 { alpha = true, tip = L["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] }))
+            card:Add(UI.Swatch(card, L["Pressed when not usable"], function() return G().failPressColor end, ApplyAllBars,
+                { alpha = true, tip = L["A short flash when you press a button you cannot use now: out of range, not enough power or not usable. Opacity 0 turns it off."] }))
 
             card = page:Add(2, UI.Card(page.content, L["Defaults"]))
             local reset = UI.Buttons(card, { { L["Defaults"], function()

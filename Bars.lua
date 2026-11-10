@@ -386,23 +386,8 @@ LAB.RegisterCallback(fitKey, "OnButtonUpdate", function(_, b)
     if b.tidyFit then ns.FitIcon(b, IconZoom()) end
 end)
 
--- Cooldown darkness: the swipe over the icon never goes over the chosen
--- darkness. After the cast animation the library leaves it fully opaque
--- black on that button (it hid the icon until the spell was moved away);
--- the color stays (red for loss of control), only its opacity is capped.
-local function CapSwipe(cd, r, g, bl, a)
-    if cd.tidyCapping then return end
-    local max = B.buttons.cooldownAlpha or 0.8
-    if (a or 1) > max then
-        cd.tidyCapping = true
-        cd:SetSwipeColor(r or 0, g or 0, bl or 0, max)
-        cd.tidyCapping = nil
-    end
-end
-
--- Pressed while on cooldown: a short flash of a color over the button.
--- Cooldown times are secret on this client; only the flags (active, on the
--- global cooldown) are read, and anything unreadable counts as "no".
+-- Cooldown flags: the times are secret on this client, only the flags
+-- (active, on the global cooldown) are read; anything unreadable is "no"
 local function Readable(v)
     if v == nil then return false end
     if type(issecretvalue) == "function" then
@@ -412,22 +397,85 @@ local function Readable(v)
     return true
 end
 
-local function OnCooldown(b)
+local function CooldownInfo(b)
     local ok, info = pcall(b.GetCooldownInfo, b)
-    if not ok or type(info) ~= "table" then return false end
-    local active = info.isActive
-    if not Readable(active) or not active then return false end
+    return ok and type(info) == "table" and info or nil
+end
+
+-- The button's cooldown is only the global cooldown (nil: unknown)
+local function OnlyGCD(b)
+    local info = CooldownInfo(b)
+    if info and Readable(info.isOnGCD) then return info.isOnGCD and true or false end
+end
+
+-- Cooldown darkness: the swipe over the icon never goes over the chosen
+-- darkness (a lighter one for the global cooldown). After the cast
+-- animation the library leaves it fully opaque black on that button (it hid
+-- the icon until the spell was moved away); the color stays (red for loss
+-- of control), only its opacity is capped.
+local function SwipeMax(cd)
+    local G = B.buttons
+    if cd.tidyGCD then return G.gcdAlpha or 0.35 end
+    return G.cooldownAlpha or 0.8
+end
+
+local function CapSwipe(cd, r, g, bl, a)
+    if cd.tidyCapping then return end
+    cd.tidyRGB = { r or 0, g or 0, bl or 0 }
+    local max = SwipeMax(cd)
+    if (a or 1) > max then
+        cd.tidyCapping = true
+        cd:SetSwipeColor(r or 0, g or 0, bl or 0, max)
+        cd.tidyCapping = nil
+    end
+end
+
+-- The chosen darkness for what the cooldown is now (also raises it: CapSwipe
+-- only lowers)
+local function ApplySwipe(b)
+    local cd = b.cooldown
+    if not cd then return end
+    cd.tidyGCD = OnlyGCD(b)
+    local c = cd.tidyRGB or { 0, 0, 0 }
+    cd.tidyCapping = true
+    cd:SetSwipeColor(c[1], c[2], c[3], SwipeMax(cd))
+    cd.tidyCapping = nil
+end
+
+-- Not usable: the library greys the icon with a fixed 0.4; Tidy's color
+-- goes over it
+local function TintUnusable(icon, r, g, bl)
+    if icon.tidyTinting or not B then return end
+    if r == 0.4 and g == 0.4 and bl == 0.4 then
+        local c = B.buttons.unusableColor
+        icon.tidyTinting = true
+        icon:SetVertexColor(c.r, c.g, c.b, c.a or 1)
+        icon.tidyTinting = nil
+    end
+end
+
+-- Pressed on cooldown / while not usable: a short flash of a color
+local function OnCooldown(b)
+    local info = CooldownInfo(b)
+    if not info or not Readable(info.isActive) or not info.isActive then return false end
     -- the global cooldown alone is not a cooldown (pressing during it is normal)
-    if Readable(info.isOnGCD) then return not info.isOnGCD end
+    local only = OnlyGCD(b)
+    if only ~= nil then return not only end
     local gcd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(61304)
     if gcd and Readable(gcd.isActive) and gcd.isActive then return false end
     return true
 end
 
-local function CooldownFlash(b)
-    local c = B.buttons.cdPressColor
-    if not c or (c.a or 1) <= 0 or not OnCooldown(b) then return end
-    local t = b.tidyCdFlash
+-- out of range, not enough power or not usable now
+local function CannotUse(b)
+    if b.outOfRange then return true end
+    local ok, usable = pcall(b.IsUsable, b)
+    return ok and Readable(usable) and not usable
+end
+
+local function Flash(b, c)
+    if not c or (c.a or 1) <= 0 then return end
+    local t = b.tidyPressFlash
     if not t then
         t = b:CreateTexture(nil, "OVERLAY", nil, 7)
         t:SetAllPoints(b)
@@ -439,31 +487,68 @@ local function CooldownFlash(b)
         a:SetDuration(0.35)
         a:SetSmoothing("OUT")
         t.anim = ag
-        b.tidyCdFlash = t
+        b.tidyPressFlash = t
     end
     t:SetColorTexture(c.r, c.g, c.b, c.a or 1)
     t.anim:Stop()
     t.anim:Play()
 end
 
--- PreClick: before the cast (after it the spell is on cooldown). A key sends
--- a click on press and on release: the release after a press is skipped.
-local function CooldownPress(self, _, down)
-    if down == false and self.tidyDownSeen then
-        self.tidyDownSeen = nil
-        return
+local function PressFeedback(b)
+    local ok, has = pcall(b.HasAction, b)
+    if not ok or not has then return end
+    local G = B.buttons
+    if OnCooldown(b) then
+        Flash(b, G.cdPressColor)
+    elseif CannotUse(b) then
+        Flash(b, G.failPressColor)
     end
-    if down then self.tidyDownSeen = true end
-    CooldownFlash(self)
+end
+
+-- A key held on the button: the pressed look until it is released (at most
+-- KEY_HOLD seconds: a release can go to another binding if a modifier
+-- changed meanwhile)
+local KEY_HOLD = 1
+local function KeyPressed(b, on)
+    b.tidyKeyToken = (b.tidyKeyToken or 0) + 1
+    if ns.ShowPressed then ns.ShowPressed(b, on) end
+    if on then
+        local token = b.tidyKeyToken
+        C_Timer.After(KEY_HOLD, function()
+            if b.tidyKeyToken == token then KeyPressed(b, false) end
+        end)
+    end
+end
+
+-- PreClick: before the cast (after it the spell is on cooldown). Clicks come
+-- on press and on release: the release after a press gives no feedback.
+-- Keys click with "Keybind" (keyBoundClickButton).
+local function OnPreClick(self, mouse, down)
+    local key = mouse == "Keybind"
+    if down == false then
+        if key then KeyPressed(self, false) end
+        if self.tidyDownSeen then
+            self.tidyDownSeen = nil
+            return
+        end
+    elseif down then
+        if key then KeyPressed(self, true) end
+        self.tidyDownSeen = true
+    end
+    PressFeedback(self)
 end
 
 local function CreateButton(header, id, i)
     local b = LAB:CreateButton((id - 1) * 12 + i, "TidyBar" .. id .. "Button" .. i, header)
     b.tidyCommand = COMMANDS[id] and (COMMANDS[id] .. i) -- Blizzard binding it uses
     b.GetHotkey = GetHotkey
-    b:HookScript("PreClick", CooldownPress)
+    b:HookScript("PreClick", OnPreClick)
+    if b.icon then hooksecurefunc(b.icon, "SetVertexColor", TintUnusable) end
     if b.cooldown then
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
+        for _, m in ipairs({ "SetCooldown", "SetCooldownFromDurationObject", "SetCooldownDuration" }) do
+            if b.cooldown[m] then hooksecurefunc(b.cooldown, m, function() ApplySwipe(b) end) end
+        end
         CapSwipe(b.cooldown, 0, 0, 0, 1)
     end
     for page = 1, PAGES do b:SetState(page, "action", (page - 1) * 12 + i) end
@@ -512,12 +597,7 @@ local function Layout(h, c)
             b:EnableMouse(not c.clickThrough)
             ButtonAttributes(b)
             b:UpdateConfig(ButtonConfig(b, c))
-            -- the chosen darkness, also when it was raised (CapSwipe only lowers)
-            if b.cooldown then
-                b.cooldown.tidyCapping = true
-                b.cooldown:SetSwipeColor(0, 0, 0, B.buttons.cooldownAlpha or 0.8)
-                b.cooldown.tidyCapping = nil
-            end
+            ApplySwipe(b)
             -- texts turned off for every bar (the per-bar hides are in the
             -- config); by alpha, as LibActionButton shows and hides them itself
             local T = B.buttons.texts

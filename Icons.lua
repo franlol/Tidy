@@ -133,6 +133,18 @@ local function PushTick()
     if not next(pushed) then pushWatch:SetScript("OnUpdate", nil) end
 end
 
+-- Pressed look from a key (Bars.lua): Tidy's flat overlay, or Blizzard's
+-- pushed state when the flat states are not in use
+function ns.ShowPressed(b, on)
+    local s = skins[b]
+    local st = s and s.states
+    if st and st.flat and not s.off then
+        st.push:SetShown(on and true or false)
+    else
+        pcall(b.SetButtonState, b, on and "PUSHED" or "NORMAL")
+    end
+end
+
 local function FlatStates(b, s)
     local st = s.states
     if not st then
