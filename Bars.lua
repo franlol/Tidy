@@ -403,6 +403,12 @@ local function Layout(h, c)
             b:EnableMouse(not c.clickThrough)
             ButtonAttributes(b)
             b:UpdateConfig(ButtonConfig(b, c))
+            -- texts turned off for every bar (the per-bar hides are in the
+            -- config); by alpha, as LibActionButton shows and hides them itself
+            local T = B.buttons.texts
+            if b.HotKey then b.HotKey:SetAlpha(T.hotkey.show and 1 or 0) end
+            if b.Count then b.Count:SetAlpha(T.count.show and 1 or 0) end
+            if b.Name then b.Name:SetAlpha(T.macro.show and 1 or 0) end
             ns.FitIcon(b, zoom)
         else
             b:SetAttribute("statehidden", true)

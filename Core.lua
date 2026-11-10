@@ -48,11 +48,11 @@ ns.defaults = {
             castVFX = true,       -- cast animation on the button
             lock = false,         -- no dragging spells off (Shift drags)
             texts = {
-                hotkey = { font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,
+                hotkey = { show = true, font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,
                     color = { r = 0.75, g = 0.75, b = 0.75 } },
-                count = { font = "Fonts\\ARIALN.TTF", size = 16, outline = "OUTLINE", point = "BOTTOMRIGHT", x = -2, y = 4,
+                count = { show = true, font = "Fonts\\ARIALN.TTF", size = 16, outline = "OUTLINE", point = "BOTTOMRIGHT", x = -2, y = 4,
                     color = { r = 1, g = 1, b = 1 } },
-                macro = { font = "Fonts\\FRIZQT__.TTF", size = 10, outline = "OUTLINE", point = "BOTTOM", x = 0, y = 2,
+                macro = { show = true, font = "Fonts\\FRIZQT__.TTF", size = 10, outline = "OUTLINE", point = "BOTTOM", x = 0, y = 2,
                     color = { r = 1, g = 1, b = 1 } },
             },
         },

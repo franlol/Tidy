@@ -130,6 +130,16 @@ ns.translations.esES = {
     ["Choose a text, then its look. For every button of Tidy's action bars."] =
         "Elige un texto y luego su aspecto. Para todos los botones de las barras de acción de Tidy.",
 
+    ["Modifier keys"] = "Teclas modificadoras",
+    ["While the key is held, the bar shows another page."] =
+        "Mientras mantienes la tecla, la barra muestra otra página.",
+    ["Flyouts"] = "Desplegables",
+    ["Menus that open from a button (portals, totems, pets...)."] =
+        "Menús que se abren desde un botón (portales, tótems, mascotas...).",
+    ["Show"] = "Mostrar",
+    ["Off: this text is hidden on every bar. Each bar can also hide it (Bars, Buttons tab)."] =
+        "Desactivado: este texto se oculta en todas las barras. Cada barra también puede ocultarlo (Barras, pestaña Botones).",
+
     -- Keybinding mode
     ["no key"] = "sin tecla",
     ["Press a key to bind it"] = "Pulsa una tecla para asignarla",
