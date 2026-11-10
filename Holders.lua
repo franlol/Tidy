@@ -103,14 +103,25 @@ local function Take(r, parent, unlock)
     if r:GetParent() ~= parent then r:SetParent(parent) end
 end
 
-local function Give(r)
-    local o = taken[r]
-    if not o then return end
-    taken[r] = nil
-    for m, f in pairs(o.overrides) do r[m] = f end
-    r:SetParent(o.parent)
-    r:ClearAllPoints()
-    for _, p in ipairs(o.points) do pcall(r.SetPoint, r, unpack(p)) end
+-- Gives regions back in two steps: first every original position, then
+-- every parent. Blizzard lays its bar out again as soon as a button gets
+-- its parent back (micro menu), so all of them must already have a place.
+local function GiveAll(list)
+    for _, r in ipairs(list) do
+        local o = taken[r]
+        busy = true
+        r:ClearAllPoints()
+        for _, p in ipairs(o.points) do pcall(r.SetPoint, r, unpack(p)) end
+        busy = nil
+    end
+    for _, r in ipairs(list) do
+        local o = taken[r]
+        taken[r] = nil
+        for m, f in pairs(o.overrides) do r[m] = f end
+        busy = true
+        r:SetParent(o.parent)
+        busy = nil
+    end
 end
 
 -- Where a region is now (UIParent units): left, top
@@ -349,10 +360,23 @@ function ns.ReleaseHolder(id)
     h.active = nil
     UnregisterStateDriver(h, "visibility")
     ns.SetFade(h, { fade = false, alpha = 1 })
-    h:Hide()
-    for r in pairs(taken) do
-        if r:GetParent() == h or (id == "status" and r:GetParent() == Content(DEFS.status)) then Give(r) end
+    -- give back while the holder is still shown (positions stay readable),
+    -- in Blizzard's order for button groups; hide it after
+    local list = {}
+    local def = DEFS[id]
+    if def.group then
+        for _, b in ipairs(GroupButtons(def)) do
+            if taken[b] then list[#list + 1] = b end
+        end
     end
+    for r in pairs(taken) do
+        local p = r:GetParent()
+        if not tContains(list, r) and (p == h or (id == "status" and p == Content(DEFS.status))) then
+            list[#list + 1] = r
+        end
+    end
+    GiveAll(list)
+    h:Hide()
     -- let Blizzard lay its bars out again
     local function Call(obj, m) if obj and type(obj[m]) == "function" then pcall(obj[m], obj) end end
     if id == "pet" then Call(PetActionBar, "UpdateGridLayout") end
