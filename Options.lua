@@ -119,7 +119,7 @@ local function BuildGeneral(container)
     local misc = page:Add(1, UI.Card(page.content, L["Addon"]))
     misc:Add(UI.Check(misc, L["Minimap button"], function() return not ns.db.minimap.hide end,
         function(v) ns.db.minimap.hide = not v ns.UpdateMinimapButton() end))
-    misc:Add(UI.Dropdown(misc, L["Language"], { { "enUS", "English" }, { "esES", "Español" } },
+    misc:Add(UI.Segmented(misc, L["Language"], { { "enUS", "English" }, { "esES", "Español" } },
         function() return ns.db.language or "enUS" end, function(v)
             ns.SetLanguagePref(v)
             -- the window is built again in the new language, on the same page
@@ -171,16 +171,15 @@ local function BuildAllBars(page)
     edit:Add(UI.Note(edit, L["Unlocked: drag a bar to move it, click it to edit it. Keybinding mode: hover a button and press a key."]))
 
     local look = page:Add(2, UI.Card(page.content, L["Layout"]))
-    local preset = {}
-    look:Add(UI.Dropdown(look, L["Preset"], {
-        { "blizzard", L["Blizzard-like"] }, { "compact", L["Compact"] }, { "split", L["Split"] },
-    }, function() return preset.name end, function(v) preset.name = v end, { enableIf = active }))
-    local apply = UI.Buttons(look, { { L["Apply preset"], function()
-        if preset.name then ns.ApplyPreset(preset.name) UI.RefreshAll() end
-    end, "accent" } }, { enableIf = function() return active() and preset.name ~= nil end,
-        tip = L["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."] })
-    UI.Confirm(apply.buttons[1])
-    look:Add(apply)
+    -- presets are actions: one button each, asking to confirm
+    look:Add(UI.Note(look, L["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."]))
+    local presets = UI.Buttons(look, {
+        { L["Blizzard-like"], function() ns.ApplyPreset("blizzard") UI.RefreshAll() end, "danger" },
+        { L["Compact"], function() ns.ApplyPreset("compact") UI.RefreshAll() end, "danger" },
+        { L["Split"], function() ns.ApplyPreset("split") UI.RefreshAll() end, "danger" },
+    }, { enableIf = active })
+    for _, b in ipairs(presets.buttons) do UI.Confirm(b) end
+    look:Add(presets)
     look:Add(UI.Check(look, L["Gryphons on bar 1"], function() return ns.P.bars.gryphons end,
         function(v) ns.P.bars.gryphons = v if ns.UpdateGryphons then ns.UpdateGryphons() end end,
         { enableIf = active }))
@@ -424,7 +423,7 @@ local function BuildButtons(container)
             local card = page:Add(1, UI.Card(page.content, L["Behaviour"],
                 L["For every button of Tidy's action bars."]))
             local tg, ts = GB("tooltip")
-            card:Add(UI.Dropdown(card, L["Tooltips"], {
+            card:Add(UI.Segmented(card, L["Tooltips"], {
                 { "enabled", L["Always"] }, { "nocombat", L["Out of combat"] }, { "disabled", L["Never"] },
             }, tg, ts))
             local lg, ls = GB("lock")
@@ -436,9 +435,9 @@ local function BuildButtons(container)
 
             card = page:Add(2, UI.Card(page.content, L["Colors"]))
             local rg, rs = GB("range")
-            card:Add(UI.Dropdown(card, L["Out of range"], {
-                { "button", L["Color the button"] }, { "hotkey", L["Color the keybind"] }, { "none", L["Nothing"] },
-            }, rg, rs))
+            card:Add(UI.Segmented(card, L["Out of range"], {
+                { "button", L["Button"] }, { "hotkey", L["Keybind"] }, { "none", L["Nothing"] },
+            }, rg, rs, { tip = L["What turns red when the target is out of range: the button or its keybind."] }))
             card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars, { alpha = true }))
             card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars, { alpha = true }))
 
@@ -503,18 +502,18 @@ local function BuildButtons(container)
             local fg, fs = TB("font")
             card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs, { enableIf = shown }))
             local zg, zs = TB("size")
-            card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { enableIf = shown }))
+            card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { format = UI.px, enableIf = shown }))
             local og, os = TB("outline")
-            card:Add(UI.Dropdown(card, L["Outline"], OUTLINES, og, os, { enableIf = shown }))
+            card:Add(UI.Segmented(card, L["Outline"], OUTLINES(), og, os, { enableIf = shown }))
             card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars, { alpha = true, enableIf = shown }))
 
             card = page:Add(2, UI.Card(page.content, L["Position"]))
             local pg, ps = TB("point")
             card:Add(UI.Dropdown(card, L["Position"], POINTS, pg, ps, { enableIf = shown }))
             local xg, xs = TB("x")
-            card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs, { enableIf = shown }))
+            card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs, { format = UI.px, enableIf = shown }))
             local yg, ys = TB("y")
-            card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys, { enableIf = shown }))
+            card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys, { format = UI.px, enableIf = shown }))
         end },
     })
 end
@@ -577,14 +576,17 @@ local function BuildIcons(container)
         states:Add(UI.Swatch(states, L[def[2]], function() return O()[def[1]] end, ns.ApplyIcons,
             { alpha = true, enableIf = flat }))
     end
-    look:Add(UI.Buttons(look, { { L["Defaults"], function()
+    -- like every reset: red, and a second click to confirm
+    local reset = UI.Buttons(look, { { L["Defaults"], function()
         local keep = {}
         for _, k in ipairs(WHERE) do keep[k] = ns.P.icons[k] end
         ns.ResetModule("icons")
         for k, v in pairs(keep) do ns.P.icons[k] = v end
         ns.ApplyIcons()
         UI.RefreshAll()
-    end } }))
+    end, "danger" } }, { tip = L["Look and button states back to their defaults (the places stay)."] })
+    UI.Confirm(reset.buttons[1])
+    look:Add(reset)
 end
 
 -------------------------------------------------------------------------------

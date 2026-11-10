@@ -172,6 +172,12 @@ ns.translations.esES = {
     ["Pressed"] = "Pulsado",
     ["Active"] = "Activo",
 
+    ["Button"] = "Botón",
+    ["What turns red when the target is out of range: the button or its keybind."] =
+        "Qué se pone rojo cuando el objetivo está fuera de alcance: el botón o su atajo.",
+    ["Look and button states back to their defaults (the places stay)."] =
+        "Aspecto y estados de los botones a sus valores por defecto (los lugares se mantienen).",
+
     -- Keybinding mode
     ["no key"] = "sin tecla",
     ["Press a key to bind it"] = "Pulsa una tecla para asignarla",
