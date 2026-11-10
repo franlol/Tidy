@@ -41,10 +41,10 @@ local MICRO = MICRO_BUTTONS or {
 local HIDE_IN_VEHICLE = "[petbattle][overridebar][vehicleui][possessbar] hide; "
 local DEFS = {
     pet = { group = Names("PetActionButton", 10), secure = true, padding = 2,
-        sample = "Interface\\Icons\\Ability_Hunter_Pet_Wolf",
+        sample = "class", -- no pet ability icons are known without a pet: the class icon
         visibility = HIDE_IN_VEHICLE .. "[pet] show; hide" },
     stance = { group = Names("StanceButton", 10), secure = true, padding = 2,
-        sample = "Interface\\Icons\\Spell_Shadow_Shadowform",
+        sample = "stance", -- the forms of the class (CLASS_FORMS), else the class icon
         count = function() return GetNumShapeshiftForms and GetNumShapeshiftForms() or 0 end,
         visibility = HIDE_IN_VEHICLE .. "show" },
     -- emptied: art of the Blizzard frame the buttons leave ({ frame, key }):
@@ -180,7 +180,58 @@ end
 -------------------------------------------------------------------------------
 local SAMPLE_ALPHA = 0.45
 
-local function Sample(h, i, def)
+local CROP = { 0.08, 0.92, 0.08, 0.92 }
+local FULL = { 0, 1, 0, 1 }
+-- last resort for any class / any missing icon (exists in every client)
+local QUESTION = { tex = "Interface\\Icons\\INV_Misc_QuestionMark", coords = CROP }
+
+-- Stance / form spells of each class on this client (spell ids from
+-- Bartender4's stance map for Forever and Classic). Their icons are asked
+-- to the game: a spell the client lacks just gives no icon.
+local CLASS_FORMS = {
+    WARRIOR = { 2457, 71, 2458 },          -- battle, defensive, berserker stance
+    DRUID = { 5487, 768, 24858 },          -- bear, cat, moonkin form
+    ROGUE = { 1784 },                      -- stealth
+    PRIEST = { 15473 },                    -- shadowform
+}
+
+local function SpellIcon(id)
+    -- (protected: an id the client does not know must never error)
+    local ok, tex
+    if C_Spell and C_Spell.GetSpellTexture then ok, tex = pcall(C_Spell.GetSpellTexture, id) end
+    if not (ok and tex) and GetSpellTexture then ok, tex = pcall(GetSpellTexture, id) end
+    return ok and tex and { tex = tex, coords = CROP } or nil
+end
+
+-- The class icon (character creation art), or the question mark
+local function ClassIcon()
+    local _, class = UnitClass("player")
+    local c = CLASS_ICON_TCOORDS and class and CLASS_ICON_TCOORDS[class]
+    if c then
+        return { tex = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes", coords = { c[1], c[2], c[3], c[4] } }
+    end
+    return QUESTION
+end
+
+-- What a bar's samples show: a list of { tex, coords } (or "bar")
+local function SampleSources(def)
+    if def.sample == "bar" then return { "bar" } end
+    if def.sample == "stance" then
+        -- the forms the class has (learned or not yet), else the class icon
+        local list = {}
+        local _, class = UnitClass("player")
+        for _, id in ipairs(CLASS_FORMS[class] or {}) do
+            local icon = SpellIcon(id)
+            if icon then list[#list + 1] = icon end
+        end
+        if #list == 0 then list[1] = ClassIcon() end
+        return list
+    end
+    if def.sample == "class" then return { ClassIcon() } end
+    return { { tex = def.sample, coords = def.sampleFull and FULL or CROP } }
+end
+
+local function Sample(h, i, src)
     h.samples = h.samples or {}
     local t = h.samples[i]
     if not t then
@@ -188,11 +239,11 @@ local function Sample(h, i, def)
         h.samples[i] = t
     end
     t:ClearAllPoints()
-    if def.sample == "bar" then
+    if src == "bar" then
         t:SetColorTexture(0.58, 0.3, 0.9, 1) -- an XP bar
     else
-        t:SetTexture(def.sample)
-        if def.sampleFull then t:SetTexCoord(0, 1, 0, 1) else t:SetTexCoord(0.08, 0.92, 0.08, 0.92) end
+        t:SetTexture(src.tex)
+        t:SetTexCoord(unpack(src.coords))
     end
     t:SetAlpha(SAMPLE_ALPHA)
     t:Show()
@@ -262,25 +313,34 @@ local function LayoutGroup(h, c, def)
     -- row, so the bar can still be seen and moved while unlocked
     local empty = #shown == 0
     h.mover.text:SetText(h.label)
+    local sources = def.sample and SampleSources(def) or {}
+    local n = 0
     if empty then
-        -- one button of the bar, like any one-item bar (leave vehicle...)
+        -- nothing to show: as many slots as samples (one per form of the
+        -- class, or one), laid out like real buttons (rows, padding, fill)
         local w, hh = 30, 30
         if list[1] then w, hh = list[1]:GetSize() end
-        h:SetSize(math.max(1, w), math.max(1, hh))
+        local k = math.max(1, #sources)
+        local srows = math.max(1, math.min(k, c.rows))
+        local scols = math.ceil(k / srows)
+        for i = 1, #sources do
+            local r, col = math.floor((i - 1) / scols), (i - 1) % scols
+            if c.growH == "LEFT" then col = scols - 1 - col end
+            if c.growV == "UP" then r = srows - 1 - r end
+            local t = Sample(h, i, sources[i])
+            t:SetSize(w, hh)
+            t:SetPoint("TOPLEFT", h, "TOPLEFT", col * (w + pad), -r * (hh + pad))
+        end
+        n = #sources
+        h:SetSize(math.max(1, scols * w + (scols - 1) * pad), math.max(1, srows * hh + (srows - 1) * pad))
     else
         h:SetSize(math.max(1, cols * cw + (cols - 1) * pad), math.max(1, rows * ch + (rows - 1) * pad))
-    end
-    -- samples on the slots that show nothing now
-    local n = 0
-    if def.sample then
-        if empty then
-            n = 1
-            Sample(h, 1, def):SetAllPoints(h)
-        else
+        -- samples on the slots that show nothing now (pet bar without a pet)
+        if #sources > 0 then
             for _, b in ipairs(shown) do
                 if not b:IsShown() then
                     n = n + 1
-                    Sample(h, n, def):SetAllPoints(b)
+                    Sample(h, n, sources[(n - 1) % #sources + 1]):SetAllPoints(b)
                 end
             end
         end
@@ -426,7 +486,7 @@ local function Layout(id)
         if id == "extra" then ns.ExtraArt(not c.hideArt) end
         -- a sample when the frame shows nothing now
         if def.sample and not f:IsShown() then
-            local t = Sample(h, 1, def)
+            local t = Sample(h, 1, SampleSources(def)[1])
             local k = def.sampleSize
             if k then
                 local s = math.min(h:GetWidth(), h:GetHeight()) * k
@@ -435,7 +495,24 @@ local function Layout(id)
             else
                 t:SetAllPoints(h)
             end
-            HideSamples(h, 2)
+            -- extra button: Blizzard's own frame art around it, read from the
+            -- game (unless "Hide the artwork"); none if the game has none
+            local shown = 1
+            local style = id == "extra" and ExtraActionBarFrame and ExtraActionBarFrame.button
+                and ExtraActionBarFrame.button.style
+            if style and not c.hideArt and style:GetWidth() > 1 then
+                local atlas = style.GetAtlas and style:GetAtlas()
+                local tex = not atlas and style:GetTexture()
+                if atlas or tex then
+                    local a = Sample(h, 2, QUESTION)
+                    if atlas then a:SetAtlas(atlas) else a:SetTexture(tex) a:SetTexCoord(style:GetTexCoord()) end
+                    a:SetSize(style:GetWidth(), style:GetHeight())
+                    a:SetPoint("CENTER", h, "CENTER")
+                    a:SetDrawLayer("OVERLAY")
+                    shown = 2
+                end
+            end
+            HideSamples(h, shown + 1)
         else
             HideSamples(h, 1)
         end
