@@ -440,6 +440,17 @@ local function ApplySwipe(b)
     cd.tidyCapping = true
     cd:SetSwipeColor(c[1], c[2], c[3], SwipeMax(cd))
     cd.tidyCapping = nil
+    -- spark on the global cooldown: the game's edge line, which follows the
+    -- swipe (the times are secret, it is the only thing that can follow it);
+    -- otherwise the edge the library asked for (loss of control)
+    cd.tidyEdging = true
+    cd:SetDrawEdge((B.buttons.gcdSpark and cd.tidyGCD) or cd.tidyLibEdge or false)
+    cd.tidyEdging = nil
+end
+
+-- The edge the library asks for, kept to give it back after the spark
+local function KeepLibEdge(cd, on)
+    if not cd.tidyEdging then cd.tidyLibEdge = on and true or false end
 end
 
 -- Not usable: the library greys the icon with a fixed 0.4; Tidy's color
@@ -570,6 +581,8 @@ local function CreateButton(header, id, i)
     if b.icon then hooksecurefunc(b.icon, "SetVertexColor", TintUnusable) end
     if b.cooldown then
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
+        if b.cooldown.GetDrawEdge then b.cooldown.tidyLibEdge = b.cooldown:GetDrawEdge() and true or false end
+        hooksecurefunc(b.cooldown, "SetDrawEdge", KeepLibEdge)
         for _, m in ipairs({ "SetCooldown", "SetCooldownFromDurationObject", "SetCooldownDuration" }) do
             if b.cooldown[m] then hooksecurefunc(b.cooldown, m, function() ApplySwipe(b) end) end
         end

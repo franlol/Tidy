@@ -255,6 +255,9 @@ ns.translations.esES = {
     ["Global cooldown darkness"] = "Oscuridad del tiempo de reutilización global",
     ["How dark the global cooldown alone is, so a real cooldown stands out. If the game does not tell which one it is, the cooldown darkness is used."] =
         "Lo oscuro que se ve el tiempo de reutilización global solo, para que uno de verdad destaque. Si el juego no dice cuál es, se usa la oscuridad del tiempo de reutilización.",
+    ["Global cooldown spark"] = "Destello del tiempo de reutilización global",
+    ["A bright line that follows the global cooldown as it turns."] =
+        "Una línea brillante que acompaña al tiempo de reutilización global mientras gira.",
     ["Not usable color"] = "Color no utilizable",
     ["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] =
         "El icono cuando no se puede usar ahora (forma equivocada, necesita objetivo, sin componentes...).",

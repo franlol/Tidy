@@ -445,6 +445,9 @@ local function BuildButtons(container)
             local gg, gs = GB("gcdAlpha")
             card:Add(UI.Slider(card, L["Global cooldown darkness"], 0, 1, 0.05, gg, gs, { format = UI.pct,
                 tip = L["How dark the global cooldown alone is, so a real cooldown stands out. If the game does not tell which one it is, the cooldown darkness is used."] }))
+            local sg, ss = GB("gcdSpark")
+            card:Add(UI.Check(card, L["Global cooldown spark"], sg, ss,
+                { tip = L["A bright line that follows the global cooldown as it turns."] }))
             card:Add(UI.Check(card, L["Cast on key down"], function() return GetCVarBool("ActionButtonUseKeyDown") end,
                 function(v) SetCVar("ActionButtonUseKeyDown", v and "1" or "0") end, { tip = L["A game setting: for every bar."] }))
 
