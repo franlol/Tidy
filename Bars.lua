@@ -453,7 +453,7 @@ local function GuideLine(kind, i)
     return l
 end
 
--- Shows the lines at the given positions (UIParent units), all faint
+-- Places the lines at the given positions (UIParent units), hidden
 local function ShowGuides(tx, ty)
     for kind, positions in pairs({ v = tx, h = ty }) do
         for i, pos in ipairs(positions) do
@@ -471,7 +471,8 @@ local function ShowGuides(tx, ty)
                 t:SetPoint("RIGHT", UIParent, "BOTTOMRIGHT", 0, pos)
             end
             t:SetColorTexture(0.44, 0.76, 1, FAINT)
-            t:Show()
+            -- hidden until the bar comes near it (LightGuides)
+            t:Hide()
         end
         for i = #positions + 1, #guideLines[kind] do guideLines[kind][i].tex:Hide() end
     end
@@ -484,11 +485,21 @@ local function HideGuides()
 end
 
 -- The line at pos (if any) bright, the rest faint
-local function LightGuides(kind, pos)
-    for _, l in ipairs(guideLines[kind]) do
-        if l.tex:IsShown() then
-            l.tex:SetColorTexture(0.44, 0.76, 1, (pos and l.pos == pos) and BRIGHT or FAINT)
+-- Only the lines near the moving bar are drawn (the rest of the screen stays
+-- clean): faint when an edge or the center is within NEAR, bright for the
+-- one it is stuck to. edges: positions of the bar's edges and center.
+local NEAR = 60
+local function LightGuides(kind, pos, edges, count)
+    local list = guideLines[kind]
+    for i = 1, count do
+        local l = list[i]
+        local near = false
+        for _, e in ipairs(edges) do
+            if math.abs(l.pos - e) <= NEAR then near = true break end
         end
+        local stuck = pos and l.pos == pos
+        l.tex:SetShown(near or stuck)
+        if near or stuck then l.tex:SetColorTexture(0.44, 0.76, 1, stuck and BRIGHT or FAINT) end
     end
 end
 
@@ -557,8 +568,8 @@ local function DragUpdate(h)
     h:ClearAllPoints()
     h:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left / s, top / s)
     if h.tx then
-        LightGuides("v", lineX)
-        LightGuides("h", lineY)
+        LightGuides("v", lineX, { left, left + w, left + w / 2 }, #h.tx)
+        LightGuides("h", lineY, { top, top - ht, top - ht / 2 }, #h.ty)
     end
 end
 

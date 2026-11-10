@@ -8,7 +8,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 
 ## All bars
 3. Bars → All bars → **Lock / unlock**: every bar shows a blue box with its name (also pet, stance, micro, bags, XP, extra, vehicle, queue).
-4. Drag a bar: faint guide lines; the one it sticks to turns bright. Drop: it stays.
+4. Drag a bar: only the guide lines near it show (faint); the one it sticks to turns bright. Drop: it stays.
 5. Click a bar (no drag): the panel opens on that bar.
 6. **Keybinding mode**: hover a button, press a key → the key shows on it. Esc leaves.
 7. **Enabled** off → Blizzard's bars come back, no errors, no empty boxes. On again → Tidy's back.
