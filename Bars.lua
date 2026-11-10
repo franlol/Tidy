@@ -526,9 +526,42 @@ errorWatch:SetScript("OnEvent", function()
     Flash(b, B.buttons.failPressColor)
 end)
 
-local function PressFeedback(b)
+-- A key on an empty slot: the button is there but invisible (alpha 0 when
+-- empty buttons are not shown), so the flash lives on its own frame over it
+local function FlashEmpty(b)
+    local c = B.buttons.emptyPressColor
+    if not c or (c.a or 1) <= 0 or not b:IsVisible() then return end
+    local f = b.tidyEmptyFlash
+    if not f then
+        f = CreateFrame("Frame", nil, UIParent)
+        f:SetAllPoints(b)
+        f:EnableMouse(false)
+        f:SetAlpha(0)
+        f.tex = f:CreateTexture(nil, "OVERLAY")
+        f.tex:SetAllPoints()
+        local ag = f:CreateAnimationGroup()
+        local a = ag:CreateAnimation("Alpha")
+        a:SetFromAlpha(1)
+        a:SetToAlpha(0)
+        a:SetDuration(0.35)
+        a:SetSmoothing("OUT")
+        f.anim = ag
+        b.tidyEmptyFlash = f
+    end
+    f:SetFrameStrata(b:GetFrameStrata())
+    f:SetFrameLevel(b:GetFrameLevel() + 10)
+    f.tex:SetColorTexture(c.r, c.g, c.b, c.a or 1)
+    f.anim:Stop()
+    f.anim:Play()
+end
+
+local function PressFeedback(b, key)
     local ok, has = pcall(b.HasAction, b)
-    if not ok or not has then return end
+    if not ok then return end
+    if not has then
+        if key then FlashEmpty(b) end
+        return
+    end
     local G = B.buttons
     if OnCooldown(b) then
         Flash(b, G.cdPressColor)
@@ -570,7 +603,7 @@ local function OnPreClick(self, mouse, down)
         if key then KeyPressed(self, true) end
         self.tidyDownSeen = true
     end
-    PressFeedback(self)
+    PressFeedback(self, key)
 end
 
 local function CreateButton(header, id, i)

@@ -267,6 +267,9 @@ ns.translations.esES = {
     ["Pressed when not usable"] = "Pulsado sin poder usarse",
     ["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable... Opacity 0 turns it off."] =
         "Un destello corto al pulsar un botón y fallar: sin objetivo, fuera de alcance, sin recurso suficiente, no utilizable... Con opacidad 0 se desactiva.",
+    ["Pressed on an empty slot"] = "Pulsado en un hueco vacío",
+    ["A short flash where you press a key whose slot has no spell, even if empty slots are hidden. Opacity 0 turns it off."] =
+        "Un destello corto donde pulsas una tecla cuyo hueco no tiene hechizo, aunque los huecos vacíos estén ocultos. Con opacidad 0 se desactiva.",
     ["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] =
         "Un destello corto al pulsar un botón que está en reutilización. Con opacidad 0 se desactiva.",
     ["Lock buttons"] = "Bloquear botones",

@@ -57,6 +57,7 @@ ns.defaults = {
             unusableColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }, -- icon when it cannot be used now
             cdPressColor = { r = 1, g = 0.15, b = 0.15, a = 0.55 }, -- flash when pressed on cooldown (alpha 0: off)
             failPressColor = { r = 1, g = 0.55, b = 0, a = 0.5 },   -- flash when pressed but not usable (alpha 0: off)
+            emptyPressColor = { r = 1, g = 1, b = 1, a = 0.3 },     -- flash when a key is pressed on an empty slot (alpha 0: off)
             lock = false,         -- no dragging spells off (Shift drags)
             texts = {
                 hotkey = { show = true, font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,

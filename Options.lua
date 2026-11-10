@@ -476,6 +476,8 @@ local function BuildButtons(container)
                 { alpha = true, tip = L["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] }))
             card:Add(UI.Swatch(card, L["Pressed when not usable"], function() return G().failPressColor end, ApplyAllBars,
                 { alpha = true, tip = L["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable... Opacity 0 turns it off."] }))
+            card:Add(UI.Swatch(card, L["Pressed on an empty slot"], function() return G().emptyPressColor end, ApplyAllBars,
+                { alpha = true, tip = L["A short flash where you press a key whose slot has no spell, even if empty slots are hidden. Opacity 0 turns it off."] }))
 
             -- one card: pick a text, then its look
             local which = { key = "hotkey" }
