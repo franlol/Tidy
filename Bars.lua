@@ -294,6 +294,10 @@ end
 local function ButtonAttributes(b)
     local K = B.casting
     b:SetAttribute("buttonlock", B.buttons.lock or nil)
+    -- with "cast on key down", a mouse press would cast before a drag can
+    -- start: while buttons are not locked, mouse clicks cast on release
+    -- (keys still cast on press)
+    b:SetAttribute("unlockedpreventdrag", true)
     b:SetAttribute("checkselfcast", K.selfCast or nil)
     b:SetAttribute("checkfocuscast", K.focusCast or nil)
     b:SetAttribute("checkmouseovercast", K.mouseover or nil)
