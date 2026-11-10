@@ -22,7 +22,8 @@ local function Command(b)
 end
 
 local IGNORE = { LSHIFT = true, RSHIFT = true, LCTRL = true, RCTRL = true, LALT = true, RALT = true,
-    UNKNOWN = true, LeftButton = true, RightButton = true }
+    UNKNOWN = true, LeftButton = true, RightButton = true,
+    ENTER = true } -- Enter opens the chat: never taken from it
 local MOUSE = { MiddleButton = "BUTTON3", Button4 = "BUTTON4", Button5 = "BUTTON5" }
 
 local binder, notice, current
