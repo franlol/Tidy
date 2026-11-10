@@ -65,14 +65,18 @@ local EDGES = {
 
 local function Place(s)
     local n = O.size
+    -- Tidy's own buttons: around the whole button (with "contain" the icon
+    -- is smaller than the button, the button keeps its size); the rest:
+    -- around the icon, which fills its button
+    local box = s.frame.tidyFit and s.frame or s.icon
     for side, e in pairs(s.edges) do
         local d = EDGES[side]
         e:ClearAllPoints()
-        SetPoint(e, d[1], s.icon, d[2], d[3] * n, d[4] * n)
-        SetPoint(e, d[5], s.icon, d[6], d[7] * n, d[8] * n)
+        SetPoint(e, d[1], box, d[2], d[3] * n, d[4] * n)
+        SetPoint(e, d[5], box, d[6], d[7] * n, d[8] * n)
     end
     s.bg:ClearAllPoints()
-    s.bg:SetAllPoints(s.icon)
+    s.bg:SetAllPoints(box)
 end
 
 -- Border color: the debuff type / item quality one (if enabled and known) or
@@ -298,7 +302,8 @@ local modernPlayerAuras = BuffFrame and BuffFrame.auraFrames ~= nil
 local function PlayerAuras()
     if not On("playerAuras") then return end
     if modernPlayerAuras then
-        for _, frame in ipairs({ BuffFrame, DebuffFrame }) do
+        for _, frameName in ipairs({ "BuffFrame", "DebuffFrame" }) do
+            local frame = _G[frameName]
             if frame and frame.auraFrames then
                 for _, f in ipairs(frame.auraFrames) do PlayerAura(f) end
             end
@@ -385,7 +390,8 @@ ns.Module(function()
     if classicActionHook then hooksecurefunc("ActionButton_Update", ActionArt) end
 
     if modernPlayerAuras then
-        for _, frame in ipairs({ BuffFrame, DebuffFrame }) do
+        for _, frameName in ipairs({ "BuffFrame", "DebuffFrame" }) do
+            local frame = _G[frameName]
             if frame then
                 local m = (type(frame.UpdateAuraButtons) == "function" and "UpdateAuraButtons")
                     or (type(frame.Update) == "function" and "Update")
@@ -402,7 +408,8 @@ ns.Module(function()
     end
 
     local unitHooked
-    for _, uf in ipairs({ TargetFrame, FocusFrame }) do
+    for _, ufName in ipairs({ "TargetFrame", "FocusFrame" }) do
+        local uf = _G[ufName]
         if uf and type(uf.UpdateAuras) == "function" then
             hooksecurefunc(uf, "UpdateAuras", UnitFrameAuras)
             unitHooked = true

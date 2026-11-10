@@ -144,7 +144,8 @@ local function ShowBlizzard()
 end
 
 local function HideBlizzard()
-    for _, main in ipairs({ MainMenuBar, MainActionBar }) do
+    for _, mainName in ipairs({ "MainMenuBar", "MainActionBar" }) do
+        local main = _G[mainName]
         for _, name in ipairs(KEEP) do
             local f = _G[name]
             if f and main and f:GetParent() == main and not kept[f] then
@@ -349,11 +350,24 @@ function ns.FitIcon(b, z)
     else
         icon:SetAllPoints(b)
     end
-    for _, region in ipairs({ b.cooldown, b.chargeCooldown, b:GetHighlightTexture(), b:GetPushedTexture(),
-        b:GetCheckedTexture(), b.Flash, b.NewActionTexture, b.Border }) do
+    -- the cooldown covers the icon; highlight, pressed, checked, flash and
+    -- the equipped border cover the whole button (its size never changes)
+    -- (numeric loops: some of these may not exist, ipairs would stop there)
+    local onIcon = { b.cooldown, b.chargeCooldown }
+    for i = 1, 2 do
+        local region = onIcon[i]
         if region then
             pcall(region.ClearAllPoints, region)
             pcall(region.SetAllPoints, region, icon)
+        end
+    end
+    local onButton = { b:GetHighlightTexture(), b:GetPushedTexture(), b:GetCheckedTexture(),
+        b.Flash, b.NewActionTexture, b.Border }
+    for i = 1, 6 do
+        local region = onButton[i]
+        if region then
+            pcall(region.ClearAllPoints, region)
+            pcall(region.SetAllPoints, region, b)
         end
     end
 end
