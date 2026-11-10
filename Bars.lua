@@ -436,7 +436,7 @@ local SNAP = 10 -- distance (UIParent units) that pulls the bar
 -- bar is stuck to is bright. Textures are reused between drags.
 local guideFrame
 local guideLines = { v = {}, h = {} } -- vertical / horizontal, [i] = { tex, pos }
-local FAINT, BRIGHT = 0.18, 0.95
+local FAINT, MID, BRIGHT = 0.18, 0.4, 0.95 -- other lines / screen middle / stuck to
 
 local function GuideLine(kind, i)
     if not guideFrame then
@@ -455,24 +455,29 @@ end
 
 -- Places the lines at the given positions (UIParent units), hidden
 local function ShowGuides(tx, ty)
+    -- the screen's own middle (as rounded in SnapTargets)
+    local mid = { v = math.floor(UIParent:GetWidth() / 2 + 0.5), h = math.floor(UIParent:GetHeight() / 2 + 0.5) }
     for kind, positions in pairs({ v = tx, h = ty }) do
         for i, pos in ipairs(positions) do
             local l = GuideLine(kind, i)
             local t = l.tex
             l.pos = pos
+            l.center = pos == mid[kind]
+            local size = l.center and 3 or 1
             t:ClearAllPoints()
             if kind == "v" then
-                t:SetWidth(1)
+                t:SetWidth(size)
                 t:SetPoint("TOP", UIParent, "TOPLEFT", pos, 0)
                 t:SetPoint("BOTTOM", UIParent, "BOTTOMLEFT", pos, 0)
             else
-                t:SetHeight(1)
+                t:SetHeight(size)
                 t:SetPoint("LEFT", UIParent, "BOTTOMLEFT", 0, pos)
                 t:SetPoint("RIGHT", UIParent, "BOTTOMRIGHT", 0, pos)
             end
-            t:SetColorTexture(0.44, 0.76, 1, FAINT)
-            -- hidden until the bar comes near it (LightGuides)
-            t:Hide()
+            t:SetColorTexture(0.44, 0.76, 1, l.center and MID or FAINT)
+            -- hidden until the bar comes near it (LightGuides); the
+            -- screen's middle lines show the whole drag
+            t:SetShown(l.center)
         end
         for i = #positions + 1, #guideLines[kind] do guideLines[kind][i].tex:Hide() end
     end
@@ -484,7 +489,6 @@ local function HideGuides()
     end
 end
 
--- The line at pos (if any) bright, the rest faint
 -- Only the lines near the moving bar are drawn (the rest of the screen stays
 -- clean): faint when an edge or the center is within NEAR, bright for the
 -- one it is stuck to. edges: positions of the bar's edges and center.
@@ -498,8 +502,9 @@ local function LightGuides(kind, pos, edges, count)
             if math.abs(l.pos - e) <= NEAR then near = true break end
         end
         local stuck = pos and l.pos == pos
-        l.tex:SetShown(near or stuck)
-        if near or stuck then l.tex:SetColorTexture(0.44, 0.76, 1, stuck and BRIGHT or FAINT) end
+        local show = near or stuck or l.center
+        l.tex:SetShown(show)
+        if show then l.tex:SetColorTexture(0.44, 0.76, 1, stuck and BRIGHT or (l.center and MID or FAINT)) end
     end
 end
 
