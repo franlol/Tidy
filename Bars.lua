@@ -288,7 +288,8 @@ end
 local function ButtonConfig(b, c)
     local G = B.buttons
     return {
-        showGrid = c.showGrid,
+        -- unlocked: every slot shows, like the samples of the other bars
+        showGrid = c.showGrid or not B.locked,
         keyBoundTarget = b.tidyCommand or false,
         keyBoundClickButton = "Keybind",
         actionButtonUI = true,

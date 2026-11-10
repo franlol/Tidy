@@ -41,8 +41,10 @@ local MICRO = MICRO_BUTTONS or {
 local HIDE_IN_VEHICLE = "[petbattle][overridebar][vehicleui][possessbar] hide; "
 local DEFS = {
     pet = { group = Names("PetActionButton", 10), secure = true, padding = 2,
+        sample = "Interface\\Icons\\Ability_Hunter_Pet_Wolf",
         visibility = HIDE_IN_VEHICLE .. "[pet] show; hide" },
     stance = { group = Names("StanceButton", 10), secure = true, padding = 2,
+        sample = "Interface\\Icons\\Spell_Shadow_Shadowform",
         count = function() return GetNumShapeshiftForms and GetNumShapeshiftForms() or 0 end,
         visibility = HIDE_IN_VEHICLE .. "show" },
     -- emptied: art of the Blizzard frame the buttons leave ({ frame, key }):
@@ -53,10 +55,12 @@ local DEFS = {
         "CharacterBag1Slot", "CharacterBag0Slot", "MainMenuBarBackpackButton", "KeyRingButton" },
         padding = 2, packShown = true,
         emptied = { { "BagsBar", "BorderArt" }, { "BagsBar", "BackgroundArt" } } },
-    status = { frame = "StatusTrackingBarManager", width = true },
-    extra = { frame = ExtraAbilityContainer and "ExtraAbilityContainer" or "ExtraActionBarFrame", secure = true, size = { 128, 128 } },
-    vehicle = { frame = "MainMenuBarVehicleLeaveButton", size = { 32, 32 } },
-    queue = { frame = "QueueStatusButton", size = { 32, 32 } },
+    status = { frame = "StatusTrackingBarManager", width = true, sample = "bar" },
+    extra = { frame = ExtraAbilityContainer and "ExtraAbilityContainer" or "ExtraActionBarFrame", secure = true, size = { 128, 128 },
+        sample = "Interface\\Icons\\INV_Misc_QuestionMark", sampleSize = 0.45 },
+    vehicle = { frame = "MainMenuBarVehicleLeaveButton", size = { 32, 32 },
+        sample = "Interface\\Vehicles\\UI-Vehicles-Button-Exit-Up", sampleFull = true },
+    queue = { frame = "QueueStatusButton", size = { 32, 32 }, sample = "Interface\\Icons\\INV_Misc_Spyglass_02" },
 }
 
 function ns.HolderDefaults(id)
@@ -169,6 +173,36 @@ local function Exists(id)
     return Content(def) ~= nil
 end
 
+-------------------------------------------------------------------------------
+-- Samples: while unlocked, a faded example of what a bar can show, where it
+-- shows nothing now (pet bar without a pet, no forms, no extra button...).
+-- Drawn on the mover, so they only exist while unlocked.
+-------------------------------------------------------------------------------
+local SAMPLE_ALPHA = 0.45
+
+local function Sample(h, i, def)
+    h.samples = h.samples or {}
+    local t = h.samples[i]
+    if not t then
+        t = h.mover:CreateTexture(nil, "ARTWORK")
+        h.samples[i] = t
+    end
+    t:ClearAllPoints()
+    if def.sample == "bar" then
+        t:SetColorTexture(0.58, 0.3, 0.9, 1) -- an XP bar
+    else
+        t:SetTexture(def.sample)
+        if def.sampleFull then t:SetTexCoord(0, 1, 0, 1) else t:SetTexCoord(0.08, 0.92, 0.08, 0.92) end
+    end
+    t:SetAlpha(SAMPLE_ALPHA)
+    t:Show()
+    return t
+end
+
+local function HideSamples(h, from)
+    for i = from, #(h.samples or {}) do h.samples[i]:Hide() end
+end
+
 -- Buttons in rows: cell = biggest button, each one centered in its cell
 local function LayoutGroup(h, c, def)
     local list = GroupButtons(def)
@@ -236,6 +270,22 @@ local function LayoutGroup(h, c, def)
     else
         h:SetSize(math.max(1, cols * cw + (cols - 1) * pad), math.max(1, rows * ch + (rows - 1) * pad))
     end
+    -- samples on the slots that show nothing now
+    local n = 0
+    if def.sample then
+        if empty then
+            n = 1
+            Sample(h, 1, def):SetAllPoints(h)
+        else
+            for _, b in ipairs(shown) do
+                if not b:IsShown() then
+                    n = n + 1
+                    Sample(h, n, def):SetAllPoints(b)
+                end
+            end
+        end
+    end
+    HideSamples(h, n + 1)
 end
 
 -- XP / reputation: the two Blizzard containers stacked, as wide as chosen
@@ -352,6 +402,21 @@ local function Layout(id)
         if mgr and mgr.showingFrames then mgr.showingFrames[f] = nil end
         if def.width then LayoutStatus(h, c, f) else LayoutFrame(h, c, def, f) end
         if id == "extra" then ns.ExtraArt(not c.hideArt) end
+        -- a sample when the frame shows nothing now
+        if def.sample and not f:IsShown() then
+            local t = Sample(h, 1, def)
+            local k = def.sampleSize
+            if k then
+                local s = math.min(h:GetWidth(), h:GetHeight()) * k
+                t:SetSize(s, s)
+                t:SetPoint("CENTER", h, "CENTER")
+            else
+                t:SetAllPoints(h)
+            end
+            HideSamples(h, 2)
+        else
+            HideSamples(h, 1)
+        end
     end
     h.mover:SetShown(not ns.P.bars.locked and c.enabled)
 end
@@ -372,7 +437,7 @@ local function Hook(id)
     if def.group then
         for _, b in ipairs(GroupButtons(def)) do
             hooksecurefunc(b, "SetPoint", Again)
-            if def.packShown then
+            if def.packShown or def.sample then -- (samples follow what is shown)
                 b:HookScript("OnShow", Again)
                 b:HookScript("OnHide", Again)
             end
@@ -396,6 +461,10 @@ local function Hook(id)
         -- no SetPoint hook here (it would be a raw field, mixed up with
         -- Edit Mode's overrides): the places where Blizzard re-anchors
         local f = Content(def)
+        if def.sample then
+            f:HookScript("OnShow", Again)
+            f:HookScript("OnHide", Again)
+        end
         HookMethod(f, "ApplySystemAnchor")
         HookMethod(f, "UpdatePosition")
         HookMethod(f, "Update")

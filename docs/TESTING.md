@@ -7,7 +7,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 2. Blizzard action bars are gone; Tidy bars show your spells and keybinds.
 
 ## All bars
-3. Bars → All bars → **Lock / unlock**: every bar shows a blue box with its name (also pet, stance, micro, bags, XP, extra, vehicle, queue).
+3. **Unlock bars**: every bar shows a blue box with its name on a tag above (also pet, stance, micro, bags, XP, extra, vehicle, queue). Bars that show nothing now show a faded sample (pet icons, a form, the extra button, the leave vehicle button, the queue eye, an XP bar); action bars show their empty slots.
 4. Drag a bar: only the guide lines near it show (faint); the one it sticks to turns bright. Drop: it stays.
 5. Click a bar (no drag): the panel opens on that bar.
 6. **Keybinding mode**: hover a button, press a key → the key shows on it. Esc leaves.
