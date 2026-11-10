@@ -218,6 +218,10 @@ local function Layout(id)
     local h, def = holders[id], DEFS[id]
     if not h or not h.active then return end
     local c = ns.BarConfig(id)
+    -- in a vehicle / pet battle Blizzard shows the micro buttons on its own
+    -- bar: leave them there, they come back by themselves (SetParent hook)
+    if id == "micro" and ((OverrideActionBar and OverrideActionBar:IsShown())
+        or (PetBattleFrame and PetBattleFrame:IsShown())) then return end
     if def.group then
         for _, b in ipairs(GroupButtons(def)) do Take(b, h) end
         LayoutGroup(h, c, def)
@@ -237,7 +241,7 @@ local function Relayout(id)
     if busy then return end
     local h = holders[id]
     if not h or not h.active then return end
-    if DEFS[id].secure then ns.RunOOC("holder" .. id, function() Layout(id) end) else Layout(id) end
+    if DEFS[id].secure then ns.RunOOC("relayout" .. id, function() Layout(id) end) else Layout(id) end
 end
 
 -- Hooks: installed once, they only act while the holder is active

@@ -283,6 +283,12 @@ ev:SetScript("OnEvent", function(self, event, name)
     end
 end)
 
+-- lang: "esES", "enUS" or nil (the game's language)
+function ns.SetLanguagePref(lang)
+    ns.db.language = lang
+    ApplyLanguage()
+end
+
 -------------------------------------------------------------------------------
 -- Slash command
 -------------------------------------------------------------------------------

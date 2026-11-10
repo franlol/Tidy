@@ -321,9 +321,8 @@ function ns.FitIcon(b, z)
         end
     end
     icon:SetTexCoord(l, r, t, bo)
-    local key = w .. ":" .. h .. ":" .. f.mode
-    if b.tidyFitKey == key then return end
-    b.tidyFitKey = key
+    -- re-anchored every time: LibActionButton moves the cooldown and the
+    -- highlight back to its own sizes when the action changes
     icon:ClearAllPoints()
     if f.mode == "contain" then
         local m = math.min(w, h)
@@ -340,6 +339,19 @@ function ns.FitIcon(b, z)
         end
     end
 end
+
+-- Zoom of the square icons, if they are on for action bars
+local function IconZoom()
+    local I = ns.P.icons
+    return I.enabled and I.actionbars and I.zoom or 0
+end
+
+-- After every update of a Tidy button: the icon fit again (own key for the
+-- callback, Icons.lua has its own)
+local fitKey = {}
+LAB.RegisterCallback(fitKey, "OnButtonUpdate", function(_, b)
+    if b.tidyFit then ns.FitIcon(b, IconZoom()) end
+end)
 
 local function CreateButton(header, id, i)
     local b = LAB:CreateButton((id - 1) * 12 + i, "TidyBar" .. id .. "Button" .. i, header)
@@ -373,7 +385,7 @@ local function Layout(h, c)
     local cols = math.ceil(n / rows)
     local pad = c.padding
     local bw, bh = c.buttonWidth or BUTTON, c.buttonHeight or BUTTON
-    local zoom = ns.P.icons.enabled and ns.P.icons.actionbars and ns.P.icons.zoom or 0
+    local zoom = IconZoom()
     for i, b in ipairs(h.buttons) do
         b:ClearAllPoints()
         if i <= n then
@@ -660,6 +672,8 @@ function ns.UpdateGryphons(h)
 end
 
 function ns.ApplyBars()
+    -- mouse-over casting needs the game setting too (it is per account)
+    if B.casting.mouseover then SetCVar("enableMouseoverCast", "1") end
     for _, id in ipairs(BAR_IDS) do ns.ApplyBar(id) end
     for _, id in ipairs(ns.HOLDER_IDS) do ns.ApplyHolder(id) end
     ns.UpdateBinds()
@@ -731,7 +745,6 @@ local PRESETS = {
         [5] = { true, 1, Pos("BOTTOM", -281, 156) }, [3] = { false }, [4] = { false },
     },
 }
-ns.PRESET_IDS = { "blizzard", "compact", "split" }
 
 function ns.ApplyPreset(name)
     local p = PRESETS[name]
@@ -867,8 +880,6 @@ end, function()
     -- another profile: its bars (on/off, layout, lock)
     B = ns.P.bars
     ns.SetBarsActive(B.enabled)
-    if ns.barsActive then
-        ns.ApplyBars()
-        ns.SetBarsLocked(B.locked)
-    end
+    -- already on: lay out the new profile's bars (the lock is in it too)
+    if ns.barsActive then ns.ApplyBars() end
 end)

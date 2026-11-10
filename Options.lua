@@ -113,16 +113,27 @@ local function BuildGeneral(container)
     local apply = UI.Buttons(look, { { L["Apply preset"], function()
         if preset.name then ns.ApplyPreset(preset.name) UI.RefreshAll() end
     end, "accent" } }, { enableIf = function() return active() and preset.name ~= nil end,
-        tip = L["Moves the action bars 1 and 3-6 to a ready layout. The other settings stay."] })
+        tip = L["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."] })
     UI.Confirm(apply.buttons[1])
     look:Add(apply)
     look:Add(UI.Check(look, L["Gryphons on bar 1"], function() return ns.P.bars.gryphons end,
         function(v) ns.P.bars.gryphons = v if ns.UpdateGryphons then ns.UpdateGryphons() end end,
         { enableIf = active }))
 
-    local misc = page:Add(2, UI.Card(page.content, L["Minimap"]))
+    local misc = page:Add(2, UI.Card(page.content, L["Addon"]))
     misc:Add(UI.Check(misc, L["Minimap button"], function() return not ns.db.minimap.hide end,
         function(v) ns.db.minimap.hide = not v ns.UpdateMinimapButton() end))
+    misc:Add(UI.Dropdown(misc, L["Language"], {
+        { "auto", L["Game language"] }, { "enUS", "English" }, { "esES", "Español" },
+    }, function() return ns.db.language or "auto" end, function(v)
+        ns.SetLanguagePref(v ~= "auto" and v or nil)
+        -- the window is built again in the new language, on the same page
+        local page = win.current
+        win:Hide()
+        win = nil
+        ns.ToggleOptions()
+        win:Select(page)
+    end))
 end
 
 -------------------------------------------------------------------------------
@@ -175,7 +186,12 @@ end
 local function PAGE_OPTIONS(withNone)
     local list = {}
     if withNone then list[1] = { 0, L["None"] } end
-    for p = 1, 10 do list[#list + 1] = { p, (L["Page %d"]):format(p) } end
+    -- 1-10: the usual pages (7-10 are also the stance / form pages);
+    -- 13-15: the pages of the extra bars 13-15 (11 and 12 are the game's
+    -- vehicle / possess pages, not for free use)
+    for _, p in ipairs({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15 }) do
+        list[#list + 1] = { p, (L["Page %d"]):format(p) }
+    end
     return list
 end
 
@@ -204,6 +220,14 @@ local function BuildBars(container)
     S(card, L["Scale"], "scale", 0.5, 2, 0.05, UI.pct)
     S(card, L["Opacity"], "alpha", 0, 1, 0.05, UI.pct)
     S(card, L["Width"], "width", 200, 1500, 1, UI.px, function() return selected == "status" end)
+    local reset = UI.Buttons(card, { { L["Reset this bar"], function()
+        ns.P.bars.list[selected] = nil
+        if ns.barsActive then ns.ApplyBar(selected) if IsAction() then ns.UpdateBinds() end end
+        UI.RefreshAll()
+    end, "danger" } }, { enableIf = active,
+        tip = L["Every setting of this bar back to its default (holders: back to where they are now)."] })
+    UI.Confirm(reset.buttons[1])
+    card:Add(reset)
     local hg, hs = BB("growH")
     card:Add(UI.Segmented(card, L["Fill"], { { "RIGHT", L["To the right"] }, { "LEFT", L["To the left"] } },
         hg, hs, { enableIf = When(HasRows) }))
@@ -292,6 +316,19 @@ local function BuildButtons(container)
         function(v) SetCVar("ActionButtonUseKeyDown", v and "1" or "0") end, { tip = L["A game setting: for every bar."] }))
 
     -- Casting helpers
+    local resetButtons = UI.Buttons(card, { { L["Defaults"], function()
+        local D = ns.defaults.bars
+        for _, key in ipairs({ "buttons", "casting" }) do
+            local t = ns.P.bars[key]
+            wipe(t)
+            for k, v in pairs(ns.Copy(D[key])) do t[k] = v end
+        end
+        ApplyAllBars()
+        UI.RefreshAll()
+    end } }, { tip = L["Behaviour, casting and texts back to their defaults."] })
+    UI.Confirm(resetButtons.buttons[1])
+    card:Add(resetButtons)
+
     card = page:Add(1, UI.Card(page.content, L["Casting"]))
     local K = function() return ns.P.bars.casting end
     local function KB(key, also)

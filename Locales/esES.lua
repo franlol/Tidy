@@ -91,8 +91,8 @@ ns.translations.esES = {
     ["Compact"] = "Compacta",
     ["Split"] = "Dividida",
     ["Apply preset"] = "Aplicar plantilla",
-    ["Moves the action bars 1 and 3-6 to a ready layout. The other settings stay."] =
-        "Coloca las barras de acción 1 y 3-6 en una disposición lista. El resto de ajustes se mantiene.",
+    ["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."] =
+        "Coloca las barras de acción 1 y 3-6 en una disposición lista (posición, filas, espaciado, escala). El resto de ajustes se mantiene.",
     ["Gryphons on bar 1"] = "Grifos en la barra 1",
     ["Minimap"] = "Minimapa",
     ["Minimap button"] = "Botón del minimapa",
@@ -102,6 +102,15 @@ ns.translations.esES = {
     ["Drag"] = "Arrastrar",
     ["Open the options"] = "Abrir las opciones",
     ["Move this button"] = "Mover este botón",
+
+    ["Addon"] = "Addon",
+    ["Language"] = "Idioma",
+    ["Game language"] = "Idioma del juego",
+    ["Reset this bar"] = "Restablecer esta barra",
+    ["Every setting of this bar back to its default (holders: back to where they are now)."] =
+        "Todos los ajustes de esta barra a sus valores por defecto (las barras de Blizzard se quedan donde están ahora).",
+    ["Behaviour, casting and texts back to their defaults."] =
+        "Comportamiento, lanzamiento y textos a sus valores por defecto.",
 
     -- Keybinding mode
     ["no key"] = "sin tecla",

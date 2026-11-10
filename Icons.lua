@@ -222,11 +222,6 @@ local function HookBlizzardAction(b)
     ActionArt(b)
 end
 
--- Tidy's own bars use Blizzard's button template: same treatment
-function ns.SkinActionButton(b)
-    if O then HookBlizzardAction(b) end
-end
-
 local ACTION_NAMES = {}
 for _, prefix in ipairs({
     "ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton",
