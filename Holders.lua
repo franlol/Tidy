@@ -312,6 +312,7 @@ local function LayoutGroup(h, c, def)
     -- nothing to show (no forms yet, no pet...): a box the size of a button
     -- row, so the bar can still be seen and moved while unlocked
     local empty = #shown == 0
+    h.label = ns.HolderName(h.id)
     h.mover.text:SetText(h.label)
     local sources = def.sample and SampleSources(def) or {}
     local n = 0

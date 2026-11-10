@@ -787,6 +787,8 @@ end
 function ns.SetBarsLocked(locked)
     B.locked = locked
     for id, h in pairs(bars) do
+        -- the name in the language in use
+        h.mover.text:SetText(h.kind == "holder" and ns.HolderName(id) or (L["Bar %d"]):format(id))
         h.mover:SetShown(not locked and ns.BarConfig(id).enabled)
     end
     -- hidden bars show while unlocked (visibility drivers), and back after

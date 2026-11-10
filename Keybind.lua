@@ -92,7 +92,7 @@ local function CreateBinder()
     notice:SetBackdropBorderColor(0.44, 0.76, 1, 1)
     local t = notice:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     t:SetPoint("CENTER")
-    t:SetText(L["Keybinding mode: hover a button and press a key. Esc to leave."])
+    notice.text = t
     notice:Hide()
 end
 
@@ -131,6 +131,7 @@ function ns.SetBindMode(on)
     if not binder then CreateBinder() end
     ns.bindMode = on and true or nil
     if on then HookButtons() end
+    notice.text:SetText(L["Keybinding mode: hover a button and press a key. Esc to leave."])
     notice:SetShown(on and true or false)
     if not on then
         binder:Hide()

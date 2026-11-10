@@ -123,9 +123,14 @@ local function BuildGeneral(container)
         function() return ns.db.language or "enUS" end, function(v)
             ns.SetLanguagePref(v)
             -- the window is built again in the new language, on the same page
+            -- (the old window and every control in it are forgotten: they
+            -- would keep refreshing and answering for the new one)
             local page = win.current
             win:Hide()
             win = nil
+            wipe(UI.widgets)
+            wipe(UI.pages)
+            wipe(tabBars)
             ns.ToggleOptions()
             win:Select(page)
         end))
