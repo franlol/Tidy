@@ -278,7 +278,7 @@ local function TextConfig(t)
     local p = t.point
     return {
         font = { font = t.font, size = t.size, flags = t.outline },
-        color = { t.color.r, t.color.g, t.color.b },
+        color = { t.color.r, t.color.g, t.color.b, t.color.a or 1 },
         position = { anchor = p, relAnchor = p, offsetX = t.x, offsetY = t.y },
         justifyH = p:find("LEFT") and "LEFT" or (p:find("RIGHT") and "RIGHT" or "CENTER"),
     }
@@ -296,8 +296,8 @@ local function ButtonConfig(b, c)
         outOfRangeColoring = G.range,
         tooltip = G.tooltip,
         colors = {
-            range = { G.rangeColor.r, G.rangeColor.g, G.rangeColor.b },
-            mana = { G.manaColor.r, G.manaColor.g, G.manaColor.b },
+            range = { G.rangeColor.r, G.rangeColor.g, G.rangeColor.b, G.rangeColor.a or 1 },
+            mana = { G.manaColor.r, G.manaColor.g, G.manaColor.b, G.manaColor.a or 1 },
         },
         hideElements = { macro = c.hideMacro, hotkey = c.hideHotkey, equipped = c.hideEquipped },
         flyoutDirection = c.flyout,

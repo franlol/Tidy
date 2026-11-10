@@ -48,17 +48,17 @@ ns.defaults = {
         buttons = {
             tooltip = "enabled",  -- enabled / nocombat / disabled
             range = "button",     -- out of range: button / hotkey / none
-            rangeColor = { r = 0.8, g = 0.1, b = 0.1 },
-            manaColor = { r = 0.5, g = 0.5, b = 1 },
+            rangeColor = { r = 0.8, g = 0.1, b = 0.1, a = 1 },
+            manaColor = { r = 0.5, g = 0.5, b = 1, a = 1 },
             castVFX = true,       -- cast animation on the button
             lock = false,         -- no dragging spells off (Shift drags)
             texts = {
                 hotkey = { show = true, font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,
-                    color = { r = 0.75, g = 0.75, b = 0.75 } },
+                    color = { r = 0.75, g = 0.75, b = 0.75, a = 1 } },
                 count = { show = true, font = "Fonts\\ARIALN.TTF", size = 16, outline = "OUTLINE", point = "BOTTOMRIGHT", x = -2, y = 4,
-                    color = { r = 1, g = 1, b = 1 } },
+                    color = { r = 1, g = 1, b = 1, a = 1 } },
                 macro = { show = true, font = "Fonts\\FRIZQT__.TTF", size = 10, outline = "OUTLINE", point = "BOTTOM", x = 0, y = 2,
-                    color = { r = 1, g = 1, b = 1 } },
+                    color = { r = 1, g = 1, b = 1, a = 1 } },
             },
         },
         casting = {

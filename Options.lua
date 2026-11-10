@@ -439,8 +439,8 @@ local function BuildButtons(container)
             card:Add(UI.Dropdown(card, L["Out of range"], {
                 { "button", L["Color the button"] }, { "hotkey", L["Color the keybind"] }, { "none", L["Nothing"] },
             }, rg, rs))
-            card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars))
-            card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars))
+            card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars, { alpha = true }))
+            card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars, { alpha = true }))
 
             card = page:Add(2, UI.Card(page.content, L["Defaults"]))
             local reset = UI.Buttons(card, { { L["Defaults"], function()
@@ -506,7 +506,7 @@ local function BuildButtons(container)
             card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { enableIf = shown }))
             local og, os = TB("outline")
             card:Add(UI.Dropdown(card, L["Outline"], OUTLINES, og, os, { enableIf = shown }))
-            card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars, { enableIf = shown }))
+            card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars, { alpha = true, enableIf = shown }))
 
             card = page:Add(2, UI.Card(page.content, L["Position"]))
             local pg, ps = TB("point")
