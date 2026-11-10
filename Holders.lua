@@ -227,7 +227,7 @@ local function LayoutGroup(h, c, def)
     -- nothing to show (no forms yet, no pet...): a box the size of a button
     -- row, so the bar can still be seen and moved while unlocked
     local empty = #shown == 0
-    h.mover.text:SetText(empty and (h.label .. " (" .. L["empty"] .. ")") or h.label)
+    h.mover.text:SetText(h.label)
     if empty then
         -- one button of the bar, like any one-item bar (leave vehicle...)
         local w, hh = 30, 30
