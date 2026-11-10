@@ -677,14 +677,22 @@ local function Build()
     win = UI.Window({ name = "TidyOptions", title = "Tidy", version = ns.version,
         width = 680, height = 520, navWidth = 110 })
     -- header buttons, lit while on (any page)
-    win:AddHeaderButton(L["Keybinding mode"], function()
+    local bindBtn = win:AddHeaderButton(L["Keybinding mode"], function()
         if ns.barsActive then ns.SetBindMode(not ns.bindMode) end
         UI.RefreshAll()
     end, function() return ns.bindMode and true or false end, L["Hover a button and press a key. Esc to leave."])
-    win:AddHeaderButton(L["Unlock bars"], function()
+    local lockBtn = win:AddHeaderButton(L["Unlock bars"], function()
         if ns.barsActive then ns.SetBarsLocked(not ns.P.bars.locked) end
         UI.RefreshAll()
     end, function() return not ns.P.bars.locked end, L["Drag a bar to move it, click it to edit it."])
+    -- both only work on Tidy's bars: greyed while they are off
+    for _, b in ipairs({ bindBtn, lockBtn }) do
+        local paint = b.Refresh
+        b.Refresh = function(self)
+            paint(self)
+            UI.SetEnabled(self, ns.barsActive and true or false)
+        end
+    end
     win:AddNav("general", L["General"], BuildGeneral)
     win:AddNav("bars", L["Bars"], BuildBars, active)
     win:AddNav("buttons", L["Buttons"], BuildButtons)
