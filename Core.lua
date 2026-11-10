@@ -31,6 +31,11 @@ ns.defaults = {
         zoom = 0.08,                           -- how much of the icon edge is cut
         debuffColor = false,                   -- border colored by debuff type
         qualityColor = true,                   -- border colored by item quality
+        -- action buttons: hover / pressed / active look
+        states = "flat",                       -- flat (Tidy) / blizzard (the game's frames)
+        hoverColor = { r = 1, g = 1, b = 1, a = 0.15 },
+        pushColor = { r = 0, g = 0, b = 0, a = 0.35 },
+        checkColor = { r = 1, g = 0.82, b = 0, a = 0.3 },
     },
     bars = {
         enabled = false,  -- replaces Blizzard's action bars

@@ -565,6 +565,18 @@ local function BuildIcons(container)
     local qg, qs = IB("qualityColor", true)
     look:Add(UI.Check(look, L["Item quality color"], qg, qs, { enableIf = on,
         tip = L["Item border by rarity (green, blue, purple...) instead of the chosen color."] }))
+
+    -- action buttons: hover / pressed / active
+    local states = page:Add(2, UI.Card(page.content, L["Button states"],
+        L["How action buttons look when hovered, pressed or active (auto attack, current stance)."]))
+    local stg, sts = IB("states", true)
+    states:Add(UI.Segmented(states, nil, { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } },
+        stg, sts, { enableIf = on }))
+    local flat = function() return on() and O().states ~= "blizzard" end
+    for _, def in ipairs({ { "hoverColor", "Hover" }, { "pushColor", "Pressed" }, { "checkColor", "Active" } }) do
+        states:Add(UI.Swatch(states, L[def[2]], function() return O()[def[1]] end, ns.ApplyIcons,
+            { alpha = true, enableIf = flat }))
+    end
     look:Add(UI.Buttons(look, { { L["Defaults"], function()
         local keep = {}
         for _, k in ipairs(WHERE) do keep[k] = ns.P.icons[k] end

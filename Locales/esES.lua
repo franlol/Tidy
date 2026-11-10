@@ -163,6 +163,15 @@ ns.translations.esES = {
         "Dónde está el botón 1 y hacia dónde siguen los demás. La barra no se mueve.",
     ["Which row comes first. Only with more than one row."] = "Qué fila va primero. Solo con más de una fila.",
 
+    ["Button states"] = "Estados de los botones",
+    ["How action buttons look when hovered, pressed or active (auto attack, current stance)."] =
+        "Cómo se ven los botones de acción al pasar el ratón, al pulsarlos o activos (ataque automático, postura actual).",
+    ["Flat"] = "Plano",
+    ["Blizzard"] = "Blizzard",
+    ["Hover"] = "Al pasar el ratón",
+    ["Pressed"] = "Pulsado",
+    ["Active"] = "Activo",
+
     -- Keybinding mode
     ["no key"] = "sin tecla",
     ["Press a key to bind it"] = "Pulsa una tecla para asignarla",

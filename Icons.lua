@@ -111,6 +111,14 @@ end
 -- button-sized overlays are used instead. Hooks are installed once and only
 -- act while the button is styled.
 -------------------------------------------------------------------------------
+-- a region Tidy hid gets its own alpha back (and is no longer Tidy's)
+local function Unhide(s, region)
+    if region and s.hidden[region] ~= nil then
+        region:SetAlpha(s.hidden[region])
+        s.hidden[region] = nil
+    end
+end
+
 local function FlatStates(b, s)
     local st = s.states
     if not st then
@@ -118,26 +126,37 @@ local function FlatStates(b, s)
         s.states = st
         -- hover: the HIGHLIGHT layer shows by itself while the mouse is over
         st.hover = b:CreateTexture(nil, "HIGHLIGHT")
-        st.hover:SetColorTexture(1, 1, 1, 0.15)
         -- pressed (mouse) and active (auto attack, current stance...)
         st.push = b:CreateTexture(nil, "OVERLAY", nil, 6)
-        st.push:SetColorTexture(0, 0, 0, 0.35)
         st.push:Hide()
         st.check = b:CreateTexture(nil, "OVERLAY", nil, 5)
-        st.check:SetColorTexture(1, 0.82, 0, 0.3)
         st.check:Hide()
-        for _, t in pairs(st) do t:SetAllPoints(b) end
-        b:HookScript("OnMouseDown", function() if not s.off then st.push:Show() end end)
+        for _, t in ipairs({ st.hover, st.push, st.check }) do t:SetAllPoints(b) end
+        b:HookScript("OnMouseDown", function() if st.flat and not s.off then st.push:Show() end end)
         b:HookScript("OnMouseUp", function() st.push:Hide() end)
         if type(b.SetChecked) == "function" then
-            hooksecurefunc(b, "SetChecked", function(_, on) st.check:SetShown(not s.off and on and true or false) end)
+            hooksecurefunc(b, "SetChecked", function(_, on)
+                st.check:SetShown(st.flat and not s.off and on and true or false)
+            end)
         end
     end
-    st.hover:SetAlpha(1)
-    if b.GetChecked then st.check:SetShown(b:GetChecked() and true or false) end
-    Hide(s, b:GetHighlightTexture())
-    Hide(s, b:GetPushedTexture())
-    Hide(s, b.GetCheckedTexture and b:GetCheckedTexture())
+    local natives = { b:GetHighlightTexture(), b:GetPushedTexture(), b.GetCheckedTexture and b:GetCheckedTexture() }
+    st.flat = O.states ~= "blizzard"
+    if st.flat then
+        local function C(t, c) t:SetColorTexture(c.r, c.g, c.b, c.a or 1) end
+        C(st.hover, O.hoverColor)
+        C(st.push, O.pushColor)
+        C(st.check, O.checkColor)
+        st.hover:SetAlpha(1)
+        st.check:SetShown(b.GetChecked and b:GetChecked() and true or false)
+        for i = 1, 3 do Hide(s, natives[i]) end
+    else
+        -- "Blizzard": the game's own frames, ours off
+        st.hover:SetAlpha(0)
+        st.push:Hide()
+        st.check:Hide()
+        for i = 1, 3 do Unhide(s, natives[i]) end
+    end
 end
 
 local function IconOf(f)
@@ -400,6 +419,7 @@ function ns.ApplyIcons()
             ZoomSkin(s)
             Place(s)
             Paint(s)
+            if s.kind == "action" then FlatStates(s.frame, s) end
         end
     end
 end
