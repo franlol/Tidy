@@ -1,0 +1,25 @@
+## Interface: 16001
+## Title: Tidy
+## Notes: A cleaner interface: action bars, square icons and Blizzard's bars where you want them.
+## Notes-esES: Una interfaz más limpia: barras de acción, iconos cuadrados y las barras de Blizzard donde quieras.
+## Notes-esMX: Una interfaz más limpia: barras de acción, iconos cuadrados y las barras de Blizzard donde quieras.
+## Author: franlol
+## Version: 0.2.0
+## SavedVariables: TidyDB
+## OptionalDeps: Bartender4
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibButtonGlow-1.0\LibButtonGlow-1.0.lua
+Libs\LibActionButton-1.0\LibActionButton-1.0.lua
+Libs\LibFlatyUI-1.0\LibFlatyUI-1.0.lua
+
+Locales\Locale.lua
+Locales\esES.lua
+Core.lua
+Icons.lua
+Bars.lua
+Holders.lua
+Keybind.lua
+Minimap.lua
+Options.lua
