@@ -671,6 +671,7 @@ end
 -------------------------------------------------------------------------------
 local function Build()
     win = UI.Window({ name = "TidyOptions", title = "Tidy", version = ns.version,
+        logo = "Interface\\AddOns\\Tidy\\Media\\Icon",
         width = 680, height = 520, navWidth = 110 })
     -- header buttons, lit while on (any page)
     local bindBtn = win:AddHeaderButton(L["Keybinding mode"], function()
