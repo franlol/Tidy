@@ -132,8 +132,13 @@ local function FlatStates(b, s)
         st.check = b:CreateTexture(nil, "OVERLAY", nil, 5)
         st.check:Hide()
         for _, t in ipairs({ st.hover, st.push, st.check }) do t:SetAllPoints(b) end
+        -- pressed: only while the mouse button is held; cleared on release,
+        -- after the click, when the mouse leaves and when hidden (never stays)
         b:HookScript("OnMouseDown", function() if st.flat and not s.off then st.push:Show() end end)
-        b:HookScript("OnMouseUp", function() st.push:Hide() end)
+        local function Release() st.push:Hide() end
+        for _, script in ipairs({ "OnMouseUp", "PostClick", "OnLeave", "OnHide" }) do
+            if b:HasScript(script) then b:HookScript(script, Release) end
+        end
         if type(b.SetChecked) == "function" then
             hooksecurefunc(b, "SetChecked", function(_, on)
                 st.check:SetShown(st.flat and not s.off and on and true or false)
