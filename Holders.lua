@@ -372,6 +372,9 @@ local function ResizeContainer(container, width)
     for _, bar in ipairs(container.bars or {}) do
         pcall(bar.SetSize, bar, bw, bh)
         if bar.StatusBar then pcall(bar.StatusBar.SetSize, bar.StatusBar, bw, bh) end
+        -- parts Blizzard sizes from the bar's width when it redraws it (the
+        -- blue rested XP, the tick): redrawn at the new width
+        if type(bar.Update) == "function" then pcall(bar.Update, bar) end
     end
     container:SetWidth(width)
     if container.UpdateDividers and container.GetExpectedSegments then
