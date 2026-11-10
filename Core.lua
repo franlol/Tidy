@@ -295,27 +295,38 @@ function ns.Probe()
     ns.Print(L["Put the mouse over it: recording in 3 seconds..."])
     C_Timer.After(3, function()
         local out = {}
+        -- some frames answer with protected ("secret") values that addon
+        -- code may not test: those are skipped
+        local secret = issecretvalue or function() return false end
+        local function Plain(v) return not secret(v) end
+        local function Record(f)
+            local over = f:IsMouseOver()
+            if not Plain(over) or not over then return end
+            local vis = f:IsVisible()
+            if not Plain(vis) or not vis or f == WorldFrame or f == UIParent then return end
+            local w, h = f:GetSize()
+            local entry = {
+                name = f.GetDebugName and f:GetDebugName() or tostring(f:GetName()),
+                size = (Plain(w) and Plain(h)) and ("%dx%d"):format(w or 0, h or 0) or "?",
+                strata = f:GetFrameStrata(), level = f:GetFrameLevel(), textures = {},
+            }
+            for _, r in ipairs({ f:GetRegions() }) do
+                local ok, shown = pcall(function()
+                    local v, a = r:IsVisible(), r:GetAlpha()
+                    return r:IsObjectType("Texture") and Plain(v) and v and Plain(a) and a > 0
+                end)
+                if ok and shown then
+                    local key
+                    for k, v in pairs(f) do if v == r then key = k break end end
+                    entry.textures[#entry.textures + 1] = ("%s %s"):format(key or "?",
+                        tostring(r:GetAtlas() or r:GetTexture()))
+                end
+            end
+            out[#out + 1] = entry
+        end
         local f = EnumerateFrames()
         while f do
-            local ok, over = pcall(f.IsMouseOver, f)
-            if ok and over and f:IsVisible() and f ~= WorldFrame and f ~= UIParent then
-                local w, h = f:GetSize()
-                local entry = {
-                    name = f.GetDebugName and f:GetDebugName() or tostring(f:GetName()),
-                    size = ("%dx%d"):format(w or 0, h or 0),
-                    strata = f:GetFrameStrata(), level = f:GetFrameLevel(),
-                    alpha = f:GetEffectiveAlpha(), textures = {},
-                }
-                for _, r in ipairs({ f:GetRegions() }) do
-                    if r:IsObjectType("Texture") and r:IsVisible() and r:GetAlpha() > 0 then
-                        local key
-                        for k, v in pairs(f) do if v == r then key = k break end end
-                        entry.textures[#entry.textures + 1] = ("%s %s"):format(key or "?",
-                            tostring(r:GetAtlas() or r:GetTexture()))
-                    end
-                end
-                out[#out + 1] = entry
-            end
+            pcall(Record, f)
             f = EnumerateFrames(f)
         end
         ns.db.probe = out
