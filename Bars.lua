@@ -383,7 +383,11 @@ local function Layout(h, c)
             b:SetPoint("TOPLEFT", h, "TOPLEFT", col * (bw + pad), -r * (bh + pad))
             b:SetSize(bw, bh)
             b.tidyFit = { w = bw, h = bh, mode = c.iconFit or "cover" }
+            -- a button hidden before (fewer buttons) comes back; if it is
+            -- empty and empty buttons are not shown, LibActionButton hides it
+            -- again just below (UpdateConfig)
             b:SetAttribute("statehidden", nil)
+            b:Show()
             b:EnableMouse(not c.clickThrough)
             ButtonAttributes(b)
             b:UpdateConfig(ButtonConfig(b, c))
