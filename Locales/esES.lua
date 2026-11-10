@@ -173,6 +173,9 @@ ns.translations.esES = {
     ["Active"] = "Activo",
 
     ["Button"] = "Botón",
+    ["Cooldown darkness"] = "Oscuridad del tiempo de reutilización",
+    ["How dark the cooldown is over the icon. Lower it to see the icon better."] =
+        "Cuánto oscurece el tiempo de reutilización al icono. Bájalo para ver mejor el icono.",
     ["What turns red when the target is out of range: the button or its keybind."] =
         "Qué se pone rojo cuando el objetivo está fuera de alcance: el botón o su atajo.",
     ["Look and button states back to their defaults (the places stay)."] =

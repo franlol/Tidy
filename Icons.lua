@@ -133,10 +133,12 @@ local function FlatStates(b, s)
         st.check:Hide()
         for _, t in ipairs({ st.hover, st.push, st.check }) do t:SetAllPoints(b) end
         -- pressed: only while the mouse button is held; cleared on release,
-        -- after the click, when the mouse leaves and when hidden (never stays)
+        -- when the mouse leaves and when hidden (never stays)
         b:HookScript("OnMouseDown", function() if st.flat and not s.off then st.push:Show() end end)
         local function Release() st.push:Hide() end
-        for _, script in ipairs({ "OnMouseUp", "PostClick", "OnLeave", "OnHide" }) do
+        -- (not PostClick: with "cast on key down" the click happens on the
+        -- press itself, the overlay would never show)
+        for _, script in ipairs({ "OnMouseUp", "OnLeave", "OnHide" }) do
             if b:HasScript(script) then b:HookScript(script, Release) end
         end
         if type(b.SetChecked) == "function" then

@@ -386,10 +386,28 @@ LAB.RegisterCallback(fitKey, "OnButtonUpdate", function(_, b)
     if b.tidyFit then ns.FitIcon(b, IconZoom()) end
 end)
 
+-- Cooldown darkness: the swipe over the icon never goes over the chosen
+-- darkness. After the cast animation the library leaves it fully opaque
+-- black on that button (it hid the icon until the spell was moved away);
+-- the color stays (red for loss of control), only its opacity is capped.
+local function CapSwipe(cd, r, g, bl, a)
+    if cd.tidyCapping then return end
+    local max = B.buttons.cooldownAlpha or 0.8
+    if (a or 1) > max then
+        cd.tidyCapping = true
+        cd:SetSwipeColor(r or 0, g or 0, bl or 0, max)
+        cd.tidyCapping = nil
+    end
+end
+
 local function CreateButton(header, id, i)
     local b = LAB:CreateButton((id - 1) * 12 + i, "TidyBar" .. id .. "Button" .. i, header)
     b.tidyCommand = COMMANDS[id] and (COMMANDS[id] .. i) -- Blizzard binding it uses
     b.GetHotkey = GetHotkey
+    if b.cooldown then
+        hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
+        CapSwipe(b.cooldown, 0, 0, 0, 1)
+    end
     for page = 1, PAGES do b:SetState(page, "action", (page - 1) * 12 + i) end
     b:SetState(0, "action", (id - 1) * 12 + i)
     return b
@@ -436,6 +454,12 @@ local function Layout(h, c)
             b:EnableMouse(not c.clickThrough)
             ButtonAttributes(b)
             b:UpdateConfig(ButtonConfig(b, c))
+            -- the chosen darkness, also when it was raised (CapSwipe only lowers)
+            if b.cooldown then
+                b.cooldown.tidyCapping = true
+                b.cooldown:SetSwipeColor(0, 0, 0, B.buttons.cooldownAlpha or 0.8)
+                b.cooldown.tidyCapping = nil
+            end
             -- texts turned off for every bar (the per-bar hides are in the
             -- config); by alpha, as LibActionButton shows and hides them itself
             local T = B.buttons.texts

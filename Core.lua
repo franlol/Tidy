@@ -51,6 +51,7 @@ ns.defaults = {
             rangeColor = { r = 0.8, g = 0.1, b = 0.1, a = 1 },
             manaColor = { r = 0.5, g = 0.5, b = 1, a = 1 },
             castVFX = true,       -- cast animation on the button
+            cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon
             lock = false,         -- no dragging spells off (Shift drags)
             texts = {
                 hotkey = { show = true, font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,

@@ -430,6 +430,9 @@ local function BuildButtons(container)
             card:Add(UI.Check(card, L["Lock buttons"], lg, ls, { tip = L["Spells cannot be dragged off the bars (Shift + drag still can)."] }))
             local vg, vs = GB("castVFX")
             card:Add(UI.Check(card, L["Cast animation"], vg, vs))
+            local cg, cs = GB("cooldownAlpha")
+            card:Add(UI.Slider(card, L["Cooldown darkness"], 0, 1, 0.05, cg, cs, { format = UI.pct,
+                tip = L["How dark the cooldown is over the icon. Lower it to see the icon better."] }))
             card:Add(UI.Check(card, L["Cast on key down"], function() return GetCVarBool("ActionButtonUseKeyDown") end,
                 function(v) SetCVar("ActionButtonUseKeyDown", v and "1" or "0") end, { tip = L["A game setting: for every bar."] }))
 
