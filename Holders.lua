@@ -180,12 +180,16 @@ local function LayoutGroup(h, c, def)
     busy = true
     -- slots the class does not use (stance bar has 10, a warrior uses 3):
     -- kept inside the holder and hidden, so none floats on its own
+    -- (the ones the class has are shown: they may have been hidden while
+    -- the game still said 0 forms, at login)
     if def.count then
         for i, b in ipairs(list) do
             if i > count then
                 b:ClearAllPoints()
                 b:SetPoint("TOPLEFT", h, "TOPLEFT")
                 b:Hide()
+            elseif not b:IsShown() then
+                b:Show()
             end
         end
     end
@@ -202,9 +206,29 @@ local function LayoutGroup(h, c, def)
 end
 
 -- XP / reputation: the two Blizzard containers stacked, as wide as chosen
+-- Width of Blizzard's XP bar as it is drawn: its main bar, or else the
+-- widest visible piece inside the manager
+local function StatusWidth(f)
+    local main = f.MainStatusTrackingBarContainer
+    local w = main and main:GetWidth()
+    if not w or w < 50 then
+        w = 0
+        for _, child in ipairs({ f:GetChildren() }) do
+            if child:IsShown() then w = math.max(w, child:GetWidth() or 0) end
+        end
+    end
+    return w >= 50 and math.floor(w + 0.5) or nil
+end
+
 local function LayoutStatus(h, c, f)
     local main, second = f.MainStatusTrackingBarContainer, f.SecondaryStatusTrackingBarContainer
     local height = 14
+    -- the first time, the box takes the real width of the XP bar (older
+    -- versions started at a fixed 571)
+    if not c.widthTaken then
+        c.widthTaken = true
+        c.width = StatusWidth(f) or c.width
+    end
     busy = true
     f:ClearAllPoints()
     f:SetPoint("BOTTOMLEFT", h, "BOTTOMLEFT")
