@@ -95,6 +95,49 @@ end
 local function ShowBorder(s, on)
     for _, e in pairs(s.edges) do e:SetShown(on) end
     s.bg:SetShown(on)
+    -- flat states of action buttons: off with the square look (Blizzard's
+    -- own come back with their alpha)
+    if s.states and not on then
+        s.states.push:Hide()
+        s.states.check:Hide()
+        s.states.hover:SetAlpha(0)
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Flat states for action buttons: Blizzard's hover / pressed / active
+-- frames are drawn for its round-cornered buttons (bigger, off-center on a
+-- square one). With the square look they are hidden and these square,
+-- button-sized overlays are used instead. Hooks are installed once and only
+-- act while the button is styled.
+-------------------------------------------------------------------------------
+local function FlatStates(b, s)
+    local st = s.states
+    if not st then
+        st = {}
+        s.states = st
+        -- hover: the HIGHLIGHT layer shows by itself while the mouse is over
+        st.hover = b:CreateTexture(nil, "HIGHLIGHT")
+        st.hover:SetColorTexture(1, 1, 1, 0.15)
+        -- pressed (mouse) and active (auto attack, current stance...)
+        st.push = b:CreateTexture(nil, "OVERLAY", nil, 6)
+        st.push:SetColorTexture(0, 0, 0, 0.35)
+        st.push:Hide()
+        st.check = b:CreateTexture(nil, "OVERLAY", nil, 5)
+        st.check:SetColorTexture(1, 0.82, 0, 0.3)
+        st.check:Hide()
+        for _, t in pairs(st) do t:SetAllPoints(b) end
+        b:HookScript("OnMouseDown", function() if not s.off then st.push:Show() end end)
+        b:HookScript("OnMouseUp", function() st.push:Hide() end)
+        if type(b.SetChecked) == "function" then
+            hooksecurefunc(b, "SetChecked", function(_, on) st.check:SetShown(not s.off and on and true or false) end)
+        end
+    end
+    st.hover:SetAlpha(1)
+    if b.GetChecked then st.check:SetShown(b:GetChecked() and true or false) end
+    Hide(s, b:GetHighlightTexture())
+    Hide(s, b:GetPushedTexture())
+    Hide(s, b.GetCheckedTexture and b:GetCheckedTexture())
 end
 
 local function IconOf(f)
@@ -198,6 +241,7 @@ local function ActionArt(b)
     Hide(s, b.FloatingBG)
     Hide(s, b.RightDivider)
     Hide(s, b.BottomDivider)
+    FlatStates(b, s)
     -- icon fills the whole button and the cooldown follows it: out of
     -- combat only (the button is protected); the old points are kept
     -- (Tidy's own buttons: the bar places icon and cooldown, FitIcon)
