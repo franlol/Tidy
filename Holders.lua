@@ -303,9 +303,28 @@ local function StatusWidth(f)
     return w >= 50 and math.floor(w + 0.5) or nil
 end
 
+-- Each bar inside a container (XP, reputation...) has its own fixed size:
+-- they are resized too, and the segment marks redrawn
+local function ResizeContainer(container, width)
+    if not container then return end
+    local adjust = STATUS_BAR_SIZE_ADJUSTMENT or 6
+    local bw, bh = width - adjust, container:GetHeight() - adjust
+    for _, bar in ipairs(container.bars or {}) do
+        pcall(bar.SetSize, bar, bw, bh)
+        if bar.StatusBar then pcall(bar.StatusBar.SetSize, bar.StatusBar, bw, bh) end
+    end
+    container:SetWidth(width)
+    if container.UpdateDividers and container.GetExpectedSegments then
+        pcall(function() container:UpdateDividers(container:GetExpectedSegments()) end)
+    end
+end
+
 local function LayoutStatus(h, c, f)
     local main, second = f.MainStatusTrackingBarContainer, f.SecondaryStatusTrackingBarContainer
     local height = 14
+    -- Blizzard's own width, read before Tidy re-anchors anything, to give
+    -- the XP bar back the same when bars are turned off
+    if main and not h.origWidth then h.origWidth = main:GetWidth() end
     -- the first time, the box takes the real width of the XP bar (older
     -- versions started at a fixed 571)
     if not c.widthTaken then
@@ -328,6 +347,9 @@ local function LayoutStatus(h, c, f)
         second:SetPoint("BOTTOMLEFT", main, "TOPLEFT", 0, -6)
         second:SetPoint("BOTTOMRIGHT", main, "TOPRIGHT", 0, -6)
         height = math.max(14, (main:GetHeight() or 0) + (second:GetHeight() or 0) - 6)
+        f:SetWidth(c.width)
+        ResizeContainer(main, c.width)
+        ResizeContainer(second, c.width)
     end
     busy = nil
     h:SetSize(c.width, height)
@@ -468,6 +490,7 @@ local function Hook(id)
         HookMethod(f, "ApplySystemAnchor")
         HookMethod(f, "UpdatePosition")
         HookMethod(f, "Update")
+        HookMethod(f, "UpdateBarsShown") -- XP bar: Blizzard redraws its bars at their own size
         HookMethod(EditModeManagerFrame, "UpdateBottomActionBarPositions")
         HookMethod(UIParentBottomManagedFrameContainer, "Layout")
         if type(UIParent_ManageFramePositions) == "function" then
@@ -528,7 +551,7 @@ local function CapturePosition(id, c)
     end
     -- must be well inside the screen to be trusted
     local sw, sh = UIParent:GetWidth(), UIParent:GetHeight()
-    if left and left >= 0 and left < sw - 20 and top > 20 and top <= sh then
+    if left and left >= 0 and left < sw - 20 and top > 0 and top <= sh then
         c.pos = { point = "BOTTOMLEFT", x = left, y = top }
     else
         c.pos = ns.Copy(DEFAULT_POS[id])
@@ -612,6 +635,13 @@ function ns.ReleaseHolder(id)
         end
     end
     if id == "extra" then ns.ExtraArt(true) end
+    if id == "status" and h.origWidth then
+        local f = Content(def)
+        f:SetWidth(h.origWidth)
+        ResizeContainer(f.MainStatusTrackingBarContainer, h.origWidth)
+        ResizeContainer(f.SecondaryStatusTrackingBarContainer, h.origWidth)
+        h.origWidth = nil
+    end
     GiveAll(list)
     h:Hide()
     -- let Blizzard lay its bars out again
