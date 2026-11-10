@@ -239,6 +239,27 @@ local function LayoutFrame(h, c, def, f)
     h:SetSize(math.max(1, w or 1), math.max(1, hh or 1))
 end
 
+-- Keeps a piece of Blizzard art invisible while the holder is active, even
+-- if Blizzard shows it again (its layout does); hooked once
+local artHooked = {}
+local function HideArt(art, id)
+    if not artHooked[art] then
+        artHooked[art] = true
+        local function Keep(self)
+            if busy or not (holders[id] and holders[id].active) then return end
+            busy = true
+            self:SetAlpha(0)
+            busy = nil
+        end
+        hooksecurefunc(art, "Show", Keep)
+        hooksecurefunc(art, "SetAlpha", Keep)
+        if art.SetShown then hooksecurefunc(art, "SetShown", Keep) end
+    end
+    busy = true
+    art:SetAlpha(0)
+    busy = nil
+end
+
 local function Layout(id)
     local h, def = holders[id], DEFS[id]
     if not h or not h.active then return end
@@ -254,7 +275,7 @@ local function Layout(id)
         -- art (micro menu background and border) would be an empty box
         for _, e in ipairs(def.emptied or {}) do
             local art = _G[e[1]] and _G[e[1]][e[2]]
-            if art then art:SetAlpha(0) end
+            if art then HideArt(art, id) end
         end
     else
         local f = Content(def)
