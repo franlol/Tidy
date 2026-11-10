@@ -35,7 +35,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 21d. Press a key: the button looks pressed while held (flat and Blizzard states), never stays pressed (also changing Shift while holding).
 21e. Global cooldown swipe lighter than a real cooldown (**Global cooldown darkness**); a spell with its own cooldown uses **Cooldown darkness**.
 21f. A spell you cannot use (wrong form, no target needed...) uses **Not usable color**.
-21g. Press a spell out of range / without mana / not usable: orange flash (**Pressed when not usable**, opacity 0 = off). Empty buttons: no flash.
+21g. Press a spell with no target / out of range / without mana / not usable: orange flash (**Pressed when not usable**, opacity 0 = off). Empty buttons: no flash.
 
 ## Icons
 22. Each place on/off: icons square ↔ Blizzard's look, live.

@@ -259,8 +259,8 @@ ns.translations.esES = {
     ["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] =
         "El icono cuando no se puede usar ahora (forma equivocada, necesita objetivo, sin componentes...).",
     ["Pressed when not usable"] = "Pulsado sin poder usarse",
-    ["A short flash when you press a button you cannot use now: out of range, not enough power or not usable. Opacity 0 turns it off."] =
-        "Un destello corto al pulsar un botón que no puedes usar ahora: fuera de alcance, sin recurso suficiente o no utilizable. Con opacidad 0 se desactiva.",
+    ["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable... Opacity 0 turns it off."] =
+        "Un destello corto al pulsar un botón y fallar: sin objetivo, fuera de alcance, sin recurso suficiente, no utilizable... Con opacidad 0 se desactiva.",
     ["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] =
         "Un destello corto al pulsar un botón que está en reutilización. Con opacidad 0 se desactiva.",
     ["Lock buttons"] = "Bloquear botones",

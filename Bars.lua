@@ -492,7 +492,28 @@ local function Flash(b, c)
     t:SetColorTexture(c.r, c.g, c.b, c.a or 1)
     t.anim:Stop()
     t.anim:Play()
+    b.tidyFlashT = GetTime()
 end
+
+-- Any other reason (no target, wrong target, facing, moving...): the game's
+-- red error right after a press flashes that button. Not while only the
+-- global cooldown runs (pressing during it gives "not ready yet").
+local ERROR_WINDOW = 0.4
+local lastPress, lastPressT
+local function GCDRunning()
+    local gcd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(61304)
+    return gcd and Readable(gcd.isActive) and gcd.isActive or false
+end
+local errorWatch = CreateFrame("Frame")
+errorWatch:RegisterEvent("UI_ERROR_MESSAGE")
+errorWatch:SetScript("OnEvent", function()
+    local b = lastPress
+    if not b or not B or GetTime() - lastPressT > ERROR_WINDOW then return end
+    lastPress = nil
+    if b.tidyFlashT and GetTime() - b.tidyFlashT < ERROR_WINDOW then return end -- already flashed
+    if GCDRunning() then return end
+    Flash(b, B.buttons.failPressColor)
+end)
 
 local function PressFeedback(b)
     local ok, has = pcall(b.HasAction, b)
@@ -525,6 +546,9 @@ end
 -- Keys click with "Keybind" (keyBoundClickButton).
 local function OnPreClick(self, mouse, down)
     local key = mouse == "Keybind"
+    -- the cast happens on press or on release (game setting, mouse drag
+    -- protection): both count for the game's error
+    lastPress, lastPressT = self, GetTime()
     if down == false then
         if key then KeyPressed(self, false) end
         if self.tidyDownSeen then

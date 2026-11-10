@@ -460,7 +460,7 @@ local function BuildButtons(container)
             card:Add(UI.Swatch(card, L["Pressed on cooldown"], function() return G().cdPressColor end, ApplyAllBars,
                 { alpha = true, tip = L["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] }))
             card:Add(UI.Swatch(card, L["Pressed when not usable"], function() return G().failPressColor end, ApplyAllBars,
-                { alpha = true, tip = L["A short flash when you press a button you cannot use now: out of range, not enough power or not usable. Opacity 0 turns it off."] }))
+                { alpha = true, tip = L["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable... Opacity 0 turns it off."] }))
 
             card = page:Add(2, UI.Card(page.content, L["Defaults"]))
             local reset = UI.Buttons(card, { { L["Defaults"], function()
