@@ -282,12 +282,25 @@ local function BuildBars(container)
             S(card, L["Opacity"], "alpha", 0, 1, 0.05, UI.pct)
 
             card = page:Add(2, UI.Card(page.content, L["Arrangement"]))
+            -- each direction only matters with more than one column / row
+            local function Count()
+                local c = ns.BarConfig(selected)
+                return IsAction() and c.buttons or 12
+            end
+            local function SeveralCols()
+                return HasRows() and Count() > ns.BarConfig(selected).rows
+            end
+            local function SeveralRows()
+                return HasRows() and ns.BarConfig(selected).rows > 1 and Count() > 1
+            end
             local hg, hs = BB("growH")
             card:Add(UI.Segmented(card, L["Fill"], { { "RIGHT", L["To the right"] }, { "LEFT", L["To the left"] } },
-                hg, hs, { enableIf = When(HasRows) }))
+                hg, hs, { enableIf = When(SeveralCols),
+                    tip = L["Where button 1 is and which way the others follow. The bar does not move."] }))
             local vg, vs = BB("growV")
             card:Add(UI.Segmented(card, nil, { { "DOWN", L["Downwards"] }, { "UP", L["Upwards"] } },
-                vg, vs, { enableIf = When(HasRows) }))
+                vg, vs, { enableIf = When(SeveralRows),
+                    tip = L["Which row comes first. Only with more than one row."] }))
             local ig, is = BB("iconFit")
             card:Add(UI.Segmented(card, L["Icon"], {
                 { "cover", L["Cover"] }, { "contain", L["Contain"] }, { "stretch", L["Stretch"] },

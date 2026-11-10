@@ -159,6 +159,10 @@ ns.translations.esES = {
     ["Drag a bar to move it, click it to edit it."] = "Arrastra una barra para moverla, haz clic para editarla.",
     ["Hover a button and press a key. Esc to leave."] = "Pasa el ratón por un botón y pulsa una tecla. Esc para salir.",
 
+    ["Where button 1 is and which way the others follow. The bar does not move."] =
+        "Dónde está el botón 1 y hacia dónde siguen los demás. La barra no se mueve.",
+    ["Which row comes first. Only with more than one row."] = "Qué fila va primero. Solo con más de una fila.",
+
     -- Keybinding mode
     ["no key"] = "sin tecla",
     ["Press a key to bind it"] = "Pulsa una tecla para asignarla",
