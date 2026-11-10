@@ -642,6 +642,15 @@ local function CreateMover(h)
     m:SetScript("OnMouseUp", function(_, button)
         if button == "LeftButton" and not h.dragged and ns.SelectBar then ns.SelectBar(h.id) end
     end)
+    -- the name tag works like the box: drag moves the bar, click selects it
+    local grip = CreateFrame("Frame", nil, m)
+    grip:SetPoint("TOPLEFT", tag, "TOPLEFT")
+    grip:SetPoint("BOTTOMRIGHT", tag, "BOTTOMRIGHT")
+    grip:EnableMouse(true)
+    grip:RegisterForDrag("LeftButton")
+    for _, event in ipairs({ "OnDragStart", "OnDragStop", "OnMouseDown", "OnMouseUp" }) do
+        grip:SetScript(event, function(_, ...) m:GetScript(event)(m, ...) end)
+    end
     m:Hide()
     h.mover = m
 end
