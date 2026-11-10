@@ -353,10 +353,34 @@ local function CreateHolder(id)
 end
 
 -- First time: the holder starts where Blizzard has the bar now
+-- Where each holder starts when Blizzard's own place cannot be read (no pet,
+-- no forms, nothing shown yet): near the action bars, all on screen. The
+-- top left corner of the holder, from a point of the screen.
+local DEFAULT_POS = {
+    pet = { point = "BOTTOM", x = 10, y = 245 },
+    stance = { point = "BOTTOM", x = -281, y = 245 },
+    micro = { point = "BOTTOMRIGHT", x = -340, y = 46 },
+    bags = { point = "BOTTOMRIGHT", x = -230, y = 92 },
+    status = { point = "BOTTOM", x = -285, y = 14 },
+    extra = { point = "BOTTOM", x = -64, y = 400 },
+    vehicle = { point = "BOTTOM", x = 300, y = 110 },
+    queue = { point = "BOTTOMRIGHT", x = -60, y = 150 },
+}
+
+-- Blizzard's own place, from the buttons / frame that are really on screen
+-- (hidden or unused buttons may have no place or a wrong one)
 local function CapturePosition(id, c)
     if c.pos then return end
     local def = DEFS[id]
-    local regions = def.group and GroupButtons(def) or { Content(def) }
+    local regions = {}
+    if def.group then
+        local count = def.count and def.count() or math.huge
+        for i, b in ipairs(GroupButtons(def)) do
+            if i <= count and b:IsVisible() then regions[#regions + 1] = b end
+        end
+    elseif Content(def):IsVisible() then
+        regions[1] = Content(def)
+    end
     local left, top
     for _, r in ipairs(regions) do
         local l, t = TopLeft(r)
@@ -365,8 +389,28 @@ local function CapturePosition(id, c)
             top = top and math.max(top, t) or t
         end
     end
-    c.pos = left and { point = "BOTTOMLEFT", x = left, y = top }
-        or { point = "CENTER", x = 0, y = 0 }
+    -- must be well inside the screen to be trusted
+    local sw, sh = UIParent:GetWidth(), UIParent:GetHeight()
+    if left and left >= 0 and left < sw - 20 and top > 20 and top <= sh then
+        c.pos = { point = "BOTTOMLEFT", x = left, y = top }
+    else
+        c.pos = ns.Copy(DEFAULT_POS[id])
+    end
+end
+
+function ns.HolderDefaultPos(id)
+    return DEFAULT_POS[id] and ns.Copy(DEFAULT_POS[id])
+end
+
+-- Pet and stance bars placed by the old capture in the top left corner
+-- (from unused buttons): moved once to their default place
+local function FixCorner(id, c)
+    if (id ~= "pet" and id ~= "stance") or c.cornerFixed then return end
+    c.cornerFixed = true
+    local p = c.pos
+    if p and p.point == "BOTTOMLEFT" and p.x < 60 and p.y > UIParent:GetHeight() - 60 then
+        c.pos = ns.Copy(DEFAULT_POS[id])
+    end
 end
 
 -- Applies one holder (out of combat)
@@ -379,6 +423,7 @@ function ns.ApplyHolder(id)
             if h and h.active then ns.ReleaseHolder(id) end
             return
         end
+        FixCorner(id, c)
         CapturePosition(id, c)
         h = h or CreateHolder(id)
         h.active = true

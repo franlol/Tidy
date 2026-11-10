@@ -107,8 +107,8 @@ ns.translations.esES = {
     ["Language"] = "Idioma",
     ["All bars"] = "Todas las barras",
     ["Reset this bar"] = "Restablecer esta barra",
-    ["Every setting of this bar back to its default (holders: back to where they are now)."] =
-        "Todos los ajustes de esta barra a sus valores por defecto (las barras de Blizzard se quedan donde están ahora).",
+    ["Every setting of this bar back to its default, position included."] =
+        "Todos los ajustes de esta barra a sus valores por defecto, posición incluida.",
     ["Behaviour, casting and texts back to their defaults."] =
         "Comportamiento, lanzamiento y textos a sus valores por defecto.",
 

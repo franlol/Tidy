@@ -302,10 +302,12 @@ local function BuildBars(container)
                 { enableIf = When(), tip = L["From the bottom left corner of the screen to the top left corner of the bar."] }))
             local reset = UI.Buttons(card, { { L["Reset this bar"], function()
                 ns.P.bars.list[selected] = nil
+                -- Blizzard bars: their default place (not where they are now)
+                if not IsAction() then ns.BarConfig(selected).pos = ns.HolderDefaultPos(selected) end
                 if ns.barsActive then ns.ApplyBar(selected) if IsAction() then ns.UpdateBinds() end end
                 UI.RefreshAll()
             end, "danger" } }, { enableIf = active,
-                tip = L["Every setting of this bar back to its default (holders: back to where they are now)."] })
+                tip = L["Every setting of this bar back to its default, position included."] })
             UI.Confirm(reset.buttons[1])
             card:Add(reset)
         end, true },
