@@ -415,7 +415,7 @@ end
 -- of control), only its opacity is capped.
 local function SwipeMax(cd)
     local G = B.buttons
-    if cd.tidyGCD then return G.gcdAlpha or 0.35 end
+    if cd.tidyGCD then return G.gcdAlpha or 0.5 end
     return G.cooldownAlpha or 0.8
 end
 

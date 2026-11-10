@@ -52,7 +52,7 @@ ns.defaults = {
             manaColor = { r = 0.5, g = 0.5, b = 1, a = 1 },
             castVFX = true,       -- cast animation on the button
             cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon
-            gcdAlpha = 0.35,      -- darkness of the swipe on the global cooldown only
+            gcdAlpha = 0.5,       -- darkness of the swipe on the global cooldown only
             unusableColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }, -- icon when it cannot be used now
             cdPressColor = { r = 1, g = 0.15, b = 0.15, a = 0.55 }, -- flash when pressed on cooldown (alpha 0: off)
             failPressColor = { r = 1, g = 0.55, b = 0, a = 0.5 },   -- flash when pressed but not usable (alpha 0: off)
