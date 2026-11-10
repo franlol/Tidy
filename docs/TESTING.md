@@ -6,25 +6,25 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 1. `/reload` with Bartender4 **off**. No Lua errors on login.
 2. Blizzard action bars are gone; Tidy bars show your spells and keybinds.
 
-## All bars
-3. **Unlock bars**: every bar shows a blue box with its name on a tag above (also pet, stance, micro, bags, XP, extra, vehicle, queue). Bars that show nothing now show a faded sample (pet icons, a form, the extra button, the leave vehicle button, the queue eye, an XP bar); action bars show their empty slots.
+## General
+3. **Unlock bars** (window header): every bar shows a blue box with its name on a tag above (also pet, stance, micro, bags, XP, extra, vehicle, queue). Bars that show nothing now show a faded sample (pet icons, a form, the extra button, the leave vehicle button, the queue eye, an XP bar); action bars show their empty slots.
 4. Drag a bar: only the guide lines near it show (faint); the one it sticks to turns bright. Drop: it stays.
 5. Click a bar (no drag): the panel opens on that bar.
-6. **Keybinding mode**: hover a button, press a key → the key shows on it. Esc leaves.
+6. **Keybinding mode** (window header): hover a button, press a key → the key shows on it. Esc leaves.
 7. **Enabled** off → Blizzard's bars come back, no errors, no empty boxes. On again → Tidy's back.
 8. Each **Preset** (Blizzard-like, Compact, Split) moves bars 1 and 3-6.
-9. **Gryphons on bar 1** on/off.
+9. Bars → Bar 1 → Layout → **Gryphons** on/off (greyed on every other bar); **Reset this bar** on bar 1 turns them off again.
 
-## One bar (Bar 1, then Pet bar, then Bags)
+## One bar (Bar 1, then Pet bar, then Bags) — tabs Layout · Visibility · Actions
 10. **Show this bar** off hides it (Blizzard's does not come back). Layout: buttons, rows, padding, button width/height, icon fit, scale, opacity, fill direction, click-through all change it at once.
 11. X / Y typed values move it; **Center horizontally / vertically**.
 12. **Reset this bar** puts it back.
 13. Visibility: fade (mouse out → faded after the delay), each hide option, custom `[combat] show; hide`.
-14. Paging (bar 1): Shift+2 changes page and the texts; Ctrl / Alt / Shift pages; stance pages (if your class has them).
-15. Buttons (bar 1): empty buttons, hide macro / keybind / equipped, flyout direction.
+14. Actions, paging (bar 1): Shift+2 changes page and the texts; Ctrl / Alt / Shift pages; stance pages (if your class has them).
+15. Actions, this bar's buttons (bar 1): empty buttons, hide macro / keybind / equipped, flyout direction.
 16. Bags: **Only the backpack**, **Keyring**. Extra button: **Hide the artwork** (needs an extra button).
 
-## Buttons
+## Buttons — tabs Behaviour (with casting) · Look (cooldowns, colors, texts)
 17. Tooltips always / out of combat / never. Out of range colors.
 18. **Lock buttons**: spells can't be dragged off (Shift+drag can).
 19. Drag a spell between buttons: it moves, it is **not** cast.

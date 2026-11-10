@@ -83,8 +83,9 @@ ns.translations.esES = {
     ["General"] = "General",
     ["Editing"] = "Edición",
     ["Keybinding mode"] = "Modo de atajos",
-    ["Unlocked: drag a bar to move it, click it to edit it. Keybinding mode: hover a button and press a key."] =
-        "Desbloqueadas: arrastra una barra para moverla, haz clic para editarla. Modo de atajos: pasa el ratón por un botón y pulsa una tecla.",
+    ["Unlock bars (top of the window) and drag a bar to move it, or click it to edit it."] =
+        "Desbloquea las barras (arriba en la ventana) y arrastra una barra para moverla, o haz clic para editarla.",
+    ["Presets"] = "Plantillas",
     ["Layout"] = "Disposición",
     ["Preset"] = "Plantilla",
     ["Blizzard-like"] = "Como Blizzard",
@@ -93,7 +94,9 @@ ns.translations.esES = {
     ["Apply preset"] = "Aplicar plantilla",
     ["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."] =
         "Coloca las barras de acción 1 y 3-6 en una disposición lista (posición, filas, espaciado, escala). El resto de ajustes se mantiene.",
-    ["Gryphons on bar 1"] = "Grifos en la barra 1",
+    ["Gryphons"] = "Grifos",
+    ["Blizzard's gryphons (wyverns for the Horde) at the sides of bar 1."] =
+        "Los grifos de Blizzard (dracoleones para la Horda) a los lados de la barra 1.",
     ["Minimap"] = "Minimapa",
     ["Minimap button"] = "Botón del minimapa",
     ["Profile"] = "Perfil",
@@ -105,12 +108,11 @@ ns.translations.esES = {
 
     ["Addon"] = "Addon",
     ["Language"] = "Idioma",
-    ["All bars"] = "Todas las barras",
     ["Reset this bar"] = "Restablecer esta barra",
     ["Every setting of this bar back to its default, position included."] =
         "Todos los ajustes de esta barra a sus valores por defecto, posición incluida.",
-    ["Behaviour, casting and texts back to their defaults."] =
-        "Comportamiento, lanzamiento y textos a sus valores por defecto.",
+    ["Every setting of this page (both tabs) back to its default."] =
+        "Todos los ajustes de esta página (las dos pestañas) a sus valores por defecto.",
 
     -- Tabs and card titles
     ["Size"] = "Tamaño",
@@ -118,6 +120,9 @@ ns.translations.esES = {
     ["Fade"] = "Desvanecer",
     ["Hide"] = "Ocultar",
     ["Paging"] = "Páginas",
+    ["Actions"] = "Acciones",
+    ["This bar's buttons"] = "Botones de esta barra",
+    ["Cooldowns"] = "Reutilización",
     ["Which page of actions the bar shows. Action bars only."] =
         "Qué página de acciones muestra la barra. Solo barras de acción.",
     ["What the buttons of this bar show. Action bars only."] =
@@ -127,8 +132,7 @@ ns.translations.esES = {
     ["Self-cast"] = "Lanzar sobre ti",
     ["Focus"] = "Foco",
     ["Mouse-over"] = "Bajo el ratón",
-    ["Choose a text, then its look. For every button of Tidy's action bars."] =
-        "Elige un texto y luego su aspecto. Para todos los botones de las barras de acción de Tidy.",
+    ["Choose a text, then its look."] = "Elige un texto y luego su aspecto.",
 
     ["Modifier keys"] = "Teclas modificadoras",
     ["While the key is held, the bar shows another page."] =
@@ -137,8 +141,8 @@ ns.translations.esES = {
     ["Menus that open from a button (portals, totems, pets...)."] =
         "Menús que se abren desde un botón (portales, tótems, mascotas...).",
     ["Show"] = "Mostrar",
-    ["Off: this text is hidden on every bar. Each bar can also hide it (Bars, Buttons tab)."] =
-        "Desactivado: este texto se oculta en todas las barras. Cada barra también puede ocultarlo (Barras, pestaña Botones).",
+    ["Off: this text is hidden on every bar. Each bar can also hide it (Bars, Actions tab)."] =
+        "Desactivado: este texto se oculta en todas las barras. Cada barra también puede ocultarlo (Barras, pestaña Acciones).",
 
     ["Bars recorded. Type /reload so they are saved."] = "Barras registradas. Escribe /reload para guardarlas.",
     ["Put the mouse over it: recording in 3 seconds..."] = "Pon el ratón encima: se registra en 3 segundos...",
@@ -154,7 +158,6 @@ ns.translations.esES = {
     ["The decorative frame around the extra button and the zone ability."] =
         "El marco decorativo del botón extra y de la habilidad de zona.",
 
-    ["Bars unlocked"] = "Barras desbloqueadas",
     ["Unlock bars"] = "Desbloquear barras",
     ["Drag a bar to move it, click it to edit it."] = "Arrastra una barra para moverla, haz clic para editarla.",
     ["Hover a button and press a key. Esc to leave."] = "Pasa el ratón por un botón y pulsa una tecla. Esc para salir.",
@@ -272,7 +275,6 @@ ns.translations.esES = {
     ["Cast animation"] = "Animación de lanzamiento",
     ["Cast on key down"] = "Lanzar al pulsar la tecla",
     ["A game setting: for every bar."] = "Un ajuste del juego: para todas las barras.",
-    ["Casting"] = "Lanzamiento",
     ["Self-cast with a key"] = "Lanzar sobre ti con una tecla",
     ["Self-cast key"] = "Tecla para lanzar sobre ti",
     ["Focus-cast with a key"] = "Lanzar al foco con una tecla",
