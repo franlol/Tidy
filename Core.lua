@@ -287,6 +287,43 @@ function ns.SetLanguagePref(lang)
 end
 
 -------------------------------------------------------------------------------
+-- /tidy probe: 3 seconds after the command, saves every visible frame under
+-- the mouse (and its visible textures) in TidyDB.probe, to find out what
+-- something on screen is. Read after a /reload (saved variables).
+-------------------------------------------------------------------------------
+function ns.Probe()
+    ns.Print(L["Put the mouse over it: recording in 3 seconds..."])
+    C_Timer.After(3, function()
+        local out = {}
+        local f = EnumerateFrames()
+        while f do
+            local ok, over = pcall(f.IsMouseOver, f)
+            if ok and over and f:IsVisible() and f ~= WorldFrame and f ~= UIParent then
+                local w, h = f:GetSize()
+                local entry = {
+                    name = f.GetDebugName and f:GetDebugName() or tostring(f:GetName()),
+                    size = ("%dx%d"):format(w or 0, h or 0),
+                    strata = f:GetFrameStrata(), level = f:GetFrameLevel(),
+                    alpha = f:GetEffectiveAlpha(), textures = {},
+                }
+                for _, r in ipairs({ f:GetRegions() }) do
+                    if r:IsObjectType("Texture") and r:IsVisible() and r:GetAlpha() > 0 then
+                        local key
+                        for k, v in pairs(f) do if v == r then key = k break end end
+                        entry.textures[#entry.textures + 1] = ("%s %s"):format(key or "?",
+                            tostring(r:GetAtlas() or r:GetTexture()))
+                    end
+                end
+                out[#out + 1] = entry
+            end
+            f = EnumerateFrames(f)
+        end
+        ns.db.probe = out
+        ns.Print((L["%d frames recorded. Type /reload so they are saved."]):format(#out))
+    end)
+end
+
+-------------------------------------------------------------------------------
 -- Slash command
 -------------------------------------------------------------------------------
 SLASH_TIDY1 = "/tidy"
@@ -297,6 +334,8 @@ SlashCmdList.TIDY = function(msg)
         ns.db.language = lang == "es" and "esES" or "enUS"
         ApplyLanguage()
         ns.Print(L["Language: English"] .. " " .. L["(reload to update the window)"])
+    elseif msg == "probe" then
+        ns.Probe()
     elseif msg == "help" then
         ns.Print(L["Commands:"])
         print("  /tidy - " .. L["open the options"])
