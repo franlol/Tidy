@@ -385,9 +385,25 @@ end
 local function LayoutStatus(h, c, f)
     local main, second = f.MainStatusTrackingBarContainer, f.SecondaryStatusTrackingBarContainer
     local height = 14
-    -- Blizzard's own width, read before Tidy re-anchors anything, to give
-    -- the XP bar back the same when bars are turned off
-    if main and not h.origWidth then h.origWidth = main:GetWidth() end
+    -- Blizzard's own sizes (the frame, both containers, every bar inside),
+    -- read before Tidy changes anything, to give them back exactly
+    if not h.origSizes then
+        local sizes = {}
+        local function Remember(r)
+            if r and r.GetSize and not sizes[r] then sizes[r] = { r:GetSize() } end
+        end
+        Remember(f)
+        for _, container in ipairs({ main or false, second or false }) do
+            if container then
+                Remember(container)
+                for _, bar in ipairs(container.bars or {}) do
+                    Remember(bar)
+                    Remember(bar.StatusBar)
+                end
+            end
+        end
+        h.origSizes = sizes
+    end
     -- the first time, the box takes the real width of the XP bar (older
     -- versions started at a fixed 571)
     if not c.widthTaken then
@@ -715,14 +731,24 @@ function ns.ReleaseHolder(id)
         end
     end
     if id == "extra" then ns.ExtraArt(true) end
-    if id == "status" and h.origWidth then
-        local f = Content(def)
-        f:SetWidth(h.origWidth)
-        ResizeContainer(f.MainStatusTrackingBarContainer, h.origWidth)
-        ResizeContainer(f.SecondaryStatusTrackingBarContainer, h.origWidth)
-        h.origWidth = nil
-    end
     GiveAll(list)
+    -- the XP bar: every size exactly as Blizzard had it, then redrawn
+    -- (the rested XP, ticks and segment marks follow the bar's width)
+    if id == "status" and h.origSizes then
+        for r, s in pairs(h.origSizes) do pcall(r.SetSize, r, s[1], s[2]) end
+        local f = Content(def)
+        for _, container in ipairs({ f.MainStatusTrackingBarContainer or false, f.SecondaryStatusTrackingBarContainer or false }) do
+            if container then
+                for _, bar in ipairs(container.bars or {}) do
+                    if type(bar.Update) == "function" then pcall(bar.Update, bar) end
+                end
+                if container.UpdateDividers and container.GetExpectedSegments then
+                    pcall(function() container:UpdateDividers(container:GetExpectedSegments()) end)
+                end
+            end
+        end
+        h.origSizes = nil
+    end
     h:Hide()
     -- let Blizzard lay its bars out again
     local function Call(obj, m) if obj and type(obj[m]) == "function" then pcall(obj[m], obj) end end
