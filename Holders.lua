@@ -67,9 +67,18 @@ function ns.HolderDefaults(id)
         padding = d.padding or 0,
         scale = 1,
         alpha = 1,
-        width = 571, -- XP / reputation only
+        width = 571,        -- XP / reputation only
+        oneBag = false,     -- bags only: just the backpack
+        keyring = true,     -- bags only: the keyring button, if the game has one
+        hideArt = false,    -- extra button only: no frame art around it
         -- pos: taken from where Blizzard has it the first time
     })
+end
+
+-- Bags: which buttons the options leave out (only backpack / no keyring)
+local function BagLeftOut(c, b)
+    if b == KeyRingButton then return not c.keyring end
+    return c.oneBag and b ~= MainMenuBarBackpackButton
 end
 
 -------------------------------------------------------------------------------
@@ -166,7 +175,20 @@ local function LayoutGroup(h, c, def)
     local shown = {}
     local count = def.count and def.count() or #list
     for i, b in ipairs(list) do
-        if i <= count and (not def.packShown or b:IsShown()) then shown[#shown + 1] = b end
+        -- bags left out by the options: invisible and not clickable (not
+        -- hidden: Blizzard shows them again); they take no place
+        local out = h.id == "bags" and BagLeftOut(c, b)
+        if h.id == "bags" then
+            busy = true
+            b:SetAlpha(out and 0 or 1)
+            if out then
+                b:EnableMouse(false)
+                b:ClearAllPoints()
+                b:SetPoint("TOPLEFT", h, "TOPLEFT")
+            end
+            busy = nil
+        end
+        if not out and i <= count and (not def.packShown or b:IsShown()) then shown[#shown + 1] = b end
     end
     local cw, ch = 1, 1
     for _, b in ipairs(shown) do
@@ -250,6 +272,15 @@ local function LayoutStatus(h, c, f)
     h:SetSize(c.width, height)
 end
 
+-- Extra button / zone ability: the decorative frame around the button
+-- (by alpha: Blizzard shows and hides it on every update)
+function ns.ExtraArt(show)
+    local a = show and 1 or 0
+    local eb = ExtraActionBarFrame and ExtraActionBarFrame.button
+    if eb and eb.style then eb.style:SetAlpha(a) end
+    if ZoneAbilityFrame and ZoneAbilityFrame.Style then ZoneAbilityFrame.Style:SetAlpha(a) end
+end
+
 local function LayoutFrame(h, c, def, f)
     local w, hh
     if def.size then
@@ -309,6 +340,7 @@ local function Layout(id)
         local mgr = UIParentBottomManagedFrameContainer
         if mgr and mgr.showingFrames then mgr.showingFrames[f] = nil end
         if def.width then LayoutStatus(h, c, f) else LayoutFrame(h, c, def, f) end
+        if id == "extra" then ns.ExtraArt(not c.hideArt) end
     end
     h.mover:SetShown(not ns.P.bars.locked)
 end
@@ -486,6 +518,17 @@ function ns.ReleaseHolder(id)
             list[#list + 1] = r
         end
     end
+    -- what Tidy changed on the buttons themselves (left-out bags, click-
+    -- through, extra button art) goes back to normal
+    if def.group then
+        for _, b in ipairs(list) do
+            if b:GetObjectType() ~= "Texture" then
+                b:SetAlpha(1)
+                b:EnableMouse(true)
+            end
+        end
+    end
+    if id == "extra" then ns.ExtraArt(true) end
     GiveAll(list)
     h:Hide()
     -- let Blizzard lay its bars out again

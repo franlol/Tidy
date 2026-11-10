@@ -1,61 +1,59 @@
-# Bartender4 — feature inventory
+# Bartender4 — feature parity
 
-Mark each line: `[x]` keep · `[ ]` drop.
-Client note: Bartender treats Forever as the **modern** UI (modern art, modern bar layout) with classic classes/stances.
+`[x]` in Tidy · `[ ]` not done (reason).
+Client note: Bartender treats Forever as the **modern** UI with classic classes/stances.
 
-## 1. Bars (11 total)
-- [ ] Action bars 1–10
-- [ ] Pet bar
-- [ ] Stance / form bar
-- [ ] Bag bar (one bag option, keyring)
-- [ ] Micro menu (character, spellbook, talents, quests, guild, LFD, collections, help…)
-- [ ] Vehicle / leave-vehicle button
-- [ ] Extra action button (zone ability)
-- [ ] Queue status button (LFG eye)
-- [ ] XP / reputation bar
-- [ ] Blizzard art bar (gryphons, background, endings)
+## 1. Bars
+- [x] Action bars 1–10, 13–15
+- [x] Pet bar · stance bar · bag bar · micro menu · XP / reputation · extra button · leave vehicle · queue status
+- [x] Bags: only backpack, keyring
+- [x] Extra button: hide artwork
+- [x] Blizzard art: gryphons / wyverns on bar 1
+- [ ] Blizzard art: bar background and endings (cosmetic; square icons replace it)
 
 ## 2. Layout (every bar)
-- [ ] Number of buttons, rows, padding
-- [ ] Scale and alpha
-- [ ] Grow direction (up/down, left/right)
-- [ ] Move with the mouse; snap to other bars
-- [ ] Exact position: anchor, X/Y, center horizontally/vertically, reset
-- [ ] Click-through
+- [x] Buttons, rows, padding, scale, alpha
+- [x] Button width / height and icon fit (Tidy extra)
+- [x] Fill direction (left/right, up/down)
+- [x] Move with the mouse, snap with guide lines, click to select
+- [x] Exact X / Y, center horizontally / vertically, reset
+- [x] Click-through
+- [ ] XP bar: gap between XP and reputation bars (fixed)
 
 ## 3. Visibility (every bar)
-- [ ] Fade out on mouse-out (alpha, delay)
-- [ ] Hide: always / in combat / out of combat / with or without pet / in stance / on vehicle / possess / override bar
-- [ ] Custom macro conditions (e.g. `[combat] show; hide`)
+- [x] Fade out (alpha, delay)
+- [x] Hide in / out of combat, with / without pet, in vehicles, in a stance or form
+- [x] Custom macro conditions
 
 ## 4. Paging (action bars)
-- [ ] Page by stance/form (warrior stances, druid forms + prowl, rogue stealth, priest shadowform)
-- [ ] Page by modifier (Ctrl / Alt / Shift)
-- [ ] Possess bar on bar 1
-- [ ] Default page per bar
+- [x] Page by stance / form (pages 7–10, like Blizzard)
+- [ ] Choose the page for each stance (fixed to Blizzard's: 7–10)
+- [x] Page by Ctrl / Alt / Shift
+- [x] Possess / vehicle / override on bar 1
+- [x] Default page per bar
 
 ## 5. Buttons
-- [ ] Show empty buttons (grid)
-- [ ] Hide border, zoom icon (Tidy already does the square look)
-- [ ] Hide macro text / hotkey / equipped border
-- [ ] Fonts for hotkey, count, macro text (font, size, outline, color, position)
-- [ ] Flyout direction
-- [ ] Out of range / out of mana colors
-- [ ] Tooltips (always / out of combat / never)
-- [ ] Spell cast animation on buttons
-- [ ] Lock buttons (no drag)
-- [ ] Cast on key down
+- [x] Show empty buttons
+- [x] Hide macro text / hotkey / equipped border; each text on/off for all bars
+- [x] Texts: font, size, outline, color, position
+- [x] Flyout direction
+- [x] Out of range / mana colors and mode
+- [x] Tooltips (always / out of combat / never)
+- [x] Cast animation, lock buttons, cast on key down
+- [x] Dragging never casts
+- [ ] Hide flyout background (cosmetic)
 
-## 6. Casting helpers
-- [ ] Self-cast with modifier / right-click self-cast
-- [ ] Focus-cast with modifier
-- [ ] Mouse-over casting (with modifier)
-- [ ] Smart target / auto-assist
+## 6. Casting
+- [x] Self-cast key, right-click self-cast
+- [x] Focus-cast key
+- [x] Mouse-over casting and key
+- [ ] Smart target / auto-assist (secure per-spell logic; rarely used)
 
 ## 7. Tools
-- [ ] Keybinding mode (hover a button and press a key)
-- [ ] Profiles (per character, copy, reset) and dual spec profiles
-- [ ] Presets (one-click layouts)
-- [ ] Minimap icon
-- [ ] Masque skins
-- [ ] Hide Blizzard's own bars
+- [x] Keybinding mode (keys, mouse buttons, wheel; pet and stance too)
+- [x] Profiles, copy, reset, export / import
+- [ ] Dual spec profiles
+- [x] Presets
+- [x] Minimap button
+- [x] Hide Blizzard bars (and give them back live)
+- [ ] Masque (dropped on purpose)

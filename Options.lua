@@ -300,6 +300,10 @@ local function BuildBars(container)
             card:Add(UI.Input(card, L["Y position"], function() return tostring(select(2, ns.BarXY(selected))) end,
                 function(v) local n = tonumber(v) if n then ns.SetBarXY(selected, nil, n) end end,
                 { enableIf = When(), tip = L["From the bottom left corner of the screen to the top left corner of the bar."] }))
+            card:Add(UI.Buttons(card, {
+                { L["Center horizontally"], function() ns.CenterBar(selected, "x") UI.RefreshAll() end },
+                { L["Center vertically"], function() ns.CenterBar(selected, "y") UI.RefreshAll() end },
+            }, { enableIf = When() }))
             local reset = UI.Buttons(card, { { L["Reset this bar"], function()
                 ns.P.bars.list[selected] = nil
                 -- Blizzard bars: their default place (not where they are now)
@@ -310,6 +314,19 @@ local function BuildBars(container)
                 tip = L["Every setting of this bar back to its default, position included."] })
             UI.Confirm(reset.buttons[1])
             card:Add(reset)
+
+            -- options only some Blizzard bars have (greyed out for the rest)
+            card = page:Add(1, UI.Card(page.content, L["This bar only"]))
+            local function Only(id) return function() return selected == id end end
+            local og, os = BB("oneBag")
+            card:Add(UI.Check(card, L["Only the backpack"], og, os, { enableIf = When(Only("bags")) }))
+            if KeyRingButton then
+                local kg, ks = BB("keyring")
+                card:Add(UI.Check(card, L["Keyring"], kg, ks, { enableIf = When(Only("bags")) }))
+            end
+            local ag, as = BB("hideArt")
+            card:Add(UI.Check(card, L["Hide the artwork"], ag, as, { enableIf = When(Only("extra")),
+                tip = L["The decorative frame around the extra button and the zone ability."] }))
         end, true },
 
         { "visibility", L["Visibility"], function(page)
@@ -325,7 +342,7 @@ local function BuildBars(container)
             for _, def in ipairs({
                 { "hideCombat", "Hide in combat" }, { "hideNoCombat", "Hide out of combat" },
                 { "hidePet", "Hide with a pet" }, { "hideNoPet", "Hide without a pet" },
-                { "hideVehicle", "Hide in vehicles" },
+                { "hideVehicle", "Hide in vehicles" }, { "hideStance", "Hide in a stance or form" },
             }) do
                 local g, s = BB(def[1])
                 card:Add(UI.Check(card, L[def[2]], g, s, { enableIf = When(noCustom) }))

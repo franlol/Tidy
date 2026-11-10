@@ -44,6 +44,7 @@ function ns.CommonBarDefaults(t)
     t.hidePet = false
     t.hideNoPet = false
     t.hideVehicle = false
+    t.hideStance = false     -- in any stance / form (stealth, bear, shadowform...)
     t.custom = ""            -- macro conditions; replaces the options above
     return t
 end
@@ -182,6 +183,7 @@ function ns.VisibilityDriver(c, base)
     if c.hideNoCombat then s = s .. "[nocombat] hide;" end
     if c.hidePet then s = s .. "[pet] hide;" end
     if c.hideNoPet then s = s .. "[nopet] hide;" end
+    if c.hideStance then s = s .. "[stance] hide;" end
     return s .. (base or "show")
 end
 
@@ -732,6 +734,19 @@ function ns.SetBarXY(id, x, y)
     local cx, cy = ns.BarXY(id)
     c.pos = { point = "BOTTOMLEFT", x = x or cx, y = y or cy }
     ns.ApplyBar(id)
+end
+
+-- Centers the bar on the screen, horizontally or vertically
+function ns.CenterBar(id, axis)
+    local h = bars[id]
+    if not h or not h:GetLeft() then return end
+    local s = h:GetScale()
+    local w, ht = h:GetWidth() * s, h:GetHeight() * s
+    if axis == "x" then
+        ns.SetBarXY(id, math.floor((UIParent:GetWidth() - w) / 2 + 0.5), nil)
+    else
+        ns.SetBarXY(id, nil, math.floor((UIParent:GetHeight() + ht) / 2 + 0.5))
+    end
 end
 
 -------------------------------------------------------------------------------

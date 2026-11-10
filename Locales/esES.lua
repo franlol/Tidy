@@ -143,6 +143,16 @@ ns.translations.esES = {
     ["Put the mouse over it: recording in 3 seconds..."] = "Pon el ratón encima: se registra en 3 segundos...",
     ["%d frames recorded. Type /reload so they are saved."] = "%d marcos registrados. Escribe /reload para guardarlos.",
 
+    ["Hide in a stance or form"] = "Ocultar en una postura o forma",
+    ["Center horizontally"] = "Centrar en horizontal",
+    ["Center vertically"] = "Centrar en vertical",
+    ["This bar only"] = "Solo de esta barra",
+    ["Only the backpack"] = "Solo la mochila",
+    ["Keyring"] = "Llavero",
+    ["Hide the artwork"] = "Ocultar el adorno",
+    ["The decorative frame around the extra button and the zone ability."] =
+        "El marco decorativo del botón extra y de la habilidad de zona.",
+
     -- Keybinding mode
     ["no key"] = "sin tecla",
     ["Press a key to bind it"] = "Pulsa una tecla para asignarla",
