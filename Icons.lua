@@ -26,6 +26,12 @@ local function Zoom(icon)
     icon:SetTexCoord(z, 1 - z, z, 1 - z)
 end
 
+-- Tidy's bar buttons can be any width / height: the bars fit the icon
+-- (cover / contain / stretch) with the zoom on top
+local function ZoomSkin(s)
+    if s.frame.tidyFit and ns.FitIcon then ns.FitIcon(s.frame, O.zoom) else Zoom(s.icon) end
+end
+
 -- Hides a Blizzard region, remembering its alpha to give it back
 local function Hide(s, region)
     if not region or not region.SetAlpha then return end
@@ -97,7 +103,7 @@ end
 local function GetSkin(f, icon, kind, cat)
     local s = skins[f]
     if s then return s end
-    s = { icon = icon, kind = kind, cat = cat, tc = {}, hidden = {}, masks = {}, edges = {} }
+    s = { frame = f, icon = icon, kind = kind, cat = cat, tc = {}, hidden = {}, masks = {}, edges = {} }
     s.bg = f:CreateTexture(nil, "BACKGROUND", nil, -8)
     for side in pairs(EDGES) do s.edges[side] = f:CreateTexture(nil, "BACKGROUND", nil, -7) end
     skins[f] = s
@@ -118,7 +124,7 @@ end
 -- Common part of styling: zoom, no masks, our border
 local function Style(s)
     s.off = nil
-    Zoom(s.icon)
+    ZoomSkin(s)
     RemoveMasks(s)
     Place(s)
     ShowBorder(s, true)
@@ -131,6 +137,7 @@ local function Unstyle(f, s)
     s.off = true
     ShowBorder(s, false)
     s.icon:SetTexCoord(0, 1, 0, 1)
+    if f.tidyFit and ns.FitIcon then ns.FitIcon(f, 0) end
     for m in pairs(s.masks) do s.icon:AddMaskTexture(m) end
     wipe(s.masks)
     for region, a in pairs(s.hidden) do region:SetAlpha(a) end
@@ -189,7 +196,8 @@ local function ActionArt(b)
     Hide(s, b.BottomDivider)
     -- icon fills the whole button and the cooldown follows it: out of
     -- combat only (the button is protected); the old points are kept
-    if not s.points and not InCombatLockdown() then
+    -- (Tidy's own buttons: the bar places icon and cooldown, FitIcon)
+    if not b.tidyFit and not s.points and not InCombatLockdown() then
         s.points = { icon = Points(icon), cd = b.cooldown and Points(b.cooldown) }
         icon:ClearAllPoints()
         icon:SetAllPoints(b)
@@ -345,7 +353,7 @@ end
 function ns.ApplyIcons()
     for _, s in pairs(skins) do
         if not s.off then
-            Zoom(s.icon)
+            ZoomSkin(s)
             Place(s)
             Paint(s)
         end

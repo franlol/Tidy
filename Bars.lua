@@ -68,6 +68,9 @@ function ns.BarDefaults(id)
         altPage = 0,
         shiftPage = 0,
         -- buttons
+        buttonWidth = BUTTON,
+        buttonHeight = BUTTON,
+        iconFit = "cover",       -- cover (crop) / contain (whole icon) / stretch
         hideMacro = false,
         hideHotkey = false,
         hideEquipped = false,
@@ -297,6 +300,47 @@ local function ButtonAttributes(b)
     b:SetAttribute("*unit2", K.rightClickSelf and "player" or nil)
 end
 
+-- Icon inside a button of any width / height, like CSS object-fit:
+--   cover   : fills the button, the icon is cropped to keep its shape
+--   contain : the whole icon, as big as fits, centered
+--   stretch : fills the button, the icon is deformed
+-- z: extra crop of the icon edge (the square icons' zoom).
+-- The cooldown, highlight and flash follow the icon.
+function ns.FitIcon(b, z)
+    local f, icon = b.tidyFit, b.icon
+    if not f or not icon then return end
+    z = z or 0
+    local w, h = f.w, f.h
+    local l, r, t, bo = z, 1 - z, z, 1 - z
+    local span = 1 - 2 * z
+    if f.mode == "cover" and w ~= h then
+        if w > h then
+            t, bo = 0.5 - span * h / w / 2, 0.5 + span * h / w / 2
+        else
+            l, r = 0.5 - span * w / h / 2, 0.5 + span * w / h / 2
+        end
+    end
+    icon:SetTexCoord(l, r, t, bo)
+    local key = w .. ":" .. h .. ":" .. f.mode
+    if b.tidyFitKey == key then return end
+    b.tidyFitKey = key
+    icon:ClearAllPoints()
+    if f.mode == "contain" then
+        local m = math.min(w, h)
+        icon:SetSize(m, m)
+        icon:SetPoint("CENTER", b, "CENTER")
+    else
+        icon:SetAllPoints(b)
+    end
+    for _, region in ipairs({ b.cooldown, b.chargeCooldown, b:GetHighlightTexture(), b:GetPushedTexture(),
+        b:GetCheckedTexture(), b.Flash, b.NewActionTexture, b.Border }) do
+        if region then
+            pcall(region.ClearAllPoints, region)
+            pcall(region.SetAllPoints, region, icon)
+        end
+    end
+end
+
 local function CreateButton(header, id, i)
     local b = LAB:CreateButton((id - 1) * 12 + i, "TidyBar" .. id .. "Button" .. i, header)
     b.tidyCommand = COMMANDS[id] and (COMMANDS[id] .. i) -- Blizzard binding it uses
@@ -328,23 +372,28 @@ local function Layout(h, c)
     local rows = math.max(1, math.min(n, c.rows))
     local cols = math.ceil(n / rows)
     local pad = c.padding
+    local bw, bh = c.buttonWidth or BUTTON, c.buttonHeight or BUTTON
+    local zoom = ns.P.icons.enabled and ns.P.icons.actionbars and ns.P.icons.zoom or 0
     for i, b in ipairs(h.buttons) do
         b:ClearAllPoints()
         if i <= n then
             local r, col = math.floor((i - 1) / cols), (i - 1) % cols
             if c.growH == "LEFT" then col = cols - 1 - col end
             if c.growV == "UP" then r = rows - 1 - r end
-            b:SetPoint("TOPLEFT", h, "TOPLEFT", col * (BUTTON + pad), -r * (BUTTON + pad))
+            b:SetPoint("TOPLEFT", h, "TOPLEFT", col * (bw + pad), -r * (bh + pad))
+            b:SetSize(bw, bh)
+            b.tidyFit = { w = bw, h = bh, mode = c.iconFit or "cover" }
             b:SetAttribute("statehidden", nil)
             b:EnableMouse(not c.clickThrough)
             ButtonAttributes(b)
             b:UpdateConfig(ButtonConfig(b, c))
+            ns.FitIcon(b, zoom)
         else
             b:SetAttribute("statehidden", true)
             b:Hide()
         end
     end
-    h:SetSize(cols * BUTTON + (cols - 1) * pad, rows * BUTTON + (rows - 1) * pad)
+    h:SetSize(cols * bw + (cols - 1) * pad, rows * bh + (rows - 1) * pad)
     h.mover:SetShown(not B.locked and c.enabled)
 end
 

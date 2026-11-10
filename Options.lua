@@ -194,6 +194,13 @@ local function BuildBars(container)
     S(card, L["Buttons"], "buttons", 1, 12, 1, nil, IsAction)
     S(card, L["Rows"], "rows", 1, 12, 1, nil, HasRows)
     S(card, L["Padding"], "padding", -10, 50, 0.5, function(v) return ("%.1f px"):format(v) end, HasRows)
+    S(card, L["Button width"], "buttonWidth", 16, 100, 1, UI.px, IsAction)
+    S(card, L["Button height"], "buttonHeight", 16, 100, 1, UI.px, IsAction)
+    local ig, is = BB("iconFit")
+    card:Add(UI.Segmented(card, L["Icon"], {
+        { "cover", L["Cover"] }, { "contain", L["Contain"] }, { "stretch", L["Stretch"] },
+    }, ig, is, { enableIf = When(IsAction),
+        tip = L["Cover: fills the button, cropped. Contain: the whole icon, centered. Stretch: fills it, deformed."] }))
     S(card, L["Scale"], "scale", 0.5, 2, 0.05, UI.pct)
     S(card, L["Opacity"], "alpha", 0, 1, 0.05, UI.pct)
     S(card, L["Width"], "width", 200, 1500, 1, UI.px, function() return selected == "status" end)

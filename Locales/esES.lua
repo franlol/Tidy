@@ -111,6 +111,14 @@ ns.translations.esES = {
         "Modo de atajos: pasa el ratón por un botón y pulsa una tecla. Esc para salir.",
 
     -- Bar page
+    ["Button width"] = "Anchura del botón",
+    ["Button height"] = "Altura del botón",
+    ["Icon"] = "Icono",
+    ["Cover"] = "Cubrir",
+    ["Contain"] = "Contener",
+    ["Stretch"] = "Estirar",
+    ["Cover: fills the button, cropped. Contain: the whole icon, centered. Stretch: fills it, deformed."] =
+        "Cubrir: llena el botón, recortado. Contener: el icono entero, centrado. Estirar: lo llena, deformado.",
     ["Fill"] = "Rellenar",
     ["To the right"] = "Hacia la derecha",
     ["To the left"] = "Hacia la izquierda",
