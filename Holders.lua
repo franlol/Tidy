@@ -229,8 +229,10 @@ local function LayoutGroup(h, c, def)
     local empty = #shown == 0
     h.mover.text:SetText(empty and (h.label .. " (" .. L["empty"] .. ")") or h.label)
     if empty then
-        -- just big enough for its name
-        h:SetSize(math.ceil(h.mover.text:GetStringWidth()) + 12, 24)
+        -- one button of the bar, like any one-item bar (leave vehicle...)
+        local w, hh = 30, 30
+        if list[1] then w, hh = list[1]:GetSize() end
+        h:SetSize(math.max(1, w), math.max(1, hh))
     else
         h:SetSize(math.max(1, cols * cw + (cols - 1) * pad), math.max(1, rows * ch + (rows - 1) * pad))
     end
@@ -291,11 +293,11 @@ function ns.ExtraArt(show)
 end
 
 local function LayoutFrame(h, c, def, f)
-    local w, hh
-    if def.size then
+    -- the box is the frame's real size; the fixed size only when the game
+    -- gives none yet (frame never shown)
+    local w, hh = f:GetSize()
+    if (not w or w < 2 or not hh or hh < 2) and def.size then
         w, hh = def.size[1], def.size[2]
-    else
-        w, hh = f:GetSize()
     end
     busy = true
     f:ClearAllPoints()
