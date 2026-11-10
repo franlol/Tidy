@@ -112,6 +112,24 @@ ns.translations.esES = {
     ["Behaviour, casting and texts back to their defaults."] =
         "Comportamiento, lanzamiento y textos a sus valores por defecto.",
 
+    -- Tabs and card titles
+    ["Size"] = "Tamaño",
+    ["Arrangement"] = "Disposición de botones",
+    ["Fade"] = "Desvanecer",
+    ["Hide"] = "Ocultar",
+    ["Paging"] = "Páginas",
+    ["Which page of actions the bar shows. Action bars only."] =
+        "Qué página de acciones muestra la barra. Solo barras de acción.",
+    ["What the buttons of this bar show. Action bars only."] =
+        "Qué muestran los botones de esta barra. Solo barras de acción.",
+    ["For every button of Tidy's action bars."] = "Para todos los botones de las barras de acción de Tidy.",
+    ["Colors"] = "Colores",
+    ["Self-cast"] = "Lanzar sobre ti",
+    ["Focus"] = "Foco",
+    ["Mouse-over"] = "Bajo el ratón",
+    ["Choose a text, then its look. For every button of Tidy's action bars."] =
+        "Elige un texto y luego su aspecto. Para todos los botones de las barras de acción de Tidy.",
+
     -- Keybinding mode
     ["no key"] = "sin tecla",
     ["Press a key to bind it"] = "Pulsa una tecla para asignarla",

@@ -68,10 +68,51 @@ local function Fonts()
 end
 
 -------------------------------------------------------------------------------
+-- Page with tabs: a row of tabs and, under it, one single-column page per
+-- tab (built the first time it is opened). top(strip) puts fixed controls
+-- above the tabs (the bar selector). The open tab is remembered.
+-------------------------------------------------------------------------------
+local lastTab = {}
+
+local function Tabbed(container, name, tabs, top)
+    local y = 0
+    if top then
+        local strip = CreateFrame("Frame", nil, container)
+        strip:SetPoint("TOPLEFT")
+        strip:SetPoint("TOPRIGHT", -12, 0)
+        strip:SetHeight(24)
+        top(strip)
+        y = -32
+    end
+    local area = CreateFrame("Frame", nil, container)
+    area:SetPoint("TOPLEFT", 0, y - 34)
+    area:SetPoint("BOTTOMRIGHT")
+    local frames, builders, list = {}, {}, {}
+    for _, t in ipairs(tabs) do
+        list[#list + 1] = { t[1], t[2] }
+        builders[t[1]] = t[3]
+    end
+    local bar = UI.Tabs(container, list, function(key)
+        lastTab[name] = key
+        for k, f in pairs(frames) do f:SetShown(k == key) end
+        if not frames[key] then
+            local f = CreateFrame("Frame", nil, area)
+            f:SetAllPoints()
+            frames[key] = f
+            builders[key](UI.Page(f, 1))
+        end
+        UI.RefreshAll()
+    end)
+    bar:SetPoint("TOPLEFT", 0, y)
+    bar:SetPoint("TOPRIGHT", -12, y)
+    bar:Select(lastTab[name] or tabs[1][1])
+end
+
+-------------------------------------------------------------------------------
 -- General
 -------------------------------------------------------------------------------
 local function BuildGeneral(container)
-    local page = UI.Page(container, 2)
+    local page = UI.Page(container, 1)
 
     local gen = page:Add(1, UI.Card(page.content, L["Action bars"],
         L["Your spells and keybinds, on bars you place. Replaces Blizzard's action bars."]))
@@ -105,7 +146,7 @@ local function BuildGeneral(container)
             tip = L["A bar you drag sticks to the edges and centers of other bars, the screen center lines and the screen borders."] }))
     edit:Add(UI.Note(edit, L["Unlocked: drag a bar to move it, click it to edit it. Keybinding mode: hover a button and press a key."]))
 
-    local look = page:Add(2, UI.Card(page.content, L["Layout"]))
+    local look = page:Add(1, UI.Card(page.content, L["Layout"]))
     local preset = {}
     look:Add(UI.Dropdown(look, L["Preset"], {
         { "blizzard", L["Blizzard-like"] }, { "compact", L["Compact"] }, { "split", L["Split"] },
@@ -120,7 +161,7 @@ local function BuildGeneral(container)
         function(v) ns.P.bars.gryphons = v if ns.UpdateGryphons then ns.UpdateGryphons() end end,
         { enableIf = active }))
 
-    local misc = page:Add(2, UI.Card(page.content, L["Addon"]))
+    local misc = page:Add(1, UI.Card(page.content, L["Addon"]))
     misc:Add(UI.Check(misc, L["Minimap button"], function() return not ns.db.minimap.hide end,
         function(v) ns.db.minimap.hide = not v ns.UpdateMinimapButton() end))
     misc:Add(UI.Dropdown(misc, L["Language"], {
@@ -195,187 +236,232 @@ local function PAGE_OPTIONS(withNone)
     return list
 end
 
+local function S(c, label, key, minV, maxV, step, fmt, applies)
+    local g, s = BB(key)
+    c:Add(UI.Slider(c, label, minV, maxV, step, g, s, { format = fmt, enableIf = When(applies) }))
+end
+
 local function BuildBars(container)
-    local page = UI.Page(container, 2)
+    -- above the tabs: which bar, and whether it is shown
+    local function Top(strip)
+        local dd = UI.Dropdown(strip, nil, BarOptions(), function() return selected end, Select)
+        dd:SetPoint("TOPLEFT")
+        dd:SetWidth(220)
+        local eg, es = BB("enabled")
+        local show = UI.Check(strip, L["Show this bar"], eg, es)
+        show:SetPoint("LEFT", dd, "RIGHT", 16, 0)
+        show:SetWidth(180)
+        if show.OnWidth then show.OnWidth(180) end
+    end
 
-    -- Layout
-    local card = page:Add(1, UI.Card(page.content, L["Bar"]))
-    card:Add(UI.Dropdown(card, nil, BarOptions(), function() return selected end, Select))
-    local eg, es = BB("enabled")
-    card:Add(UI.Check(card, L["Show this bar"], eg, es, { enableIf = active }))
-    local function S(c, label, key, minV, maxV, step, fmt, applies)
-        local g, s = BB(key)
-        c:Add(UI.Slider(c, label, minV, maxV, step, g, s, { format = fmt, enableIf = When(applies) }))
-    end
-    S(card, L["Buttons"], "buttons", 1, 12, 1, nil, IsAction)
-    S(card, L["Rows"], "rows", 1, 12, 1, nil, HasRows)
-    S(card, L["Padding"], "padding", -10, 50, 0.5, function(v) return ("%.1f px"):format(v) end, HasRows)
-    S(card, L["Button width"], "buttonWidth", 16, 100, 1, UI.px, IsAction)
-    S(card, L["Button height"], "buttonHeight", 16, 100, 1, UI.px, IsAction)
-    local ig, is = BB("iconFit")
-    card:Add(UI.Segmented(card, L["Icon"], {
-        { "cover", L["Cover"] }, { "contain", L["Contain"] }, { "stretch", L["Stretch"] },
-    }, ig, is, { enableIf = When(IsAction),
-        tip = L["Cover: fills the button, cropped. Contain: the whole icon, centered. Stretch: fills it, deformed."] }))
-    S(card, L["Scale"], "scale", 0.5, 2, 0.05, UI.pct)
-    S(card, L["Opacity"], "alpha", 0, 1, 0.05, UI.pct)
-    S(card, L["Width"], "width", 200, 1500, 1, UI.px, function() return selected == "status" end)
-    local reset = UI.Buttons(card, { { L["Reset this bar"], function()
-        ns.P.bars.list[selected] = nil
-        if ns.barsActive then ns.ApplyBar(selected) if IsAction() then ns.UpdateBinds() end end
-        UI.RefreshAll()
-    end, "danger" } }, { enableIf = active,
-        tip = L["Every setting of this bar back to its default (holders: back to where they are now)."] })
-    UI.Confirm(reset.buttons[1])
-    card:Add(reset)
-    local hg, hs = BB("growH")
-    card:Add(UI.Segmented(card, L["Fill"], { { "RIGHT", L["To the right"] }, { "LEFT", L["To the left"] } },
-        hg, hs, { enableIf = When(HasRows) }))
-    local vg, vs = BB("growV")
-    card:Add(UI.Segmented(card, nil, { { "DOWN", L["Downwards"] }, { "UP", L["Upwards"] } },
-        vg, vs, { enableIf = When(HasRows) }))
-    local cg, cs = BB("clickThrough")
-    card:Add(UI.Check(card, L["Click-through"], cg, cs, { enableIf = When(HasRows),
-        tip = L["The mouse goes through the buttons (keybinds still work)."] }))
-    card:Add(UI.Input(card, L["X position"], function() return tostring((ns.BarXY(selected))) end,
-        function(v) local n = tonumber(v) if n then ns.SetBarXY(selected, n, nil) end end, { enableIf = When() }))
-    card:Add(UI.Input(card, L["Y position"], function() return tostring(select(2, ns.BarXY(selected))) end,
-        function(v) local n = tonumber(v) if n then ns.SetBarXY(selected, nil, n) end end,
-        { enableIf = When(), tip = L["From the bottom left corner of the screen to the top left corner of the bar."] }))
+    Tabbed(container, "bars", {
+        { "layout", L["Layout"], function(page)
+            local card = page:Add(1, UI.Card(page.content, L["Size"]))
+            S(card, L["Buttons"], "buttons", 1, 12, 1, nil, IsAction)
+            S(card, L["Rows"], "rows", 1, 12, 1, nil, HasRows)
+            S(card, L["Padding"], "padding", -10, 50, 0.5, function(v) return ("%.1f px"):format(v) end, HasRows)
+            S(card, L["Button width"], "buttonWidth", 16, 100, 1, UI.px, IsAction)
+            S(card, L["Button height"], "buttonHeight", 16, 100, 1, UI.px, IsAction)
+            S(card, L["Width"], "width", 200, 1500, 1, UI.px, function() return selected == "status" end)
+            S(card, L["Scale"], "scale", 0.5, 2, 0.05, UI.pct)
+            S(card, L["Opacity"], "alpha", 0, 1, 0.05, UI.pct)
 
-    -- Visibility
-    card = page:Add(2, UI.Card(page.content, L["Visibility"]))
-    local fg, fs = BB("fade")
-    card:Add(UI.Check(card, L["Fade out when the mouse is not over it"], fg, fs, { enableIf = When() }))
-    local fadeOn = function() return ns.BarConfig(selected).fade end
-    S(card, L["Faded opacity"], "fadeAlpha", 0, 1, 0.05, UI.pct, fadeOn)
-    S(card, L["Delay"], "fadeDelay", 0, 3, 0.1, function(v) return ("%.1f s"):format(v) end, fadeOn)
-    local noCustom = function() return strtrim(ns.BarConfig(selected).custom or "") == "" end
-    for _, def in ipairs({
-        { "hideCombat", "Hide in combat" }, { "hideNoCombat", "Hide out of combat" },
-        { "hidePet", "Hide with a pet" }, { "hideNoPet", "Hide without a pet" },
-        { "hideVehicle", "Hide in vehicles" },
-    }) do
-        local g, s = BB(def[1])
-        card:Add(UI.Check(card, L[def[2]], g, s, { enableIf = When(noCustom) }))
-    end
-    local xg, xs = BB("custom")
-    card:Add(UI.Input(card, L["Custom conditions"], xg, xs, { enableIf = When(),
-        tip = L["Macro conditions, e.g. [combat] show; hide. When set, they replace the options above."] }))
+            card = page:Add(1, UI.Card(page.content, L["Arrangement"]))
+            local hg, hs = BB("growH")
+            card:Add(UI.Segmented(card, L["Fill"], { { "RIGHT", L["To the right"] }, { "LEFT", L["To the left"] } },
+                hg, hs, { enableIf = When(HasRows) }))
+            local vg, vs = BB("growV")
+            card:Add(UI.Segmented(card, nil, { { "DOWN", L["Downwards"] }, { "UP", L["Upwards"] } },
+                vg, vs, { enableIf = When(HasRows) }))
+            local ig, is = BB("iconFit")
+            card:Add(UI.Segmented(card, L["Icon"], {
+                { "cover", L["Cover"] }, { "contain", L["Contain"] }, { "stretch", L["Stretch"] },
+            }, ig, is, { enableIf = When(IsAction),
+                tip = L["Cover: fills the button, cropped. Contain: the whole icon, centered. Stretch: fills it, deformed."] }))
+            local cg, cs = BB("clickThrough")
+            card:Add(UI.Check(card, L["Click-through"], cg, cs, { enableIf = When(HasRows),
+                tip = L["The mouse goes through the buttons (keybinds still work)."] }))
 
-    -- Paging and buttons (action bars)
-    card = page:Add(2, UI.Card(page.content, L["Paging and buttons"]))
-    local pg, ps = BB("page")
-    card:Add(UI.Dropdown(card, L["Page"], PAGE_OPTIONS(false), pg, ps, { enableIf = When(IsAction) }))
-    local sg, ss = BB("stancePaging")
-    card:Add(UI.Check(card, L["Change page with stance / form"], sg, ss, { enableIf = When(IsAction),
-        tip = L["Warrior stances, druid forms, rogue stealth, priest shadowform: pages 7 to 10."] }))
-    for _, mod in ipairs({ { "ctrlPage", "Page with Ctrl" }, { "altPage", "Page with Alt" }, { "shiftPage", "Page with Shift" } }) do
-        local g, s = BB(mod[1])
-        card:Add(UI.Dropdown(card, L[mod[2]], PAGE_OPTIONS(true), g, s, { enableIf = When(IsAction) }))
-    end
-    local gg, gs = BB("showGrid")
-    card:Add(UI.Check(card, L["Show empty buttons"], gg, gs, { enableIf = When(IsAction) }))
-    for _, def in ipairs({ { "hideMacro", "Hide macro names" }, { "hideHotkey", "Hide keybinds" },
-        { "hideEquipped", "Hide equipped border" } }) do
-        local g, s = BB(def[1])
-        card:Add(UI.Check(card, L[def[2]], g, s, { enableIf = When(IsAction) }))
-    end
-    local og, os = BB("flyout")
-    card:Add(UI.Dropdown(card, L["Flyout direction"], {
-        { "UP", L["Up"] }, { "DOWN", L["Down"] }, { "LEFT", L["Left"] }, { "RIGHT", L["Right"] },
-    }, og, os, { enableIf = When(IsAction) }))
+            card = page:Add(1, UI.Card(page.content, L["Position"]))
+            card:Add(UI.Input(card, L["X position"], function() return tostring((ns.BarXY(selected))) end,
+                function(v) local n = tonumber(v) if n then ns.SetBarXY(selected, n, nil) end end, { enableIf = When() }))
+            card:Add(UI.Input(card, L["Y position"], function() return tostring(select(2, ns.BarXY(selected))) end,
+                function(v) local n = tonumber(v) if n then ns.SetBarXY(selected, nil, n) end end,
+                { enableIf = When(), tip = L["From the bottom left corner of the screen to the top left corner of the bar."] }))
+            local reset = UI.Buttons(card, { { L["Reset this bar"], function()
+                ns.P.bars.list[selected] = nil
+                if ns.barsActive then ns.ApplyBar(selected) if IsAction() then ns.UpdateBinds() end end
+                UI.RefreshAll()
+            end, "danger" } }, { enableIf = active,
+                tip = L["Every setting of this bar back to its default (holders: back to where they are now)."] })
+            UI.Confirm(reset.buttons[1])
+            card:Add(reset)
+        end },
+
+        { "visibility", L["Visibility"], function(page)
+            local card = page:Add(1, UI.Card(page.content, L["Fade"]))
+            local fg, fs = BB("fade")
+            card:Add(UI.Check(card, L["Fade out when the mouse is not over it"], fg, fs, { enableIf = When() }))
+            local fadeOn = function() return ns.BarConfig(selected).fade end
+            S(card, L["Faded opacity"], "fadeAlpha", 0, 1, 0.05, UI.pct, fadeOn)
+            S(card, L["Delay"], "fadeDelay", 0, 3, 0.1, function(v) return ("%.1f s"):format(v) end, fadeOn)
+
+            card = page:Add(1, UI.Card(page.content, L["Hide"]))
+            local noCustom = function() return strtrim(ns.BarConfig(selected).custom or "") == "" end
+            for _, def in ipairs({
+                { "hideCombat", "Hide in combat" }, { "hideNoCombat", "Hide out of combat" },
+                { "hidePet", "Hide with a pet" }, { "hideNoPet", "Hide without a pet" },
+                { "hideVehicle", "Hide in vehicles" },
+            }) do
+                local g, s = BB(def[1])
+                card:Add(UI.Check(card, L[def[2]], g, s, { enableIf = When(noCustom) }))
+            end
+            local xg, xs = BB("custom")
+            card:Add(UI.Input(card, L["Custom conditions"], xg, xs, { enableIf = When(),
+                tip = L["Macro conditions, e.g. [combat] show; hide. When set, they replace the options above."] }))
+        end },
+
+        { "paging", L["Paging"], function(page)
+            local card = page:Add(1, UI.Card(page.content, L["Paging"],
+                L["Which page of actions the bar shows. Action bars only."]))
+            local pg, ps = BB("page")
+            card:Add(UI.Dropdown(card, L["Page"], PAGE_OPTIONS(false), pg, ps, { enableIf = When(IsAction) }))
+            local sg, ss = BB("stancePaging")
+            card:Add(UI.Check(card, L["Change page with stance / form"], sg, ss, { enableIf = When(IsAction),
+                tip = L["Warrior stances, druid forms, rogue stealth, priest shadowform: pages 7 to 10."] }))
+            for _, mod in ipairs({ { "ctrlPage", "Page with Ctrl" }, { "altPage", "Page with Alt" }, { "shiftPage", "Page with Shift" } }) do
+                local g, s = BB(mod[1])
+                card:Add(UI.Dropdown(card, L[mod[2]], PAGE_OPTIONS(true), g, s, { enableIf = When(IsAction) }))
+            end
+        end },
+
+        { "buttons", L["Buttons"], function(page)
+            local card = page:Add(1, UI.Card(page.content, L["Buttons"],
+                L["What the buttons of this bar show. Action bars only."]))
+            local gg, gs = BB("showGrid")
+            card:Add(UI.Check(card, L["Show empty buttons"], gg, gs, { enableIf = When(IsAction) }))
+            for _, def in ipairs({ { "hideMacro", "Hide macro names" }, { "hideHotkey", "Hide keybinds" },
+                { "hideEquipped", "Hide equipped border" } }) do
+                local g, s = BB(def[1])
+                card:Add(UI.Check(card, L[def[2]], g, s, { enableIf = When(IsAction) }))
+            end
+            local og, os = BB("flyout")
+            card:Add(UI.Dropdown(card, L["Flyout direction"], {
+                { "UP", L["Up"] }, { "DOWN", L["Down"] }, { "LEFT", L["Left"] }, { "RIGHT", L["Right"] },
+            }, og, os, { enableIf = When(IsAction) }))
+        end },
+    }, Top)
 end
 
 -------------------------------------------------------------------------------
 -- Buttons: every action button
 -------------------------------------------------------------------------------
 local function BuildButtons(container)
-    local page = UI.Page(container, 2)
     local function G() return ns.P.bars.buttons end
     local function GB(key)
         return function() return G()[key] end, function(v) G()[key] = v ApplyAllBars() end
     end
-
-    local card = page:Add(1, UI.Card(page.content, L["Behaviour"]))
-    local tg, ts = GB("tooltip")
-    card:Add(UI.Dropdown(card, L["Tooltips"], {
-        { "enabled", L["Always"] }, { "nocombat", L["Out of combat"] }, { "disabled", L["Never"] },
-    }, tg, ts))
-    local rg, rs = GB("range")
-    card:Add(UI.Dropdown(card, L["Out of range"], {
-        { "button", L["Color the button"] }, { "hotkey", L["Color the keybind"] }, { "none", L["Nothing"] },
-    }, rg, rs))
-    card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars))
-    card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars))
-    local lg, ls = GB("lock")
-    card:Add(UI.Check(card, L["Lock buttons"], lg, ls, { tip = L["Spells cannot be dragged off the bars (Shift + drag still can)."] }))
-    local vg, vs = GB("castVFX")
-    card:Add(UI.Check(card, L["Cast animation"], vg, vs))
-    card:Add(UI.Check(card, L["Cast on key down"], function() return GetCVarBool("ActionButtonUseKeyDown") end,
-        function(v) SetCVar("ActionButtonUseKeyDown", v and "1" or "0") end, { tip = L["A game setting: for every bar."] }))
-
-    -- Casting helpers
-    local resetButtons = UI.Buttons(card, { { L["Defaults"], function()
-        local D = ns.defaults.bars
-        for _, key in ipairs({ "buttons", "casting" }) do
-            local t = ns.P.bars[key]
-            wipe(t)
-            for k, v in pairs(ns.Copy(D[key])) do t[k] = v end
-        end
-        ApplyAllBars()
-        UI.RefreshAll()
-    end } }, { tip = L["Behaviour, casting and texts back to their defaults."] })
-    UI.Confirm(resetButtons.buttons[1])
-    card:Add(resetButtons)
-
-    card = page:Add(1, UI.Card(page.content, L["Casting"]))
     local K = function() return ns.P.bars.casting end
     local function KB(key, also)
         return function() return K()[key] end, function(v) K()[key] = v if also then also(v) end ApplyAllBars() end
     end
-    local MODS = { { "ALT", "Alt" }, { "CTRL", "Ctrl" }, { "SHIFT", "Shift" }, { "NONE", L["None"] } }
-    local function ModDropdown(label, click, enable)
-        card:Add(UI.Dropdown(card, label, MODS, function() return GetModifiedClick(click) end, function(v)
-            SetModifiedClick(click, v)
-            SaveBindings(GetCurrentBindingSet and GetCurrentBindingSet() or 1)
-        end, { enableIf = enable }))
-    end
-    local g, s = KB("selfCast")
-    card:Add(UI.Check(card, L["Self-cast with a key"], g, s))
-    ModDropdown(L["Self-cast key"], "SELFCAST", function() return K().selfCast end)
-    g, s = KB("focusCast")
-    card:Add(UI.Check(card, L["Focus-cast with a key"], g, s))
-    ModDropdown(L["Focus-cast key"], "FOCUSCAST", function() return K().focusCast end)
-    g, s = KB("mouseover", function(v) SetCVar("enableMouseoverCast", v and "1" or "0") end)
-    card:Add(UI.Check(card, L["Mouse-over casting"], g, s, { tip = L["Spells go to the unit under the mouse."] }))
-    ModDropdown(L["Mouse-over key"], "MOUSEOVERCAST", function() return K().mouseover end)
-    g, s = KB("rightClickSelf")
-    card:Add(UI.Check(card, L["Right click casts on yourself"], g, s))
 
-    -- Texts on the buttons
-    card = page:Add(2, UI.Card(page.content, L["Texts"]))
-    local which = { key = "hotkey" }
-    card:Add(UI.Segmented(card, nil, { { "hotkey", L["Keybind"] }, { "count", L["Count"] }, { "macro", L["Macro name"] } },
-        function() return which.key end, function(v) which.key = v UI.RefreshAll() end))
-    local function T() return G().texts[which.key] end
-    local function TB(key)
-        return function() return T()[key] end, function(v) T()[key] = v ApplyAllBars() end
-    end
-    local fg, fs = TB("font")
-    card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs))
-    local zg, zs = TB("size")
-    card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs))
-    local og, os = TB("outline")
-    card:Add(UI.Dropdown(card, L["Outline"], OUTLINES, og, os))
-    card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars))
-    local pg, ps = TB("point")
-    card:Add(UI.Dropdown(card, L["Position"], POINTS, pg, ps))
-    local xg, xs = TB("x")
-    card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs))
-    local yg, ys = TB("y")
-    card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys))
+    Tabbed(container, "buttons", {
+        { "behaviour", L["Behaviour"], function(page)
+            local card = page:Add(1, UI.Card(page.content, L["Behaviour"],
+                L["For every button of Tidy's action bars."]))
+            local tg, ts = GB("tooltip")
+            card:Add(UI.Dropdown(card, L["Tooltips"], {
+                { "enabled", L["Always"] }, { "nocombat", L["Out of combat"] }, { "disabled", L["Never"] },
+            }, tg, ts))
+            local lg, ls = GB("lock")
+            card:Add(UI.Check(card, L["Lock buttons"], lg, ls, { tip = L["Spells cannot be dragged off the bars (Shift + drag still can)."] }))
+            local vg, vs = GB("castVFX")
+            card:Add(UI.Check(card, L["Cast animation"], vg, vs))
+            card:Add(UI.Check(card, L["Cast on key down"], function() return GetCVarBool("ActionButtonUseKeyDown") end,
+                function(v) SetCVar("ActionButtonUseKeyDown", v and "1" or "0") end, { tip = L["A game setting: for every bar."] }))
+
+            card = page:Add(1, UI.Card(page.content, L["Colors"]))
+            local rg, rs = GB("range")
+            card:Add(UI.Dropdown(card, L["Out of range"], {
+                { "button", L["Color the button"] }, { "hotkey", L["Color the keybind"] }, { "none", L["Nothing"] },
+            }, rg, rs))
+            card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars))
+            card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars))
+
+            card = page:Add(1, UI.Card(page.content, L["Defaults"]))
+            local reset = UI.Buttons(card, { { L["Defaults"], function()
+                local D = ns.defaults.bars
+                for _, key in ipairs({ "buttons", "casting" }) do
+                    local t = ns.P.bars[key]
+                    wipe(t)
+                    for k, v in pairs(ns.Copy(D[key])) do t[k] = v end
+                end
+                ApplyAllBars()
+                UI.RefreshAll()
+            end, "danger" } }, { tip = L["Behaviour, casting and texts back to their defaults."] })
+            UI.Confirm(reset.buttons[1])
+            card:Add(reset)
+        end },
+
+        { "casting", L["Casting"], function(page)
+            local MODS = { { "ALT", "Alt" }, { "CTRL", "Ctrl" }, { "SHIFT", "Shift" }, { "NONE", L["None"] } }
+            local function ModDropdown(card, label, click, enable)
+                card:Add(UI.Dropdown(card, label, MODS, function() return GetModifiedClick(click) end, function(v)
+                    SetModifiedClick(click, v)
+                    SaveBindings(GetCurrentBindingSet and GetCurrentBindingSet() or 1)
+                end, { enableIf = enable }))
+            end
+
+            local card = page:Add(1, UI.Card(page.content, L["Self-cast"]))
+            local g, s = KB("selfCast")
+            card:Add(UI.Check(card, L["Self-cast with a key"], g, s))
+            ModDropdown(card, L["Self-cast key"], "SELFCAST", function() return K().selfCast end)
+            g, s = KB("rightClickSelf")
+            card:Add(UI.Check(card, L["Right click casts on yourself"], g, s))
+
+            card = page:Add(1, UI.Card(page.content, L["Focus"]))
+            g, s = KB("focusCast")
+            card:Add(UI.Check(card, L["Focus-cast with a key"], g, s))
+            ModDropdown(card, L["Focus-cast key"], "FOCUSCAST", function() return K().focusCast end)
+
+            card = page:Add(1, UI.Card(page.content, L["Mouse-over"]))
+            g, s = KB("mouseover", function(v) SetCVar("enableMouseoverCast", v and "1" or "0") end)
+            card:Add(UI.Check(card, L["Mouse-over casting"], g, s, { tip = L["Spells go to the unit under the mouse."] }))
+            ModDropdown(card, L["Mouse-over key"], "MOUSEOVERCAST", function() return K().mouseover end)
+        end },
+
+        { "texts", L["Texts"], function(page)
+            local which = { key = "hotkey" }
+            local function T() return G().texts[which.key] end
+            local function TB(key)
+                return function() return T()[key] end, function(v) T()[key] = v ApplyAllBars() end
+            end
+            local card = page:Add(1, UI.Card(page.content, L["Texts"],
+                L["Choose a text, then its look. For every button of Tidy's action bars."]))
+            card:Add(UI.Segmented(card, nil, { { "hotkey", L["Keybind"] }, { "count", L["Count"] }, { "macro", L["Macro name"] } },
+                function() return which.key end, function(v) which.key = v UI.RefreshAll() end))
+
+            card = page:Add(1, UI.Card(page.content, L["Font"]))
+            local fg, fs = TB("font")
+            card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs))
+            local zg, zs = TB("size")
+            card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs))
+            local og, os = TB("outline")
+            card:Add(UI.Dropdown(card, L["Outline"], OUTLINES, og, os))
+            card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars))
+
+            card = page:Add(1, UI.Card(page.content, L["Position"]))
+            local pg, ps = TB("point")
+            card:Add(UI.Dropdown(card, L["Position"], POINTS, pg, ps))
+            local xg, xs = TB("x")
+            card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs))
+            local yg, ys = TB("y")
+            card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys))
+        end },
+    })
 end
+
 
 -------------------------------------------------------------------------------
 -- Icons
@@ -389,7 +475,7 @@ local function IB(key, look)
 end
 
 local function BuildIcons(container)
-    local page = UI.Page(container, 2)
+    local page = UI.Page(container, 1)
     local O = function() return ns.P.icons end
     local on = function() return O().enabled end
 
@@ -406,7 +492,7 @@ local function BuildIcons(container)
         where:Add(UI.Check(where, L[def[2]], get, set, { enableIf = on, tip = def[3] and L[def[3]] }))
     end
 
-    local look = page:Add(2, UI.Card(page.content, L["Look"]))
+    local look = page:Add(1, UI.Card(page.content, L["Look"]))
     local sg, ss = IB("size", true)
     look:Add(UI.Slider(look, L["Border thickness"], 1, 4, 1, sg, ss, { format = UI.px, enableIf = on }))
     look:Add(UI.Swatch(look, L["Border color"], function() return O().color end, ns.ApplyIcons,
@@ -444,7 +530,7 @@ local function ProfileList(excludeCurrent)
 end
 
 local function BuildProfiles(container)
-    local page = UI.Page(container, 2)
+    local page = UI.Page(container, 1)
 
     local card = page:Add(1, UI.Card(page.content, L["This character"],
         L["One profile holds every setting. Several characters can share it."]))
@@ -484,7 +570,7 @@ local function BuildProfiles(container)
     UI.Confirm(delBtn.buttons[1])
     card:Add(delBtn)
 
-    card = page:Add(2, UI.Card(page.content, L["Share"], L["Export this profile as text, or paste one to import it."]))
+    card = page:Add(1, UI.Card(page.content, L["Share"], L["Export this profile as text, or paste one to import it."]))
     local box = card:Add(UI.CodeBox(card, 160))
     -- the message line is always there (empty or not): no layout jumps
     local status = card:Add(UI.Note(card, " "))
