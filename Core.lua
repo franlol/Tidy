@@ -2,7 +2,7 @@
 -- Tidy - Saved settings, profiles, language and slash command
 --
 -- TidyDB = {
---     language  = "esES" | "enUS" | nil (the game's),
+--     language  = "enUS" (default) | "esES",
 --     profiles  = { [name] = { icons = {...}, bars = {...} } },
 --     profileOf = { [character] = profile name },
 -- }
@@ -240,11 +240,8 @@ end
 -- Loading
 -------------------------------------------------------------------------------
 local function ApplyLanguage()
-    local lang = ns.db.language
-    if not lang then
-        local loc = GetLocale()
-        lang = (loc == "esES" or loc == "esMX") and "esES" or "enUS"
-    end
+    -- English unless Spanish was chosen
+    local lang = ns.db.language or "enUS"
     ns.SetLanguage(lang)
 end
 
@@ -283,7 +280,7 @@ ev:SetScript("OnEvent", function(self, event, name)
     end
 end)
 
--- lang: "esES", "enUS" or nil (the game's language)
+-- lang: "enUS" or "esES"
 function ns.SetLanguagePref(lang)
     ns.db.language = lang
     ApplyLanguage()

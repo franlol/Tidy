@@ -68,52 +68,73 @@ local function Fonts()
 end
 
 -------------------------------------------------------------------------------
--- Page with tabs: a row of tabs and, under it, one single-column page per
--- tab (built the first time it is opened), in two columns. top(strip) puts fixed controls
--- above the tabs (the bar selector). The open tab is remembered.
+-- Page with tabs: a row of tabs at the top and, under it, one page per tab
+-- (two columns, built the first time it is opened). top(strip): fixed
+-- controls under the tabs (the bar selector), shown only on the tabs that
+-- use them ({ key, label, build, usesTop }). The tabs never move; the open
+-- tab is remembered.
 -------------------------------------------------------------------------------
-local lastTab = {}
+local lastTab, tabBars = {}, {}
+local TABS_H, STRIP_H = 34, 32
 
 local function Tabbed(container, name, tabs, top)
-    local y = 0
+    local strip
     if top then
-        local strip = CreateFrame("Frame", nil, container)
-        strip:SetPoint("TOPLEFT")
-        strip:SetPoint("TOPRIGHT", -12, 0)
+        strip = CreateFrame("Frame", nil, container)
+        strip:SetPoint("TOPLEFT", 0, -TABS_H)
+        strip:SetPoint("TOPRIGHT", -12, -TABS_H)
         strip:SetHeight(24)
         top(strip)
-        y = -32
     end
-    local area = CreateFrame("Frame", nil, container)
-    area:SetPoint("TOPLEFT", 0, y - 34)
-    area:SetPoint("BOTTOMRIGHT")
-    local frames, builders, list = {}, {}, {}
+    local frames, defs, list = {}, {}, {}
     for _, t in ipairs(tabs) do
         list[#list + 1] = { t[1], t[2] }
-        builders[t[1]] = t[3]
+        defs[t[1]] = t
     end
     local bar = UI.Tabs(container, list, function(key)
         lastTab[name] = key
+        local def = defs[key]
+        if strip then strip:SetShown(def[4] and true or false) end
         for k, f in pairs(frames) do f:SetShown(k == key) end
         if not frames[key] then
-            local f = CreateFrame("Frame", nil, area)
-            f:SetAllPoints()
+            local f = CreateFrame("Frame", nil, container)
+            f:SetPoint("TOPLEFT", 0, -TABS_H - (def[4] and STRIP_H or 0))
+            f:SetPoint("BOTTOMRIGHT")
             frames[key] = f
-            builders[key](UI.Page(f, 2))
+            def[3](UI.Page(f, 2))
         end
         UI.RefreshAll()
     end)
-    bar:SetPoint("TOPLEFT", 0, y)
-    bar:SetPoint("TOPRIGHT", -12, y)
+    bar:SetPoint("TOPLEFT")
+    bar:SetPoint("TOPRIGHT", -12, 0)
     bar:Select(lastTab[name] or tabs[1][1])
+    tabBars[name] = bar
 end
 
 -------------------------------------------------------------------------------
--- General
+-- General: the addon itself
 -------------------------------------------------------------------------------
 local function BuildGeneral(container)
     local page = UI.Page(container, 2)
+    local misc = page:Add(1, UI.Card(page.content, L["Addon"]))
+    misc:Add(UI.Check(misc, L["Minimap button"], function() return not ns.db.minimap.hide end,
+        function(v) ns.db.minimap.hide = not v ns.UpdateMinimapButton() end))
+    misc:Add(UI.Dropdown(misc, L["Language"], { { "enUS", "English" }, { "esES", "Español" } },
+        function() return ns.db.language or "enUS" end, function(v)
+            ns.SetLanguagePref(v)
+            -- the window is built again in the new language, on the same page
+            local page = win.current
+            win:Hide()
+            win = nil
+            ns.ToggleOptions()
+            win:Select(page)
+        end))
+end
 
+-------------------------------------------------------------------------------
+-- Bars, "All bars" tab: what applies to every bar
+-------------------------------------------------------------------------------
+local function BuildAllBars(page)
     local gen = page:Add(1, UI.Card(page.content, L["Action bars"],
         L["Your spells and keybinds, on bars you place. Replaces Blizzard's action bars."]))
     gen:Add(UI.Switch(gen, L["Enabled"], function() return ns.P.bars.enabled end, function(v)
@@ -160,22 +181,8 @@ local function BuildGeneral(container)
     look:Add(UI.Check(look, L["Gryphons on bar 1"], function() return ns.P.bars.gryphons end,
         function(v) ns.P.bars.gryphons = v if ns.UpdateGryphons then ns.UpdateGryphons() end end,
         { enableIf = active }))
-
-    local misc = page:Add(2, UI.Card(page.content, L["Addon"]))
-    misc:Add(UI.Check(misc, L["Minimap button"], function() return not ns.db.minimap.hide end,
-        function(v) ns.db.minimap.hide = not v ns.UpdateMinimapButton() end))
-    misc:Add(UI.Dropdown(misc, L["Language"], {
-        { "auto", L["Game language"] }, { "enUS", "English" }, { "esES", "Español" },
-    }, function() return ns.db.language or "auto" end, function(v)
-        ns.SetLanguagePref(v ~= "auto" and v or nil)
-        -- the window is built again in the new language, on the same page
-        local page = win.current
-        win:Hide()
-        win = nil
-        ns.ToggleOptions()
-        win:Select(page)
-    end))
 end
+
 
 -------------------------------------------------------------------------------
 -- Bars: one bar at a time
@@ -192,7 +199,11 @@ end
 function ns.SelectBar(id)
     if not win then ns.ToggleOptions() end
     if not win:IsShown() then win:Show() end
+    -- open on a tab of the bar itself, not on "All bars"
+    if lastTab.bars == nil or lastTab.bars == "all" then lastTab.bars = "layout" end
     win:Select("bars")
+    local tb = tabBars.bars
+    if tb and tb.current == "all" then tb:Select("layout") end
     Select(id)
 end
 
@@ -255,6 +266,7 @@ local function BuildBars(container)
     end
 
     Tabbed(container, "bars", {
+        { "all", L["All bars"], BuildAllBars },
         { "layout", L["Layout"], function(page)
             local card = page:Add(1, UI.Card(page.content, L["Size"]))
             S(card, L["Buttons"], "buttons", 1, 12, 1, nil, IsAction)
@@ -296,7 +308,7 @@ local function BuildBars(container)
                 tip = L["Every setting of this bar back to its default (holders: back to where they are now)."] })
             UI.Confirm(reset.buttons[1])
             card:Add(reset)
-        end },
+        end, true },
 
         { "visibility", L["Visibility"], function(page)
             local card = page:Add(1, UI.Card(page.content, L["Fade"]))
@@ -319,7 +331,7 @@ local function BuildBars(container)
             local xg, xs = BB("custom")
             card:Add(UI.Input(card, L["Custom conditions"], xg, xs, { enableIf = When(),
                 tip = L["Macro conditions, e.g. [combat] show; hide. When set, they replace the options above."] }))
-        end },
+        end, true },
 
         { "paging", L["Paging"], function(page)
             local card = page:Add(1, UI.Card(page.content, L["Paging"],
@@ -336,7 +348,7 @@ local function BuildBars(container)
                 local g, s = BB(mod[1])
                 card:Add(UI.Dropdown(card, L[mod[2]], PAGE_OPTIONS(true), g, s, { enableIf = When(IsAction) }))
             end
-        end },
+        end, true },
 
         { "buttons", L["Buttons"], function(page)
             local card = page:Add(1, UI.Card(page.content, L["Buttons"],
@@ -355,7 +367,7 @@ local function BuildBars(container)
             card:Add(UI.Dropdown(card, L["Flyout direction"], {
                 { "UP", L["Up"] }, { "DOWN", L["Down"] }, { "LEFT", L["Left"] }, { "RIGHT", L["Right"] },
             }, og, os, { enableIf = When(IsAction) }))
-        end },
+        end, true },
     }, Top)
 end
 
@@ -607,8 +619,8 @@ end
 local function Build()
     win = UI.Window({ name = "TidyOptions", title = "Tidy", version = ns.version,
         width = 680, height = 520, navWidth = 110 })
-    win:AddNav("general", L["General"], BuildGeneral, active)
-    win:AddNav("bars", L["Bars"], BuildBars)
+    win:AddNav("general", L["General"], BuildGeneral)
+    win:AddNav("bars", L["Bars"], BuildBars, active)
     win:AddNav("buttons", L["Buttons"], BuildButtons)
     win:AddNav("icons", L["Icons"], BuildIcons, function() return ns.P.icons.enabled end)
     win:AddNav("profiles", L["Profiles"], BuildProfiles)

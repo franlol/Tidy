@@ -105,7 +105,7 @@ ns.translations.esES = {
 
     ["Addon"] = "Addon",
     ["Language"] = "Idioma",
-    ["Game language"] = "Idioma del juego",
+    ["All bars"] = "Todas las barras",
     ["Reset this bar"] = "Restablecer esta barra",
     ["Every setting of this bar back to its default (holders: back to where they are now)."] =
         "Todos los ajustes de esta barra a sus valores por defecto (las barras de Blizzard se quedan donde están ahora).",
