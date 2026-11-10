@@ -127,18 +127,30 @@ local KEEP = { "MicroMenuContainer", "MicroMenu", "MicroButtonAndBagsBar", "Bags
 -- addon writes on them taints them, and this client then refuses them the
 -- cooldown data ("secret values"). Being inside a hidden frame is enough:
 -- they cannot be seen or clicked, and the keybinds go to Tidy's buttons.
+
+-- Frames moved off the main bar (KEEP): original parent and points, to put
+-- them back exactly when Tidy's bars are turned off
+local kept = {}
+
 local function ShowBlizzard()
     for f, parent in pairs(moved) do f:SetParent(parent) end
     wipe(moved)
+    for f, o in pairs(kept) do
+        f:SetParent(o.parent)
+        f:ClearAllPoints()
+        for _, p in ipairs(o.points) do pcall(f.SetPoint, f, unpack(p)) end
+    end
+    wipe(kept)
 end
 
 local function HideBlizzard()
     for _, main in ipairs({ MainMenuBar, MainActionBar }) do
         for _, name in ipairs(KEEP) do
             local f = _G[name]
-            if f and main and f:GetParent() == main then
+            if f and main and f:GetParent() == main and not kept[f] then
                 local points = {}
                 for i = 1, f:GetNumPoints() do points[i] = { f:GetPoint(i) } end
+                kept[f] = { parent = main, points = points }
                 f:SetParent(UIParent)
                 f:ClearAllPoints()
                 for _, p in ipairs(points) do f:SetPoint(unpack(p)) end

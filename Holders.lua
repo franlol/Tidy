@@ -224,7 +224,15 @@ local function LayoutGroup(h, c, def)
         b:SetPoint("CENTER", h, "TOPLEFT", col * (cw + pad) + cw / 2, -r * (ch + pad) - ch / 2)
     end
     busy = nil
-    h:SetSize(math.max(1, cols * cw + (cols - 1) * pad), math.max(1, rows * ch + (rows - 1) * pad))
+    -- nothing to show (no forms yet, no pet...): a box the size of a button
+    -- row, so the bar can still be seen and moved while unlocked
+    local empty = #shown == 0
+    if empty then
+        h:SetSize(120, 30)
+    else
+        h:SetSize(math.max(1, cols * cw + (cols - 1) * pad), math.max(1, rows * ch + (rows - 1) * pad))
+    end
+    h.mover.text:SetText(empty and (h.label .. " (" .. L["empty"] .. ")") or h.label)
 end
 
 -- XP / reputation: the two Blizzard containers stacked, as wide as chosen
