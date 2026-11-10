@@ -174,6 +174,17 @@ local function LayoutGroup(h, c, def)
     local cols = math.ceil(n / rows)
     local pad = c.padding
     busy = true
+    -- slots the class does not use (stance bar has 10, a warrior uses 3):
+    -- kept inside the holder and hidden, so none floats on its own
+    if def.count then
+        for i, b in ipairs(list) do
+            if i > count then
+                b:ClearAllPoints()
+                b:SetPoint("TOPLEFT", h, "TOPLEFT")
+                b:Hide()
+            end
+        end
+    end
     for i, b in ipairs(shown) do
         local r, col = math.floor((i - 1) / cols), (i - 1) % cols
         if c.growH == "LEFT" then col = cols - 1 - col end
