@@ -45,7 +45,10 @@ local DEFS = {
     stance = { group = Names("StanceButton", 10), secure = true, padding = 2,
         count = function() return GetNumShapeshiftForms and GetNumShapeshiftForms() or 0 end,
         visibility = HIDE_IN_VEHICLE .. "show" },
-    micro = { group = MICRO, padding = 0, packShown = true },
+    -- emptied: art of the Blizzard frame the buttons leave ({ frame, key }):
+    -- an empty box otherwise; invisible meanwhile, given back after
+    micro = { group = MICRO, padding = 0, packShown = true,
+        emptied = { { "MicroMenu", "BorderArt" }, { "MicroMenu", "BackgroundArt" } } },
     bags = { group = { "CharacterReagentBag0Slot", "CharacterBag3Slot", "CharacterBag2Slot",
         "CharacterBag1Slot", "CharacterBag0Slot", "MainMenuBarBackpackButton", "KeyRingButton" },
         padding = 2, packShown = true },
@@ -247,6 +250,12 @@ local function Layout(id)
     if def.group then
         for _, b in ipairs(GroupButtons(def)) do Take(b, h) end
         LayoutGroup(h, c, def)
+        -- Blizzard's frames the buttons came from are left empty: their
+        -- art (micro menu background and border) would be an empty box
+        for _, e in ipairs(def.emptied or {}) do
+            local art = _G[e[1]] and _G[e[1]][e[2]]
+            if art then art:SetAlpha(0) end
+        end
     else
         local f = Content(def)
         Take(f, h, true)
@@ -392,6 +401,10 @@ function ns.ReleaseHolder(id)
     local function Call(obj, m) if obj and type(obj[m]) == "function" then pcall(obj[m], obj) end end
     if id == "pet" then Call(PetActionBar, "UpdateGridLayout") end
     if id == "stance" then Call(StanceBar, "UpdateGridLayout") end
+    for _, e in ipairs(def.emptied or {}) do
+        local art = _G[e[1]] and _G[e[1]][e[2]]
+        if art then art:SetAlpha(1) end
+    end
     if id == "micro" then Call(MicroMenu, "Layout") end
     if id == "bags" then Call(BagsBar, "Layout") end
     if id == "status" or id == "extra" or id == "vehicle" then
