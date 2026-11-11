@@ -53,7 +53,8 @@ ns.defaults = {
             castVFX = true,       -- cast animation on the button
             castStyle = "flat",   -- flat: Tidy's border and flash / blizzard: the game's animation
             castFillColor = { r = 1, g = 0.82, b = 0.2, a = 0.35 },   -- fill while casting (flat; its edge is opaque)
-            interruptColor = { r = 1, g = 0.15, b = 0.15, a = 0.6 },  -- flash when interrupted (flat)
+            interruptFlash = true, -- flash when the cast is interrupted (flat)
+            interruptColor = { r = 1, g = 0.15, b = 0.15, a = 0.6 },
             cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon
             gcdAlpha = 0.5,       -- darkness of the swipe on the global cooldown only
             gcdSpark = false,     -- a bright line following the global cooldown swipe
@@ -61,10 +62,12 @@ ns.defaults = {
             readyFlash = true,    -- flash when a cooldown ends
             readyColor = { r = 0.3, g = 1, b = 0.4, a = 0.6 },
             unusableColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }, -- icon when it cannot be used now
-            cdPressColor = { r = 1, g = 0.15, b = 0.15, a = 0.55 }, -- flash when pressed on cooldown (alpha 0: off)
-            gcdPressColor = { r = 1, g = 0.85, b = 0.1, a = 0.55 }, -- flash when pressed on the global cooldown (alpha 0: off)
-            failPressColor = { r = 1, g = 0.55, b = 0, a = 0.5 },   -- flash when pressed but not usable (alpha 0: off)
-            emptyPressColor = { r = 1, g = 1, b = 1, a = 0.3 },     -- flash when a key is pressed on an empty slot (alpha 0: off)
+            -- flashes when a button is pressed: on cooldown / on the global
+            -- cooldown / not usable / on an empty slot
+            cdPress = true, cdPressColor = { r = 1, g = 0.15, b = 0.15, a = 0.55 },
+            gcdPress = true, gcdPressColor = { r = 1, g = 0.85, b = 0.1, a = 0.55 },
+            failPress = true, failPressColor = { r = 1, g = 0.55, b = 0, a = 0.5 },
+            emptyPress = true, emptyPressColor = { r = 1, g = 1, b = 1, a = 0.3 },
             lock = false,         -- no dragging spells off (Shift drags)
             texts = {
                 hotkey = { show = true, font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,
@@ -102,6 +105,24 @@ local function Fill(t, def)
             t[k] = v
         end
     end
+end
+
+-- Flashes used to be turned off with opacity 0; now each has an on/off.
+-- An old profile's 0 becomes "off" with the default color back.
+local FLASHES = { { "cdPress", "cdPressColor" }, { "gcdPress", "gcdPressColor" }, { "failPress", "failPressColor" },
+    { "emptyPress", "emptyPressColor" }, { "interruptFlash", "interruptColor" } }
+local function FillProfile(p)
+    local bt = type(p.bars) == "table" and type(p.bars.buttons) == "table" and p.bars.buttons
+    if bt then
+        for _, f in ipairs(FLASHES) do
+            local c = bt[f[2]]
+            if bt[f[1]] == nil and type(c) == "table" and c.a == 0 then
+                bt[f[1]] = false
+                c.a = ns.defaults.bars.buttons[f[2]].a
+            end
+        end
+    end
+    Fill(p, ns.defaults)
 end
 
 local function Copy(t)
@@ -149,7 +170,7 @@ local function SetProfile(name)
     db.profileOf[ns.charKey] = name
     ns.profileName = name
     ns.P = db.profiles[name]
-    Fill(ns.P, ns.defaults)
+    FillProfile(ns.P)
 end
 
 -- Switches this character to another profile (created if it does not exist)
@@ -164,7 +185,7 @@ function ns.CopyProfile(from)
     if not src or from == ns.profileName then return end
     wipe(ns.P)
     for k, v in pairs(Copy(src)) do ns.P[k] = v end
-    Fill(ns.P, ns.defaults)
+    FillProfile(ns.P)
     ApplyAll()
 end
 
@@ -178,7 +199,7 @@ end
 
 function ns.ResetProfile()
     wipe(ns.P)
-    Fill(ns.P, ns.defaults)
+    FillProfile(ns.P)
     ApplyAll()
 end
 
@@ -241,7 +262,7 @@ function ns.ImportProfile(text)
     if not ok or type(data) ~= "table" then return false, L["The text is damaged."] end
     wipe(ns.P)
     for k, v in pairs(data) do ns.P[k] = v end
-    Fill(ns.P, ns.defaults)
+    FillProfile(ns.P)
     ApplyAll()
     return true
 end

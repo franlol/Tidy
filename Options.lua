@@ -468,40 +468,45 @@ local function BuildButtons(container)
             -- sub-options (sub = true) sit right under their checkbox
             card:Add(UI.Swatch(card, L["Color"], function() return G().gcdSparkColor end, ApplyAllBars,
                 { alpha = true, sub = true, enableIf = function() return G().gcdSpark end }))
-            local rfg, rfs = GB("readyFlash")
-            card:Add(UI.Check(card, L["Ready flash"], rfg, rfs,
-                { tip = L["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."] }))
-            card:Add(UI.Swatch(card, L["Color"], function() return G().readyColor end, ApplyAllBars,
-                { alpha = true, sub = true, enableIf = function() return G().readyFlash end }))
             local vg, vs = GB("castVFX")
             card:Add(UI.Check(card, L["Cast animation"], vg, vs))
             local castOn = function() return G().castVFX end
             local flatOn = function() return G().castVFX and G().castStyle == "flat" end
             local stg, sts = GB("castStyle")
             card:Add(UI.Segmented(card, L["Style"], { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } }, stg, sts,
-                { sub = true, enableIf = castOn, tip = L["Flat: the button fills as the cast goes (a channel empties) and flashes if it is interrupted. Blizzard: the game's animation."] }))
+                { sub = true, enableIf = castOn, tip = L["Flat: the button fills as the cast goes (a channel empties); its interrupt flash is in Colors. Blizzard: the game's animation."] }))
             card:Add(UI.Swatch(card, L["Casting fill"], function() return G().castFillColor end, ApplyAllBars,
                 { alpha = true, sub = true, enableIf = flatOn }))
-            card:Add(UI.Swatch(card, L["Interrupted"], function() return G().interruptColor end, ApplyAllBars,
-                { alpha = true, sub = true, enableIf = flatOn, tip = L["A short flash when the cast is interrupted. Opacity 0 turns it off."] }))
 
             card = page:Add(1, UI.Card(page.content, L["Colors"]))
             local rg, rs = GB("range")
             card:Add(UI.Segmented(card, L["Out of range"], {
                 { "button", L["Button"] }, { "hotkey", L["Keybind"] }, { "none", L["Nothing"] },
             }, rg, rs, { tip = L["What turns red when the target is out of range: the button or its keybind."] }))
-            card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars, { alpha = true }))
+            card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars,
+                { alpha = true, sub = true, enableIf = function() return G().range ~= "none" end }))
             card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars, { alpha = true }))
             card:Add(UI.Swatch(card, L["Not usable color"], function() return G().unusableColor end, ApplyAllBars,
                 { alpha = true, tip = L["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] }))
-            card:Add(UI.Swatch(card, L["Pressed on cooldown"], function() return G().cdPressColor end, ApplyAllBars,
-                { alpha = true, tip = L["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] }))
-            card:Add(UI.Swatch(card, L["Pressed on global cooldown"], function() return G().gcdPressColor end, ApplyAllBars,
-                { alpha = true, tip = L["A short flash when you press a button while only the global cooldown runs. Opacity 0 turns it off."] }))
-            card:Add(UI.Swatch(card, L["Pressed when not usable"], function() return G().failPressColor end, ApplyAllBars,
-                { alpha = true, tip = L["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable... Opacity 0 turns it off."] }))
-            card:Add(UI.Swatch(card, L["Pressed on an empty slot"], function() return G().emptyPressColor end, ApplyAllBars,
-                { alpha = true, tip = L["A short flash where you press a key whose slot has no spell, even if empty slots are hidden. Opacity 0 turns it off."] }))
+            -- every flash: an on/off, its color right under it
+            local function FlashRow(key, colorKey, label, tip, also)
+                local fg, fs = GB(key)
+                card:Add(UI.Check(card, label, fg, fs, { tip = tip, enableIf = also }))
+                card:Add(UI.Swatch(card, L["Color"], function() return G()[colorKey] end, ApplyAllBars,
+                    { alpha = true, sub = true, enableIf = function() return G()[key] and (not also or also()) end }))
+            end
+            FlashRow("cdPress", "cdPressColor", L["Pressed on cooldown"],
+                L["A short flash when you press a button that is on cooldown."])
+            FlashRow("gcdPress", "gcdPressColor", L["Pressed on global cooldown"],
+                L["A short flash when you press a button while only the global cooldown runs."])
+            FlashRow("failPress", "failPressColor", L["Pressed when not usable"],
+                L["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable..."])
+            FlashRow("emptyPress", "emptyPressColor", L["Pressed on an empty slot"],
+                L["A short flash where you press a key whose slot has no spell, even if empty slots are hidden."])
+            FlashRow("readyFlash", "readyColor", L["Ready flash"],
+                L["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."])
+            FlashRow("interruptFlash", "interruptColor", L["Interrupted"],
+                L["A short flash when the cast is interrupted (flat cast animation)."], flatOn)
 
             -- one card: pick a text, then its look
             local which = { key = "hotkey" }

@@ -268,31 +268,52 @@ ns.translations.esES = {
     ["trace every button press (on/off)"] = "muestra cada pulsación de botón (activar/desactivar)",
     ["Press trace: on"] = "Registro de pulsaciones: activado",
     ["Press trace: off"] = "Registro de pulsaciones: desactivado",
+    ["game error, already answered (%s)"] = "error del juego, ya respondido (%s)",
+    ["game error during the global cooldown, no flash (%s)"] = "error del juego durante la reutilización global, sin destello (%s)",
+    ["game error -> flash (%s)"] = "error del juego -> destello (%s)",
+    ["on cooldown -> flash"] = "en reutilización -> destello",
+    ["global cooldown -> flash"] = "reutilización global -> destello",
+    ["not usable / out of range -> flash"] = "no utilizable / fuera de alcance -> destello",
+    ["needs a target -> flash (%s)"] = "necesita objetivo -> destello (%s)",
+    ["no flash yet (%s)"] = "sin destello por ahora (%s)",
+    ["key"] = "tecla",
+    ["click"] = "clic",
+    ["down"] = "pulsar",
+    ["up"] = "soltar",
+    ["ground target cursor"] = "cursor de objetivo en el suelo",
+    ["no readable spell"] = "sin hechizo legible",
+    ["spell %d: harmful unknown, not ranged"] = "hechizo %d: no se sabe si es ofensivo, sin alcance",
+    ["spell %d is not harmful"] = "el hechizo %d no es ofensivo",
+    ["has a hostile target"] = "hay un objetivo hostil",
+    ["soft enemy target"] = "objetivo enemigo suave",
+    ["focus cast"] = "lanzar al foco",
+    ["mouseover"] = "bajo el ratón",
+    ["spell %d: no valid target"] = "hechizo %d: sin objetivo válido",
     ["Not usable color"] = "Color no utilizable",
     ["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] =
         "El icono cuando no se puede usar ahora (forma equivocada, necesita objetivo, sin componentes...).",
     ["Pressed when not usable"] = "Pulsado sin poder usarse",
-    ["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable... Opacity 0 turns it off."] =
-        "Un destello corto al pulsar un botón y fallar: sin objetivo, fuera de alcance, sin recurso suficiente, no utilizable... Con opacidad 0 se desactiva.",
+    ["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable..."] =
+        "Un destello corto al pulsar un botón y fallar: sin objetivo, fuera de alcance, sin recurso suficiente, no utilizable...",
     ["Pressed on an empty slot"] = "Pulsado en un hueco vacío",
-    ["A short flash where you press a key whose slot has no spell, even if empty slots are hidden. Opacity 0 turns it off."] =
-        "Un destello corto donde pulsas una tecla cuyo hueco no tiene hechizo, aunque los huecos vacíos estén ocultos. Con opacidad 0 se desactiva.",
-    ["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] =
-        "Un destello corto al pulsar un botón que está en reutilización. Con opacidad 0 se desactiva.",
+    ["A short flash where you press a key whose slot has no spell, even if empty slots are hidden."] =
+        "Un destello corto donde pulsas una tecla cuyo hueco no tiene hechizo, aunque los huecos vacíos estén ocultos.",
+    ["A short flash when you press a button that is on cooldown."] =
+        "Un destello corto al pulsar un botón que está en reutilización.",
     ["Pressed on global cooldown"] = "Pulsado en reutilización global",
-    ["A short flash when you press a button while only the global cooldown runs. Opacity 0 turns it off."] =
-        "Un destello corto al pulsar un botón mientras solo corre el tiempo de reutilización global. Con opacidad 0 se desactiva.",
+    ["A short flash when you press a button while only the global cooldown runs."] =
+        "Un destello corto al pulsar un botón mientras solo corre el tiempo de reutilización global.",
     ["Lock buttons"] = "Bloquear botones",
     ["Spells cannot be dragged off the bars (Shift + drag still can)."] =
         "Los hechizos no se pueden sacar de las barras (Mayús + arrastrar sí).",
     ["Cast animation"] = "Animación de lanzamiento",
-    ["Flat: the button fills as the cast goes (a channel empties) and flashes if it is interrupted. Blizzard: the game's animation."] =
-        "Plano: el botón se llena mientras lanzas (una canalización se vacía) y destella si se interrumpe. Blizzard: la animación del juego.",
+    ["Flat: the button fills as the cast goes (a channel empties); its interrupt flash is in Colors. Blizzard: the game's animation."] =
+        "Plano: el botón se llena mientras lanzas (una canalización se vacía); su destello al interrumpirse está en Colores. Blizzard: la animación del juego.",
     ["Style"] = "Estilo",
     ["Casting fill"] = "Relleno al lanzar",
     ["Interrupted"] = "Interrumpido",
-    ["A short flash when the cast is interrupted. Opacity 0 turns it off."] =
-        "Un destello breve cuando se interrumpe el lanzamiento. Opacidad 0 lo desactiva.",
+    ["A short flash when the cast is interrupted (flat cast animation)."] =
+        "Un destello breve cuando se interrumpe el lanzamiento (animación de lanzamiento plana).",
     ["Cast on key down"] = "Lanzar al pulsar la tecla",
     ["A game setting: for every bar."] = "Un ajuste del juego: para todas las barras.",
     ["Self-cast with a key"] = "Lanzar sobre ti con una tecla",

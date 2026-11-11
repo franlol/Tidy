@@ -537,8 +537,18 @@ local function Trace(b, what)
     ns.Print(("%s +%dms: %s"):format(b and b:GetName() or "?", ms, what))
 end
 
--- mark: false for flashes that are not a press answer (ready)
-local function Flash(b, c, mark)
+-- Every flash: its on/off setting and its color
+local FLASH_COLOR = { cdPress = "cdPressColor", gcdPress = "gcdPressColor", failPress = "failPressColor",
+    emptyPress = "emptyPressColor", interruptFlash = "interruptColor", readyFlash = "readyColor" }
+
+-- key: a FLASH_COLOR key. mark: false for flashes that are not a press
+-- answer (ready). A press answer whose flash is off still counts as
+-- answered, so the game's error does not flash another color instead.
+local function Flash(b, key, mark)
+    local G = B and B.buttons
+    if not G then return end
+    if mark ~= false then b.tidyFlashT = GetTime() end
+    local c = G[key] and G[FLASH_COLOR[key]]
     if not c or (c.a or 1) <= 0 then return end
     local t = b.tidyPressFlash
     if not t then
@@ -557,7 +567,6 @@ local function Flash(b, c, mark)
     t:SetColorTexture(c.r, c.g, c.b, c.a or 1)
     t.anim:Stop()
     t.anim:Play()
-    if mark ~= false then b.tidyFlashT = GetTime() end
 end
 
 -- Any other reason (no target, wrong target, facing, moving...): the game's
@@ -576,20 +585,21 @@ errorWatch:SetScript("OnEvent", function(_, _, _, msg)
     if not b or not B or GetTime() - lastPressT > ERROR_WINDOW then return end
     lastPress = nil
     if b.tidyFlashT and GetTime() - b.tidyFlashT < ERROR_WINDOW then
-        Trace(b, "game error, already flashed (" .. tostring(msg) .. ")")
+        Trace(b, L["game error, already answered (%s)"]:format(tostring(msg)))
         return
     end
     if GCDRunning() then
-        Trace(b, "game error during the global cooldown, no flash (" .. tostring(msg) .. ")")
+        Trace(b, L["game error during the global cooldown, no flash (%s)"]:format(tostring(msg)))
         return
     end
-    Trace(b, "game error -> flash (" .. tostring(msg) .. ")")
-    Flash(b, B.buttons.failPressColor)
+    Trace(b, L["game error -> flash (%s)"]:format(tostring(msg)))
+    Flash(b, "failPress")
 end)
 
 -- A key on an empty slot: the button is there but invisible (alpha 0 when
 -- empty buttons are not shown), so the flash lives on its own frame over it
 local function FlashEmpty(b)
+    if not B.buttons.emptyPress then return end
     local c = B.buttons.emptyPressColor
     if not c or (c.a or 1) <= 0 or not b:IsVisible() then return end
     local f = b.tidyEmptyFlash
@@ -623,17 +633,16 @@ local function PressFeedback(b, key)
         if key then FlashEmpty(b) end
         return
     end
-    local G = B.buttons
     local cd = OnCooldown(b)
     if cd == "cd" then
-        Trace(b, "on cooldown -> flash")
-        Flash(b, G.cdPressColor)
+        Trace(b, L["on cooldown -> flash"])
+        Flash(b, "cdPress")
     elseif cd == "gcd" then
-        Trace(b, "global cooldown -> flash")
-        Flash(b, G.gcdPressColor)
+        Trace(b, L["global cooldown -> flash"])
+        Flash(b, "gcdPress")
     elseif CannotUse(b) then
-        Trace(b, "not usable / out of range -> flash")
-        Flash(b, G.failPressColor)
+        Trace(b, L["not usable / out of range -> flash"])
+        Flash(b, "failPress")
     else
         b.tidyCheckTarget = true -- looked at in PostClick, after the cast try
     end
@@ -673,24 +682,24 @@ end
 
 -- returns the answer and why (for the trace)
 local function NeedsTarget(b)
-    if SpellIsTargeting and SpellIsTargeting() then return false, "ground target cursor" end
+    if SpellIsTargeting and SpellIsTargeting() then return false, L["ground target cursor"] end
     local id = Plain(b.GetSpellId, b)
-    if not id then return false, "no readable spell" end
+    if not id then return false, L["no readable spell"] end
     local harmful = IsHarmful(b, id)
     if harmful == nil then
         -- the game does not say: a ranged action that is not a helpful spell
         local helpful = IsHelpfulSpell and Plain(IsHelpfulSpell, id)
         local ranged = ActionHasRange and b._state_type == "action" and Plain(ActionHasRange, b._state_action)
         harmful = ranged and not helpful or false
-        if not harmful then return false, "spell " .. id .. ": harmful unknown, not ranged" end
+        if not harmful then return false, L["spell %d: harmful unknown, not ranged"]:format(id) end
     elseif not harmful then
-        return false, "spell " .. id .. " is not harmful"
+        return false, L["spell %d is not harmful"]:format(id)
     end
-    if Hostile("target") then return false, "has a hostile target" end
-    if Hostile("softenemy") then return false, "soft enemy target" end
-    if B.casting.focusCast and IsModifiedClick("FOCUSCAST") and Hostile("focus") then return false, "focus cast" end
-    if B.casting.mouseover and Hostile("mouseover") then return false, "mouseover" end
-    return true, "spell " .. id .. ": no valid target"
+    if Hostile("target") then return false, L["has a hostile target"] end
+    if Hostile("softenemy") then return false, L["soft enemy target"] end
+    if B.casting.focusCast and IsModifiedClick("FOCUSCAST") and Hostile("focus") then return false, L["focus cast"] end
+    if B.casting.mouseover and Hostile("mouseover") then return false, L["mouseover"] end
+    return true, L["spell %d: no valid target"]:format(id)
 end
 
 local function OnPostClick(self)
@@ -699,8 +708,8 @@ local function OnPostClick(self)
     if not B then return end
     if self.tidyFlashT and GetTime() - self.tidyFlashT < ERROR_WINDOW then return end -- already flashed
     local need, why = NeedsTarget(self)
-    Trace(self, (need and "needs a target -> flash (" or "no flash yet (") .. why .. ")")
-    if need then Flash(self, B.buttons.failPressColor) end
+    Trace(self, (need and L["needs a target -> flash (%s)"] or L["no flash yet (%s)"]):format(why))
+    if need then Flash(self, "failPress") end
 end
 
 -------------------------------------------------------------------------------
@@ -844,7 +853,7 @@ local function CastInterrupted(spellID)
     if not recent or not FlatCast() or not Readable(spellID) or spellID ~= castSpell then return end
     castSpell = nil -- once
     ForTidyButtons(function(b)
-        if b:IsVisible() and SpellOf(b) == spellID then Flash(b, B.buttons.interruptColor) end
+        if b:IsVisible() and SpellOf(b) == spellID then Flash(b, "interruptFlash") end
     end)
 end
 
@@ -903,7 +912,7 @@ local function ReadyCheck()
             tracking = true
         elseif b.tidyCDSpell then
             if GetTime() - b.tidyCDStart >= READY_MIN and B and B.buttons.readyFlash then
-                Flash(b, B.buttons.readyColor, false)
+                Flash(b, "readyFlash", false)
             end
             b.tidyCDSpell = nil
         end
@@ -945,7 +954,7 @@ local function OnPreClick(self, mouse, down)
     -- protection): both count for the game's error
     lastPress, lastPressT = self, GetTime()
     if down ~= false or not self.tidyDownSeen then pressT0 = debugprofilestop() end
-    Trace(self, ("%s %s"):format(key and "key" or tostring(mouse), down == nil and "click" or (down and "down" or "up")))
+    Trace(self, ("%s %s"):format(key and L["key"] or tostring(mouse), down == nil and L["click"] or (down and L["down"] or L["up"])))
     if down == false then
         if key then KeyPressed(self, false) end
         if self.tidyDownSeen then
