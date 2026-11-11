@@ -301,7 +301,7 @@ local function ButtonConfig(b, c)
         },
         hideElements = { macro = c.hideMacro, hotkey = c.hideHotkey, equipped = c.hideEquipped },
         flyoutDirection = c.flyout,
-        spellCastVFX = G.castVFX,
+        spellCastVFX = G.castVFX and G.castStyle == "blizzard", -- flat: Tidy's own (below)
         text = { hotkey = TextConfig(G.texts.hotkey), count = TextConfig(G.texts.count), macro = TextConfig(G.texts.macro) },
     }
 end
@@ -643,6 +643,121 @@ local function OnPostClick(self)
     if NeedsTarget(self) then Flash(self, B.buttons.failPressColor) end
 end
 
+-------------------------------------------------------------------------------
+-- Cast animation, flat style: a thin border on the buttons of the spell
+-- being cast (on/off: the cast times are secret, nothing can follow them)
+-- and a flash on interrupt. The Blizzard style is LibActionButton's own.
+-------------------------------------------------------------------------------
+local function FlatCast()
+    return B and B.buttons.castVFX and B.buttons.castStyle == "flat"
+end
+
+local CAST_EDGE = 2
+local function CastBorder(b, on)
+    local f = b.tidyCastBorder
+    if not on then
+        if f then f:Hide() end
+        b.tidyCastSpell = nil
+        return
+    end
+    if not f then
+        f = CreateFrame("Frame", nil, b)
+        f:SetAllPoints(b)
+        f:EnableMouse(false)
+        f.edges = {}
+        for i = 1, 4 do f.edges[i] = f:CreateTexture(nil, "OVERLAY", nil, 7) end
+        local e = f.edges
+        e[1]:SetPoint("TOPLEFT") e[1]:SetPoint("TOPRIGHT") e[1]:SetHeight(CAST_EDGE)
+        e[2]:SetPoint("BOTTOMLEFT") e[2]:SetPoint("BOTTOMRIGHT") e[2]:SetHeight(CAST_EDGE)
+        e[3]:SetPoint("TOPLEFT") e[3]:SetPoint("BOTTOMLEFT") e[3]:SetWidth(CAST_EDGE)
+        e[4]:SetPoint("TOPRIGHT") e[4]:SetPoint("BOTTOMRIGHT") e[4]:SetWidth(CAST_EDGE)
+        -- a soft pulse: the cast is going on
+        local ag = f:CreateAnimationGroup()
+        ag:SetLooping("BOUNCE")
+        local a = ag:CreateAnimation("Alpha")
+        a:SetFromAlpha(1)
+        a:SetToAlpha(0.45)
+        a:SetDuration(0.5)
+        a:SetSmoothing("IN_OUT")
+        f.anim = ag
+        b.tidyCastBorder = f
+    end
+    local c = B.buttons.castColor
+    for _, t in ipairs(f.edges) do t:SetColorTexture(c.r, c.g, c.b, c.a or 1) end
+    f:SetFrameLevel(b:GetFrameLevel() + 5)
+    f:Show()
+    f.anim:Play()
+end
+
+local function SpellOf(b)
+    local ok, id = pcall(b.GetSpellId, b)
+    if ok and Readable(id) then return id end
+end
+
+local function ForTidyButtons(fn)
+    for _, h in pairs(bars) do
+        if h.buttons then
+            for _, b in ipairs(h.buttons) do fn(b) end
+        end
+    end
+end
+
+-- the player casts one spell at a time: a stop or an interrupt ends them all
+local castSpell, castEndT -- last spell cast with a cast time, when it stopped
+local function CastStart(spellID)
+    if not Readable(spellID) or not spellID then return end
+    castSpell, castEndT = spellID, nil
+    if not FlatCast() then return end
+    ForTidyButtons(function(b)
+        if b:IsVisible() and SpellOf(b) == spellID then
+            CastBorder(b, true)
+            b.tidyCastSpell = spellID
+        end
+    end)
+end
+
+local function CastEnd()
+    castEndT = castEndT or GetTime()
+    ForTidyButtons(function(b)
+        if b.tidyCastSpell then CastBorder(b, false) end
+    end)
+end
+
+-- the interrupt can come just before or just after the stop: it flashes the
+-- buttons of the spell that was being cast
+local function CastInterrupted(spellID)
+    local recent = castSpell and (not castEndT or GetTime() - castEndT < 0.5)
+    CastEnd()
+    if not recent or not FlatCast() or not Readable(spellID) or spellID ~= castSpell then return end
+    castSpell = nil -- once
+    ForTidyButtons(function(b)
+        if b:IsVisible() and SpellOf(b) == spellID then Flash(b, B.buttons.interruptColor) end
+    end)
+end
+
+local castWatch = CreateFrame("Frame")
+for _, e in ipairs({ "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_EMPOWER_START",
+    "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_CHANNEL_STOP", "UNIT_SPELLCAST_EMPOWER_STOP",
+    "UNIT_SPELLCAST_INTERRUPTED" }) do
+    pcall(castWatch.RegisterUnitEvent, castWatch, e, "player") -- empower: not on every client
+end
+castWatch:SetScript("OnEvent", function(_, event, _, _, spellID, complete)
+    if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" or event == "UNIT_SPELLCAST_EMPOWER_START" then
+        CastStart(spellID)
+    elseif event == "UNIT_SPELLCAST_INTERRUPTED" or (event == "UNIT_SPELLCAST_EMPOWER_STOP" and not complete) then
+        CastInterrupted(spellID)
+    else
+        CastEnd()
+    end
+end)
+
+-- the page changed during a cast: the border leaves a slot that now holds
+-- another spell
+local castKey = {}
+LAB.RegisterCallback(castKey, "OnButtonUpdate", function(_, b)
+    if b.tidyCastSpell and SpellOf(b) ~= b.tidyCastSpell then CastBorder(b, false) end
+end)
+
 -- A key held on the button: the pressed look until it is released (at most
 -- KEY_HOLD seconds: a release can go to another binding if a modifier
 -- changed meanwhile)
@@ -744,6 +859,7 @@ local function Layout(h, c)
             b:UpdateConfig(ButtonConfig(b, c))
             ApplySwipe(b)
             StyleCountdown(b)
+            if not FlatCast() then CastBorder(b, false) end
             -- texts turned off for every bar (the per-bar hides are in the
             -- config); by alpha, as LibActionButton shows and hides them itself
             local T = B.buttons.texts
