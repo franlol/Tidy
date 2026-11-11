@@ -107,21 +107,7 @@ local function Fill(t, def)
     end
 end
 
--- Flashes used to be turned off with opacity 0; now each has an on/off.
--- An old profile's 0 becomes "off" with the default color back.
-local FLASHES = { { "cdPress", "cdPressColor" }, { "gcdPress", "gcdPressColor" }, { "failPress", "failPressColor" },
-    { "emptyPress", "emptyPressColor" }, { "interruptFlash", "interruptColor" } }
 local function FillProfile(p)
-    local bt = type(p.bars) == "table" and type(p.bars.buttons) == "table" and p.bars.buttons
-    if bt then
-        for _, f in ipairs(FLASHES) do
-            local c = bt[f[2]]
-            if bt[f[1]] == nil and type(c) == "table" and c.a == 0 then
-                bt[f[1]] = false
-                c.a = ns.defaults.bars.buttons[f[2]].a
-            end
-        end
-    end
     Fill(p, ns.defaults)
 end
 
@@ -282,10 +268,9 @@ end
 -------------------------------------------------------------------------------
 -- Loading
 -------------------------------------------------------------------------------
+-- English unless Spanish was chosen
 local function ApplyLanguage()
-    -- English unless Spanish was chosen
-    local lang = ns.db.language or "enUS"
-    ns.SetLanguage(lang)
+    ns.SetLanguage(ns.db.language or "enUS")
 end
 
 local ev = CreateFrame("Frame")
@@ -304,11 +289,6 @@ ev:SetScript("OnEvent", function(self, event, name)
         local db = ns.db
         db.profiles = db.profiles or {}
         db.profileOf = db.profileOf or {}
-        -- first version: one settings table for everyone -> profile "Default"
-        if db.icons or db.bars then
-            db.profiles[DEFAULT] = db.profiles[DEFAULT] or { icons = db.icons, bars = db.bars }
-            db.icons, db.bars = nil, nil
-        end
         ns.charKey = CharKey()
         SetProfile(db.profileOf[ns.charKey] or DEFAULT)
         for _, m in ipairs(ns.modules) do m.start() end
@@ -330,54 +310,6 @@ function ns.SetLanguagePref(lang)
 end
 
 -------------------------------------------------------------------------------
--- /tidy probe: 3 seconds after the command, saves every visible frame under
--- the mouse (and its visible textures) in TidyDB.probe, to find out what
--- something on screen is. Read after a /reload (saved variables).
--------------------------------------------------------------------------------
-function ns.Probe()
-    ns.Print(L["Put the mouse over it: recording in 3 seconds..."])
-    C_Timer.After(3, function()
-        local out = {}
-        -- some frames answer with protected ("secret") values that addon
-        -- code may not test: those are skipped
-        local secret = issecretvalue or function() return false end
-        local function Plain(v) return not secret(v) end
-        local function Record(f)
-            local over = f:IsMouseOver()
-            if not Plain(over) or not over then return end
-            local vis = f:IsVisible()
-            if not Plain(vis) or not vis or f == WorldFrame or f == UIParent then return end
-            local w, h = f:GetSize()
-            local entry = {
-                name = f.GetDebugName and f:GetDebugName() or tostring(f:GetName()),
-                size = (Plain(w) and Plain(h)) and ("%dx%d"):format(w or 0, h or 0) or "?",
-                strata = f:GetFrameStrata(), level = f:GetFrameLevel(), textures = {},
-            }
-            for _, r in ipairs({ f:GetRegions() }) do
-                local ok, shown = pcall(function()
-                    local v, a = r:IsVisible(), r:GetAlpha()
-                    return r:IsObjectType("Texture") and Plain(v) and v and Plain(a) and a > 0
-                end)
-                if ok and shown then
-                    local key
-                    for k, v in pairs(f) do if v == r then key = k break end end
-                    entry.textures[#entry.textures + 1] = ("%s %s"):format(key or "?",
-                        tostring(r:GetAtlas() or r:GetTexture()))
-                end
-            end
-            out[#out + 1] = entry
-        end
-        local f = EnumerateFrames()
-        while f do
-            pcall(Record, f)
-            f = EnumerateFrames(f)
-        end
-        ns.db.probe = out
-        ns.Print((L["%d frames recorded. Type /reload so they are saved."]):format(#out))
-    end)
-end
-
--------------------------------------------------------------------------------
 -- Slash command
 -------------------------------------------------------------------------------
 SLASH_TIDY1 = "/tidy"
@@ -388,18 +320,10 @@ SlashCmdList.TIDY = function(msg)
         ns.db.language = lang == "es" and "esES" or "enUS"
         ApplyLanguage()
         ns.Print(L["Language: English"] .. " " .. L["(reload to update the window)"])
-    elseif msg == "dump" then
-        ns.DumpHolders()
-    elseif msg == "probe" then
-        ns.Probe()
-    elseif msg == "presses" then
-        ns.tracePresses = not ns.tracePresses
-        ns.Print(ns.tracePresses and L["Press trace: on"] or L["Press trace: off"])
     elseif msg == "help" then
         ns.Print(L["Commands:"])
         print("  /tidy - " .. L["open the options"])
         print("  /tidy lang en|es - " .. L["language: en or es"])
-        print("  /tidy presses - " .. L["trace every button press (on/off)"])
     else
         ns.ToggleOptions()
     end

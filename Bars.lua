@@ -117,8 +117,8 @@ end
 local BLIZZ_BARS = { "MainMenuBar", "MainActionBar", "MultiBarBottomLeft", "MultiBarBottomRight",
     "MultiBarLeft", "MultiBarRight", "MultiBar5", "MultiBar6", "MultiBar7" }
 
--- Blizzard bars Tidy does not replace yet: if they hang from the main bar,
--- move them to UIParent so hiding it does not take them along
+-- Other Blizzard frames that may hang from the main bar: moved to UIParent
+-- so hiding the main bar does not take them along
 local KEEP = { "MicroMenuContainer", "MicroMenu", "MicroButtonAndBagsBar", "BagsBar",
     "StatusTrackingBarManager", "StanceBar", "PetActionBar", "PossessActionBar",
     "MainMenuBarVehicleLeaveButton", "ExtraActionBarFrame", "ZoneAbilityFrame" }
@@ -529,14 +529,6 @@ local function CannotUse(b)
     return ok and Readable(usable) and not usable
 end
 
--- /tidy presses: every press and what it gave, with the time since the press
-local pressT0
-local function Trace(b, what)
-    if not ns.tracePresses then return end
-    local ms = pressT0 and (debugprofilestop() - pressT0) or 0
-    ns.Print(("%s +%dms: %s"):format(b and b:GetName() or "?", ms, what))
-end
-
 -- Every flash: its on/off setting and its color
 local FLASH_COLOR = { cdPress = "cdPressColor", gcdPress = "gcdPressColor", failPress = "failPressColor",
     emptyPress = "emptyPressColor", interruptFlash = "interruptColor", readyFlash = "readyColor" }
@@ -580,19 +572,11 @@ local function GCDRunning()
 end
 local errorWatch = CreateFrame("Frame")
 errorWatch:RegisterEvent("UI_ERROR_MESSAGE")
-errorWatch:SetScript("OnEvent", function(_, _, _, msg)
+errorWatch:SetScript("OnEvent", function()
     local b = lastPress
     if not b or not B or GetTime() - lastPressT > ERROR_WINDOW then return end
     lastPress = nil
-    if b.tidyAnswered then
-        Trace(b, L["game error, already answered (%s)"]:format(tostring(msg)))
-        return
-    end
-    if GCDRunning() then
-        Trace(b, L["game error during the global cooldown, no flash (%s)"]:format(tostring(msg)))
-        return
-    end
-    Trace(b, L["game error -> flash (%s)"]:format(tostring(msg)))
+    if b.tidyAnswered or GCDRunning() then return end
     Flash(b, "failPress")
 end)
 
@@ -635,13 +619,10 @@ local function PressFeedback(b, key)
     end
     local cd = OnCooldown(b)
     if cd == "cd" then
-        Trace(b, L["on cooldown -> flash"])
         Flash(b, "cdPress")
     elseif cd == "gcd" then
-        Trace(b, L["global cooldown -> flash"])
         Flash(b, "gcdPress")
     elseif CannotUse(b) then
-        Trace(b, L["not usable / out of range -> flash"])
         Flash(b, "failPress")
     end
 end
@@ -888,10 +869,8 @@ local function OnPreClick(self, mouse, down)
     -- protection): both count for the game's error
     lastPress, lastPressT = self, GetTime()
     if down ~= false or not self.tidyDownSeen then
-        pressT0 = debugprofilestop()
         self.tidyAnswered = nil -- a new press
     end
-    Trace(self, ("%s %s"):format(key and L["key"] or tostring(mouse), down == nil and L["click"] or (down and L["down"] or L["up"])))
     if down == false then
         if key then KeyPressed(self, false) end
         if self.tidyDownSeen then
@@ -914,8 +893,8 @@ local function CreateButton(header, id, i)
     if b.cooldown then
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
         -- no edge until the library asks for one (loss of control): the
-        -- template's default is on, and with duration objects the library
-        -- never sets it, so the spark showed even when turned off
+        -- template draws it by default, and with duration objects the
+        -- library never turns it off
         b.cooldown.tidyLibEdge = false
         hooksecurefunc(b.cooldown, "SetDrawEdge", KeepLibEdge)
         hooksecurefunc(b.cooldown, "SetHideCountdownNumbers", KeepCountdown)

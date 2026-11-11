@@ -14,7 +14,6 @@ ns.translations.esES = {
     ["(reload to update the window)"] = "(recarga para actualizar la ventana)",
 
     -- Window
-    ["Small tweaks for a cleaner interface"] = "Pequeños ajustes para una interfaz más limpia",
     ["Icons"] = "Iconos",
     ["Click again to confirm"] = "Haz clic otra vez para confirmar",
     ["Search..."] = "Buscar...",
@@ -26,7 +25,6 @@ ns.translations.esES = {
     ["Square icons with a flat border."] = "Iconos cuadrados con borde plano.",
     ["Enabled"] = "Activado",
     ["Action bars"] = "Barras de acción",
-    ["Blizzard and Bartender4 bars, pet and stance bars."] = "Barras de Blizzard y Bartender4, de mascota y de posturas.",
     ["Your buffs and debuffs"] = "Tus beneficios y perjuicios",
     ["Target and focus auras"] = "Auras del objetivo y el foco",
     ["Raid and party frame auras"] = "Auras de los marcos de banda y grupo",
@@ -87,17 +85,14 @@ ns.translations.esES = {
         "Desbloquea las barras (arriba en la ventana) y arrastra una barra para moverla, o haz clic para editarla.",
     ["Presets"] = "Plantillas",
     ["Layout"] = "Disposición",
-    ["Preset"] = "Plantilla",
     ["Blizzard-like"] = "Como Blizzard",
     ["Compact"] = "Compacta",
     ["Split"] = "Dividida",
-    ["Apply preset"] = "Aplicar plantilla",
     ["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."] =
         "Coloca las barras de acción 1 y 3-6 en una disposición lista (posición, filas, espaciado, escala). El resto de ajustes se mantiene.",
     ["Gryphons"] = "Grifos",
     ["Blizzard's gryphons (wyverns for the Horde) at the sides of bar 1."] =
         "Los grifos de Blizzard (dracoleones para la Horda) a los lados de la barra 1.",
-    ["Minimap"] = "Minimapa",
     ["Minimap button"] = "Botón del minimapa",
     ["Profile"] = "Perfil",
     ["Click"] = "Clic",
@@ -145,9 +140,6 @@ ns.translations.esES = {
     ["Off: this text is hidden on every bar. Keybind, count and macro name can also be hidden per bar (Bars, Actions tab)."] =
         "Desactivado: este texto se oculta en todas las barras. El atajo, la cantidad y el nombre de macro también se pueden ocultar por barra (Barras, pestaña Acciones).",
 
-    ["Bars recorded. Type /reload so they are saved."] = "Barras registradas. Escribe /reload para guardarlas.",
-    ["Put the mouse over it: recording in 3 seconds..."] = "Pon el ratón encima: se registra en 3 segundos...",
-    ["%d frames recorded. Type /reload so they are saved."] = "%d marcos registrados. Escribe /reload para guardarlos.",
 
     ["Hide in a stance or form"] = "Ocultar en una postura o forma",
     ["Center horizontally"] = "Centrar en horizontal",
@@ -225,7 +217,6 @@ ns.translations.esES = {
     ["Custom conditions"] = "Condiciones propias",
     ["Macro conditions, e.g. [combat] show; hide. When set, they replace the options above."] =
         "Condiciones de macro, p. ej. [combat] show; hide. Si las pones, sustituyen a las opciones de arriba.",
-    ["Paging and buttons"] = "Páginas y botones",
     ["Page"] = "Página",
     ["Page %d"] = "Página %d",
     ["None"] = "Ninguna",
@@ -250,8 +241,6 @@ ns.translations.esES = {
     ["Out of combat"] = "Fuera de combate",
     ["Never"] = "Nunca",
     ["Out of range"] = "Fuera de alcance",
-    ["Color the button"] = "Colorear el botón",
-    ["Color the keybind"] = "Colorear el atajo",
     ["Nothing"] = "Nada",
     ["Out of range color"] = "Color fuera de alcance",
     ["Out of mana color"] = "Color sin maná",
@@ -265,22 +254,6 @@ ns.translations.esES = {
     ["Ready flash"] = "Destello al estar listo",
     ["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."] =
         "Un destello breve cuando termina un tiempo de reutilización de 2 segundos o más y el botón vuelve a estar listo.",
-    ["trace every button press (on/off)"] = "muestra cada pulsación de botón (activar/desactivar)",
-    ["Press trace: on"] = "Registro de pulsaciones: activado",
-    ["Press trace: off"] = "Registro de pulsaciones: desactivado",
-    ["game error, already answered (%s)"] = "error del juego, ya respondido (%s)",
-    ["game error during the global cooldown, no flash (%s)"] = "error del juego durante la reutilización global, sin destello (%s)",
-    ["game error -> flash (%s)"] = "error del juego -> destello (%s)",
-    ["on cooldown -> flash"] = "en reutilización -> destello",
-    ["global cooldown -> flash"] = "reutilización global -> destello",
-    ["not usable / out of range -> flash"] = "no utilizable / fuera de alcance -> destello",
-    ["key"] = "tecla",
-    ["click"] = "clic",
-    ["down"] = "pulsar",
-    ["up"] = "soltar",
-    ["spell %d has no range"] = "el hechizo %d no tiene alcance",
-    ["spell %d: harmful unknown, not ranged"] = "hechizo %d: no se sabe si es ofensivo, sin alcance",
-    ["spell %d is not harmful"] = "el hechizo %d no es ofensivo",
     ["Not usable color"] = "Color no utilizable",
     ["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] =
         "El icono cuando no se puede usar ahora (forma equivocada, necesita objetivo, sin componentes...).",
@@ -341,7 +314,6 @@ ns.translations.esES = {
 
     -- Bars
     ["Bars"] = "Barras",
-    ["Bar"] = "Barra",
     ["Bar %d"] = "Barra %d",
     ["Your spells and keybinds, on bars you place. Replaces Blizzard's action bars."] =
         "Tus hechizos y atajos, en barras que colocas tú. Sustituye a las barras de acción de Blizzard.",
@@ -374,7 +346,5 @@ ns.translations.esES = {
     ["Opacity"] = "Opacidad",
     ["Show empty buttons"] = "Mostrar botones vacíos",
     ["Change page with stance / form"] = "Cambiar de página con postura / forma",
-    ["Bar 1 only: warrior stances, druid forms, rogue stealth, priest shadowform."] =
-        "Solo barra 1: posturas de guerrero, formas de druida, sigilo de pícaro, forma de las sombras.",
 }
 ns.translations.esMX = ns.translations.esES

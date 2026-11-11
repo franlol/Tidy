@@ -349,7 +349,6 @@ local function LayoutGroup(h, c, def)
     HideSamples(h, n + 1)
 end
 
--- XP / reputation: the two Blizzard containers stacked, as wide as chosen
 -- Width of Blizzard's XP bar as it is drawn: its main bar, or else the
 -- widest visible piece inside the manager
 local function StatusWidth(f)
@@ -383,6 +382,7 @@ local function ResizeContainer(container, width)
     end
 end
 
+-- XP / reputation: the two Blizzard containers stacked, as wide as chosen
 local function LayoutStatus(h, c, f)
     local main, second = f.MainStatusTrackingBarContainer, f.SecondaryStatusTrackingBarContainer
     local height = 14
@@ -405,8 +405,7 @@ local function LayoutStatus(h, c, f)
         end
         h.origSizes = sizes
     end
-    -- the first time, the box takes the real width of the XP bar (older
-    -- versions started at a fixed 571)
+    -- the first time, the box takes the real width of Blizzard's XP bar
     if not c.widthTaken then
         c.widthTaken = true
         c.width = StatusWidth(f) or c.width
@@ -609,7 +608,6 @@ local function CreateHolder(id)
     return h
 end
 
--- First time: the holder starts where Blizzard has the bar now
 -- Where each holder starts when Blizzard's own place cannot be read (no pet,
 -- no forms, nothing shown yet): near the action bars, all on screen. The
 -- top left corner of the holder, from a point of the screen.
@@ -659,17 +657,6 @@ function ns.HolderDefaultPos(id)
     return DEFAULT_POS[id] and ns.Copy(DEFAULT_POS[id])
 end
 
--- Pet and stance bars placed by the old capture in the top left corner
--- (from unused buttons): moved once to their default place
-local function FixCorner(id, c)
-    if (id ~= "pet" and id ~= "stance") or c.cornerFixed then return end
-    c.cornerFixed = true
-    local p = c.pos
-    if p and p.point == "BOTTOMLEFT" and p.x < 60 and p.y > UIParent:GetHeight() - 60 then
-        c.pos = ns.Copy(DEFAULT_POS[id])
-    end
-end
-
 -- Applies one holder (out of combat)
 function ns.ApplyHolder(id)
     if not Exists(id) then return end
@@ -678,7 +665,6 @@ function ns.ApplyHolder(id)
         local h = holders[id]
         -- "Show this bar" off: the bar stays with Tidy, hidden (like an
         -- action bar). Blizzard only gets it back when Tidy's bars are off.
-        FixCorner(id, c)
         CapturePosition(id, c)
         h = h or CreateHolder(id)
         h.active = true
@@ -769,51 +755,6 @@ end
 
 function ns.ReleaseHolders()
     for _, id in ipairs(ns.HOLDER_IDS) do ns.ReleaseHolder(id) end
-end
-
--- /tidy dump: the state of every holder and its buttons, saved in
--- TidyDB.dump (read after a /reload) to see what is wrong without guessing
-function ns.DumpHolders()
-    local function Name(f) return f and (f.GetDebugName and f:GetDebugName() or tostring(f:GetName())) or "nil" end
-    local function Num(v) return v and math.floor(v + 0.5) or "nil" end
-    local function Region(r)
-        local pts = {}
-        for i = 1, r:GetNumPoints() do
-            local p, rel, rp, x, y = r:GetPoint(i)
-            pts[#pts + 1] = ("%s>%s:%s(%s,%s)"):format(p, Name(rel), rp, Num(x), Num(y))
-        end
-        local icon = r.icon or r.Icon
-        return {
-            name = Name(r), parent = Name(r:GetParent()),
-            shown = r:IsShown(), visible = r:IsVisible(), alpha = r:GetAlpha(),
-            size = ("%sx%s"):format(Num(r:GetWidth()), Num(r:GetHeight())),
-            left = Num(r:GetLeft()), top = Num(r:GetTop()), points = table.concat(pts, " "),
-            icon = icon and tostring(icon:GetTexture()) or nil,
-        }
-    end
-    local out = {
-        class = select(2, UnitClass("player")),
-        forms = GetNumShapeshiftForms and GetNumShapeshiftForms() or "nil",
-        screen = ("%dx%d"):format(UIParent:GetWidth(), UIParent:GetHeight()),
-        locked = ns.P.bars.locked, barsActive = ns.barsActive, holders = {},
-    }
-    for _, id in ipairs(ns.HOLDER_IDS) do
-        local def, h = DEFS[id], holders[id]
-        local e = { exists = Exists(id), config = ns.Copy(ns.BarConfig(id)) }
-        if h then
-            e.holder = Region(h)
-            e.active = h.active
-        end
-        e.regions = {}
-        if def.group then
-            for _, b in ipairs(GroupButtons(def)) do e.regions[#e.regions + 1] = Region(b) end
-        elseif Content(def) then
-            e.regions[1] = Region(Content(def))
-        end
-        out.holders[id] = e
-    end
-    ns.db.dump = out
-    ns.Print(L["Bars recorded. Type /reload so they are saved."])
 end
 
 -- Holders that exist in this game version (for the options)

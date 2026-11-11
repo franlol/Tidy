@@ -9,8 +9,8 @@
 --   Icons    : square icons
 --   Profiles : profiles, export / import
 -- Every change is applied at once. Controls that do not apply are greyed
--- out, never hidden (no layout jumps). The only reload left: switching from
--- Bartender4 (the game cannot turn an addon off without one).
+-- out, never hidden (no layout jumps). Only switching from Bartender4 needs
+-- a reload (the game cannot turn an addon off without one).
 -------------------------------------------------------------------------------
 
 local _, ns = ...
@@ -552,7 +552,6 @@ local function BuildButtons(container)
         end },
     })
 end
-
 
 -------------------------------------------------------------------------------
 -- Icons
