@@ -846,6 +846,7 @@ local function StopDrag(h)
     HideGuides()
     SavePosition(h)
     Place(h, ns.BarConfig(h.id))
+    if ns.OnBarMoved then ns.OnBarMoved() end
 end
 
 -- Overlay to drag the bar while unlocked
@@ -901,6 +902,53 @@ local function CreateMover(h)
     for _, event in ipairs({ "OnDragStart", "OnDragStop", "OnMouseDown", "OnMouseUp" }) do
         grip:SetScript(event, function(_, ...) m:GetScript(event)(m, ...) end)
     end
+    -- nudge arrows beside the name, only on the selected bar: 0.5 per click
+    -- (Shift: 5), for what a drag cannot place exactly
+    local pad = CreateFrame("Frame", nil, m)
+    pad:SetSize(4 * 14 + 3, 14)
+    pad:SetPoint("LEFT", tag, "RIGHT", 2, 0)
+    -- { dx, dy, chevron line 1, chevron line 2 } (lines from the button center)
+    local CHEVRONS = {
+        { -1, 0, { 1.5, -3, -1.5, 0 }, { 1.5, 3, -1.5, 0 } },    -- left
+        { 0, 1, { -3, -1.5, 0, 1.5 }, { 3, -1.5, 0, 1.5 } },     -- up
+        { 0, -1, { -3, 1.5, 0, -1.5 }, { 3, 1.5, 0, -1.5 } },    -- down
+        { 1, 0, { -1.5, -3, 1.5, 0 }, { -1.5, 3, 1.5, 0 } },     -- right
+    }
+    for i, d in ipairs(CHEVRONS) do
+        local b = CreateFrame("Button", nil, pad)
+        b:SetSize(14, 14)
+        b:SetPoint("LEFT", (i - 1) * 15, 0)
+        local bg = b:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0.06, 0.06, 0.08, 0.85)
+        for k = 3, 4 do
+            local p = d[k]
+            local line = b:CreateLine(nil, "OVERLAY")
+            line:SetThickness(2)
+            line:SetColorTexture(0.44, 0.76, 1, 1)
+            line:SetStartPoint("CENTER", b, p[1], p[2])
+            line:SetEndPoint("CENTER", b, p[3], p[4])
+        end
+        b:SetScript("OnEnter", function(self)
+            bg:SetColorTexture(0.18, 0.18, 0.22, 0.95)
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(L["Move 0.5 px. Shift-click: 5 px."], 1, 1, 1)
+            GameTooltip:Show()
+        end)
+        b:SetScript("OnLeave", function()
+            bg:SetColorTexture(0.06, 0.06, 0.08, 0.85)
+            GameTooltip:Hide()
+        end)
+        b:SetScript("OnClick", function()
+            if InCombatLockdown() then return end
+            local step = IsShiftKeyDown() and 5 or 0.5
+            local x, y = ns.BarXY(h.id)
+            ns.SetBarXY(h.id, x + d[1] * step, y + d[2] * step)
+            if ns.OnBarMoved then ns.OnBarMoved() end
+        end)
+    end
+    pad:SetShown(ns.selectedBar == h.id)
+    m.nudge = pad
     m:Hide()
     h.mover = m
 end
@@ -988,8 +1036,10 @@ end
 
 -- The bar selected in the options stands out while unlocked
 function ns.HighlightBar(id)
+    ns.selectedBar = id
     for bid, h in pairs(bars) do
         local on = bid == id
+        h.mover.nudge:SetShown(on)
         h.mover:SetBackdropColor(0.44, 0.76, 1, on and 0.55 or 0.25)
         h.mover:SetBackdropBorderColor(on and 1 or 0.44, on and 1 or 0.76, 1, on and 1 or 0.9)
     end

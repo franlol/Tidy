@@ -109,6 +109,7 @@ ns.translations.esES = {
     ["Addon"] = "Addon",
     ["Language"] = "Idioma",
     ["Reset this bar"] = "Restablecer esta barra",
+    ["Move 0.5 px. Shift-click: 5 px."] = "Mover 0,5 px. Mayús+clic: 5 px.",
     ["Every setting of this bar back to its default, position included."] =
         "Todos los ajustes de esta barra a sus valores por defecto, posición incluida.",
     ["Every setting of this page (both tabs) back to its default."] =

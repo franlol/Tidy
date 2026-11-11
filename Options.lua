@@ -711,6 +711,7 @@ local function Build()
     -- changes made outside the window (minimap, Esc, combat) refresh it
     ns.OnBindMode = function() UI.RefreshAll() end
     ns.OnBarsLocked = function() UI.RefreshAll() end
+    ns.OnBarMoved = function() UI.RefreshAll() end
     win:Select("general")
 end
 
