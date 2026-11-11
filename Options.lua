@@ -493,7 +493,7 @@ local function BuildButtons(container)
                 return function() return T()[key] end, function(v) T()[key] = v ApplyAllBars() end
             end
             card = page:Add(2, UI.Card(page.content, L["Texts"], L["Choose a text, then its look."]))
-            card:Add(UI.Segmented(card, nil, { { "hotkey", L["Keybind"] }, { "count", L["Count"] }, { "macro", L["Macro name"] }, { "cooldown", L["Cooldown"] } },
+            card:Add(UI.Dropdown(card, nil, { { "hotkey", L["Keybind"] }, { "count", L["Count"] }, { "macro", L["Macro name"] }, { "cooldown", L["Cooldown"] } },
                 function() return which.key end, function(v) which.key = v UI.RefreshAll() end))
             local shg, shs = TB("show")
             card:Add(UI.Check(card, L["Show"], shg, shs,
