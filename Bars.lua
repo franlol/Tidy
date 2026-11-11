@@ -1014,14 +1014,17 @@ end
 -- Exact position: X / Y of the top left corner from the bottom left of the
 -- screen (UIParent units)
 -------------------------------------------------------------------------------
+-- rounded to half units (fractional offsets are valid)
+local function Half(v) return math.floor(v * 2 + 0.5) / 2 end
+
 function ns.BarXY(id)
     local h = bars[id]
     if h and h:GetLeft() then
         local s = h:GetScale()
-        return math.floor(h:GetLeft() * s + 0.5), math.floor(h:GetTop() * s + 0.5)
+        return Half(h:GetLeft() * s), Half(h:GetTop() * s)
     end
     local p = ns.BarConfig(id).pos
-    if p and p.point == "BOTTOMLEFT" then return math.floor(p.x + 0.5), math.floor(p.y + 0.5) end
+    if p and p.point == "BOTTOMLEFT" then return Half(p.x), Half(p.y) end
     return 0, 0
 end
 

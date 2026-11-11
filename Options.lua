@@ -296,11 +296,16 @@ local function BuildBars(container)
                 tip = L["The mouse goes through the buttons (keybinds still work)."] }))
 
             card = page:Add(2, UI.Card(page.content, L["Position"]))
-            card:Add(UI.Input(card, L["X position"], function() return tostring((ns.BarXY(selected))) end,
-                function(v) local n = tonumber(v) if n then ns.SetBarXY(selected, n, nil) end end, { enableIf = When() }))
-            card:Add(UI.Input(card, L["Y position"], function() return tostring(select(2, ns.BarXY(selected))) end,
-                function(v) local n = tonumber(v) if n then ns.SetBarXY(selected, nil, n) end end,
-                { enableIf = When(), tip = L["From the bottom left corner of the screen to the top left corner of the bar."] }))
+            -- half steps: offsets can be fractional, which matters at UI scales other than 1
+            local function halfPx(v) return ((v % 1 == 0) and "%d px" or "%.1f px"):format(v) end
+            card:Add(UI.Slider(card, L["X position"], 0, math.ceil(UIParent:GetWidth()), 0.5,
+                function() return (ns.BarXY(selected)) end,
+                function(v) ns.SetBarXY(selected, v, nil) end, { format = halfPx, enableIf = When() }))
+            card:Add(UI.Slider(card, L["Y position"], 0, math.ceil(UIParent:GetHeight()), 0.5,
+                function() return select(2, ns.BarXY(selected)) end,
+                function(v) ns.SetBarXY(selected, nil, v) end,
+                { format = halfPx, enableIf = When(),
+                    tip = L["From the bottom left corner of the screen to the top left corner of the bar."] }))
             card:Add(UI.Buttons(card, {
                 { L["Center horizontally"], function() ns.CenterBar(selected, "x") UI.RefreshAll() end },
                 { L["Center vertically"], function() ns.CenterBar(selected, "y") UI.RefreshAll() end },
