@@ -480,9 +480,17 @@ local function ApplySwipe(b)
     -- spark on the global cooldown: the game's edge line, which follows the
     -- swipe (the times are secret, it is the only thing that can follow it);
     -- otherwise the edge the library asked for (loss of control)
+    local spark = B.buttons.gcdSpark and cd.tidyGCD
     cd.tidyEdging = true
-    cd:SetDrawEdge((B.buttons.gcdSpark and cd.tidyGCD) or cd.tidyLibEdge or false)
+    cd:SetDrawEdge(spark or cd.tidyLibEdge or false)
     cd.tidyEdging = nil
+    -- the spark's color (white keeps the library's edge as it is)
+    local sc = spark and B.buttons.gcdSparkColor
+    if cd.SetEdgeColor then
+        if sc then cd:SetEdgeColor(sc.r, sc.g, sc.b, sc.a or 1) else cd:SetEdgeColor(1, 1, 1, 1) end
+    elseif sc then
+        pcall(cd.SetEdgeTexture, cd, "Interface\\Cooldown\\edge", sc.r, sc.g, sc.b, sc.a or 1)
+    end
 end
 
 -- The edge the library asks for, kept to give it back after the spark

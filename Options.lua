@@ -236,9 +236,9 @@ local function PAGE_OPTIONS(withNone)
     return list
 end
 
-local function S(c, label, key, minV, maxV, step, fmt, applies)
+local function S(c, label, key, minV, maxV, step, fmt, applies, sub)
     local g, s = BB(key)
-    c:Add(UI.Slider(c, label, minV, maxV, step, g, s, { format = fmt, enableIf = When(applies) }))
+    c:Add(UI.Slider(c, label, minV, maxV, step, g, s, { format = fmt, enableIf = When(applies), sub = sub }))
 end
 
 local function BuildBars(container)
@@ -348,8 +348,8 @@ local function BuildBars(container)
             local fg, fs = BB("fade")
             card:Add(UI.Check(card, L["Fade out when the mouse is not over it"], fg, fs, { enableIf = When() }))
             local fadeOn = function() return ns.BarConfig(selected).fade end
-            S(card, L["Faded opacity"], "fadeAlpha", 0, 1, 0.05, UI.pct, fadeOn)
-            S(card, L["Delay"], "fadeDelay", 0, 3, 0.1, function(v) return ("%.1f s"):format(v) end, fadeOn)
+            S(card, L["Faded opacity"], "fadeAlpha", 0, 1, 0.05, UI.pct, fadeOn, true)
+            S(card, L["Delay"], "fadeDelay", 0, 3, 0.1, function(v) return ("%.1f s"):format(v) end, fadeOn, true)
 
             card = page:Add(2, UI.Card(page.content, L["Hide"]))
             local noCustom = function() return strtrim(ns.BarConfig(selected).custom or "") == "" end
@@ -433,7 +433,7 @@ local function BuildButtons(container)
                 c:Add(UI.Dropdown(c, label, MODS, function() return GetModifiedClick(click) end, function(v)
                     SetModifiedClick(click, v)
                     SaveBindings(GetCurrentBindingSet and GetCurrentBindingSet() or 1)
-                end, { enableIf = enable }))
+                end, { enableIf = enable, sub = true }))
             end
 
             card = page:Add(1, UI.Card(page.content, L["Focus"]))
@@ -466,6 +466,8 @@ local function BuildButtons(container)
             card:Add(UI.Check(card, L["Global cooldown spark"], sg, ss,
                 { tip = L["A bright line that follows the global cooldown as it turns."] }))
             -- sub-options (sub = true) sit right under their checkbox
+            card:Add(UI.Swatch(card, L["Color"], function() return G().gcdSparkColor end, ApplyAllBars,
+                { alpha = true, sub = true, enableIf = function() return G().gcdSpark end }))
             local rfg, rfs = GB("readyFlash")
             card:Add(UI.Check(card, L["Ready flash"], rfg, rfs,
                 { tip = L["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."] }))
@@ -515,18 +517,18 @@ local function BuildButtons(container)
                 { tip = L["Off: this text is hidden on every bar. Keybind, count and macro name can also be hidden per bar (Bars, Actions tab)."] }))
             local shown = function() return T().show end
             local fg, fs = TB("font")
-            card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs, { enableIf = shown }))
+            card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs, { enableIf = shown, sub = true }))
             local zg, zs = TB("size")
-            card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { format = UI.px, enableIf = shown }))
+            card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { format = UI.px, enableIf = shown, sub = true }))
             local og, os = TB("outline")
-            card:Add(UI.Segmented(card, L["Outline"], OUTLINES(), og, os, { enableIf = shown }))
-            card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars, { alpha = true, enableIf = shown }))
+            card:Add(UI.Segmented(card, L["Outline"], OUTLINES(), og, os, { enableIf = shown, sub = true }))
+            card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars, { alpha = true, enableIf = shown, sub = true }))
             local pg, ps = TB("point")
-            card:Add(UI.Dropdown(card, L["Position"], POINTS, pg, ps, { enableIf = shown }))
+            card:Add(UI.Dropdown(card, L["Position"], POINTS, pg, ps, { enableIf = shown, sub = true }))
             local xg, xs = TB("x")
-            card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs, { format = UI.px, enableIf = shown }))
+            card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs, { format = UI.px, enableIf = shown, sub = true }))
             local yg, ys = TB("y")
-            card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys, { format = UI.px, enableIf = shown }))
+            card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys, { format = UI.px, enableIf = shown, sub = true }))
 
             -- like every reset: red, and a second click to confirm
             card = page:Add(2, UI.Card(page.content, L["Defaults"]))
@@ -602,7 +604,7 @@ local function BuildIcons(container)
     local flat = function() return on() and O().states ~= "blizzard" end
     for _, def in ipairs({ { "hoverColor", "Hover" }, { "pushColor", "Pressed" }, { "checkColor", "Active" } }) do
         states:Add(UI.Swatch(states, L[def[2]], function() return O()[def[1]] end, ns.ApplyIcons,
-            { alpha = true, enableIf = flat }))
+            { alpha = true, enableIf = flat, sub = true }))
     end
     -- like every reset: red, and a second click to confirm
     local reset = UI.Buttons(look, { { L["Defaults"], function()

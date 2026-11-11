@@ -57,6 +57,7 @@ ns.defaults = {
             cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon
             gcdAlpha = 0.5,       -- darkness of the swipe on the global cooldown only
             gcdSpark = false,     -- a bright line following the global cooldown swipe
+            gcdSparkColor = { r = 1, g = 1, b = 1, a = 1 },
             readyFlash = true,    -- flash when a cooldown ends
             readyColor = { r = 0.3, g = 1, b = 0.4, a = 0.6 },
             unusableColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }, -- icon when it cannot be used now
