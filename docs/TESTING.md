@@ -31,7 +31,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 20. Texts: show / hide, font, size, outline, color, position for keybind, count, macro name.
 21. Casting: self-cast key, focus-cast key, mouse-over, right click on yourself.
 21b. Click a button while moving the mouse (starts a drag): it never stays darker afterwards.
-21c. Press the key of a spell on cooldown: short red flash. Not on a normal cast, not during the global cooldown only. **Pressed on cooldown** color / opacity 0 = off.
+21c. Press the key of a spell on cooldown: short red flash; during the global cooldown only: short yellow flash. Not on a normal cast. **Pressed on cooldown** / **Pressed on global cooldown** colors, opacity 0 = off.
 21d. Press a key: the button looks pressed while held (flat and Blizzard states), never stays pressed (also changing Shift while holding).
 21e. Global cooldown swipe lighter than a real cooldown (**Global cooldown darkness**); a spell with its own cooldown uses **Cooldown darkness**.
 21f. A spell you cannot use (wrong form, no target needed...) uses **Not usable color**.

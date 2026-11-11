@@ -474,6 +474,8 @@ local function BuildButtons(container)
                 { alpha = true, tip = L["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] }))
             card:Add(UI.Swatch(card, L["Pressed on cooldown"], function() return G().cdPressColor end, ApplyAllBars,
                 { alpha = true, tip = L["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] }))
+            card:Add(UI.Swatch(card, L["Pressed on global cooldown"], function() return G().gcdPressColor end, ApplyAllBars,
+                { alpha = true, tip = L["A short flash when you press a button while only the global cooldown runs. Opacity 0 turns it off."] }))
             card:Add(UI.Swatch(card, L["Pressed when not usable"], function() return G().failPressColor end, ApplyAllBars,
                 { alpha = true, tip = L["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable... Opacity 0 turns it off."] }))
             card:Add(UI.Swatch(card, L["Pressed on an empty slot"], function() return G().emptyPressColor end, ApplyAllBars,

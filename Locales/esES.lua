@@ -272,6 +272,9 @@ ns.translations.esES = {
         "Un destello corto donde pulsas una tecla cuyo hueco no tiene hechizo, aunque los huecos vacíos estén ocultos. Con opacidad 0 se desactiva.",
     ["A short flash when you press a button that is on cooldown. Opacity 0 turns it off."] =
         "Un destello corto al pulsar un botón que está en reutilización. Con opacidad 0 se desactiva.",
+    ["Pressed on global cooldown"] = "Pulsado en reutilización global",
+    ["A short flash when you press a button while only the global cooldown runs. Opacity 0 turns it off."] =
+        "Un destello corto al pulsar un botón mientras solo corre el tiempo de reutilización global. Con opacidad 0 se desactiva.",
     ["Lock buttons"] = "Bloquear botones",
     ["Spells cannot be dragged off the bars (Shift + drag still can)."] =
         "Los hechizos no se pueden sacar de las barras (Mayús + arrastrar sí).",

@@ -465,16 +465,16 @@ local function TintUnusable(icon, r, g, bl)
     end
 end
 
--- Pressed on cooldown / while not usable: a short flash of a color
+-- Pressed on cooldown / on the global cooldown / while not usable: a short
+-- flash of a color. "cd": a real cooldown, "gcd": only the global one.
 local function OnCooldown(b)
     local info = CooldownInfo(b)
     if not info or not Readable(info.isActive) or not info.isActive then return false end
-    -- the global cooldown alone is not a cooldown (pressing during it is normal)
     local only = OnlyGCD(b)
-    if only ~= nil then return not only end
+    if only ~= nil then return only and "gcd" or "cd" end
     local gcd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(61304)
-    if gcd and Readable(gcd.isActive) and gcd.isActive then return false end
-    return true
+    if gcd and Readable(gcd.isActive) and gcd.isActive then return "gcd" end
+    return "cd"
 end
 
 -- out of range, not enough power or not usable now
@@ -563,8 +563,11 @@ local function PressFeedback(b, key)
         return
     end
     local G = B.buttons
-    if OnCooldown(b) then
+    local cd = OnCooldown(b)
+    if cd == "cd" then
         Flash(b, G.cdPressColor)
+    elseif cd == "gcd" then
+        Flash(b, G.gcdPressColor)
     elseif CannotUse(b) then
         Flash(b, G.failPressColor)
     end
