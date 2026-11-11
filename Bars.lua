@@ -645,7 +645,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Cast animation, flat style: the buttons of the spell being cast fill from
--- the bottom as the cast goes (a channel empties), and flash on interrupt.
+-- left to right as the cast goes (a channel empties), and flash on interrupt.
 -- The fill follows the best the game gives: plain times (usually your own
 -- casts), else the game's duration object (StatusBar:SetTimerDuration), else
 -- it is shown full. The Blizzard style is LibActionButton's own.
@@ -668,13 +668,13 @@ local function CastFill(b, on)
         f = CreateFrame("StatusBar", nil, b)
         f:SetAllPoints(b)
         f:EnableMouse(false)
-        f:SetOrientation("VERTICAL")
+        f:SetOrientation("HORIZONTAL")
         f:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
         -- a bright line on the moving edge
         f.edge = f:CreateTexture(nil, "OVERLAY")
-        f.edge:SetPoint("BOTTOMLEFT", f:GetStatusBarTexture(), "TOPLEFT")
-        f.edge:SetPoint("BOTTOMRIGHT", f:GetStatusBarTexture(), "TOPRIGHT")
-        f.edge:SetHeight(2)
+        f.edge:SetPoint("TOPRIGHT", f:GetStatusBarTexture(), "TOPRIGHT")
+        f.edge:SetPoint("BOTTOMRIGHT", f:GetStatusBarTexture(), "BOTTOMRIGHT")
+        f.edge:SetWidth(2)
         b.tidyCastFill = f
     end
     local c = B.buttons.castFillColor
