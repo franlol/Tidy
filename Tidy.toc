@@ -4,7 +4,8 @@
 ## Notes-esES: Una interfaz más limpia: barras de acción, iconos cuadrados y las barras de Blizzard donde quieras.
 ## Notes-esMX: Una interfaz más limpia: barras de acción, iconos cuadrados y las barras de Blizzard donde quieras.
 ## Author: franlol
-## Version: 0.2.0
+## X-License: MIT
+## Version: @project-version@
 ## IconTexture: Interface\AddOns\Tidy\Media\Icon
 ## SavedVariables: TidyDB
 

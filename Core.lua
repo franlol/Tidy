@@ -13,7 +13,9 @@
 local ADDON, ns = ...
 local L = ns.L
 
+-- From the TOC; "dev" when running from the repository (not packaged)
 ns.version = (C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata)(ADDON, "Version") or ""
+if ns.version:find("^@") then ns.version = "dev" end
 
 ns.defaults = {
     icons = {
