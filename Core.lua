@@ -52,7 +52,7 @@ ns.defaults = {
             manaColor = { r = 0.5, g = 0.5, b = 1, a = 1 },
             castVFX = true,       -- cast animation on the button
             castStyle = "flat",   -- flat: Tidy's border and flash / blizzard: the game's animation
-            castColor = { r = 1, g = 0.82, b = 0.2, a = 0.9 },        -- border while casting (flat)
+            castFillColor = { r = 1, g = 0.82, b = 0.2, a = 0.35 },   -- fill while casting (flat; its edge is opaque)
             interruptColor = { r = 1, g = 0.15, b = 0.15, a = 0.6 },  -- flash when interrupted (flat)
             cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon
             gcdAlpha = 0.5,       -- darkness of the swipe on the global cooldown only

@@ -644,49 +644,76 @@ local function OnPostClick(self)
 end
 
 -------------------------------------------------------------------------------
--- Cast animation, flat style: a thin border on the buttons of the spell
--- being cast (on/off: the cast times are secret, nothing can follow them)
--- and a flash on interrupt. The Blizzard style is LibActionButton's own.
+-- Cast animation, flat style: the buttons of the spell being cast fill from
+-- the bottom as the cast goes (a channel empties), and flash on interrupt.
+-- The fill follows the best the game gives: plain times (usually your own
+-- casts), else the game's duration object (StatusBar:SetTimerDuration), else
+-- it is shown full. The Blizzard style is LibActionButton's own.
 -------------------------------------------------------------------------------
 local function FlatCast()
     return B and B.buttons.castVFX and B.buttons.castStyle == "flat"
 end
 
-local CAST_EDGE = 2
-local function CastBorder(b, on)
-    local f = b.tidyCastBorder
+-- the cast going on: drain (channel), mode (manual / timer / static), times
+local cast = {}
+
+local function CastFill(b, on)
+    local f = b.tidyCastFill
     if not on then
         if f then f:Hide() end
         b.tidyCastSpell = nil
         return
     end
     if not f then
-        f = CreateFrame("Frame", nil, b)
+        f = CreateFrame("StatusBar", nil, b)
         f:SetAllPoints(b)
         f:EnableMouse(false)
-        f.edges = {}
-        for i = 1, 4 do f.edges[i] = f:CreateTexture(nil, "OVERLAY", nil, 7) end
-        local e = f.edges
-        e[1]:SetPoint("TOPLEFT") e[1]:SetPoint("TOPRIGHT") e[1]:SetHeight(CAST_EDGE)
-        e[2]:SetPoint("BOTTOMLEFT") e[2]:SetPoint("BOTTOMRIGHT") e[2]:SetHeight(CAST_EDGE)
-        e[3]:SetPoint("TOPLEFT") e[3]:SetPoint("BOTTOMLEFT") e[3]:SetWidth(CAST_EDGE)
-        e[4]:SetPoint("TOPRIGHT") e[4]:SetPoint("BOTTOMRIGHT") e[4]:SetWidth(CAST_EDGE)
-        -- a soft pulse: the cast is going on
-        local ag = f:CreateAnimationGroup()
-        ag:SetLooping("BOUNCE")
-        local a = ag:CreateAnimation("Alpha")
-        a:SetFromAlpha(1)
-        a:SetToAlpha(0.45)
-        a:SetDuration(0.5)
-        a:SetSmoothing("IN_OUT")
-        f.anim = ag
-        b.tidyCastBorder = f
+        f:SetOrientation("VERTICAL")
+        f:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
+        -- a bright line on the moving edge
+        f.edge = f:CreateTexture(nil, "OVERLAY")
+        f.edge:SetPoint("BOTTOMLEFT", f:GetStatusBarTexture(), "TOPLEFT")
+        f.edge:SetPoint("BOTTOMRIGHT", f:GetStatusBarTexture(), "TOPRIGHT")
+        f.edge:SetHeight(2)
+        b.tidyCastFill = f
     end
-    local c = B.buttons.castColor
-    for _, t in ipairs(f.edges) do t:SetColorTexture(c.r, c.g, c.b, c.a or 1) end
+    local c = B.buttons.castFillColor
+    f:SetStatusBarColor(c.r, c.g, c.b, c.a or 1)
+    f.edge:SetColorTexture(c.r, c.g, c.b, 1)
     f:SetFrameLevel(b:GetFrameLevel() + 5)
     f:Show()
-    f.anim:Play()
+end
+
+-- puts one fill where the cast is now
+local function PlaceFill(f)
+    if cast.mode == "manual" then
+        f:SetMinMaxValues(0, cast.finish - cast.start)
+        local now = math.min(GetTime(), cast.finish)
+        f:SetValue(cast.drain and (cast.finish - now) or (now - cast.start))
+    elseif cast.mode == "timer" then
+        local ok = pcall(function()
+            local d = (cast.channelInfo and UnitChannelDuration or UnitCastingDuration)("player")
+            local E = Enum.StatusBarTimerDirection
+            f:SetTimerDuration(d, Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.Immediate or 0,
+                cast.drain and E.RemainingTime or E.ElapsedTime)
+        end)
+        if not ok then f:SetMinMaxValues(0, 1) f:SetValue(1) end
+    else
+        f:SetMinMaxValues(0, 1)
+        f:SetValue(1)
+    end
+end
+
+-- reads the cast's times (a new cast, or pushed back)
+local function ReadCast()
+    local _, _, _, startMs, endMs = (cast.channelInfo and UnitChannelInfo or UnitCastingInfo)("player")
+    if Readable(startMs) and Readable(endMs) and startMs and endMs and endMs > startMs then
+        cast.mode, cast.start, cast.finish = "manual", startMs / 1000, endMs / 1000
+    elseif (cast.channelInfo and UnitChannelDuration or UnitCastingDuration) and Enum.StatusBarTimerDirection then
+        cast.mode = "timer"
+    else
+        cast.mode = "static"
+    end
 end
 
 local function SpellOf(b)
@@ -702,24 +729,50 @@ local function ForTidyButtons(fn)
     end
 end
 
+local function ForLit(fn)
+    ForTidyButtons(function(b)
+        if b.tidyCastSpell and b.tidyCastFill then fn(b) end
+    end)
+end
+
+local castWatch = CreateFrame("Frame")
+
+-- only the manual mode is moved by Tidy; the timer one moves by itself
+local function CastOnUpdate()
+    ForLit(function(b) PlaceFill(b.tidyCastFill) end)
+end
+
 -- the player casts one spell at a time: a stop or an interrupt ends them all
 local castSpell, castEndT -- last spell cast with a cast time, when it stopped
-local function CastStart(spellID)
+local function CastStart(spellID, channelInfo, drain)
     if not Readable(spellID) or not spellID then return end
     castSpell, castEndT = spellID, nil
     if not FlatCast() then return end
+    cast.channelInfo, cast.drain = channelInfo, drain
+    ReadCast()
     ForTidyButtons(function(b)
         if b:IsVisible() and SpellOf(b) == spellID then
-            CastBorder(b, true)
+            CastFill(b, true)
             b.tidyCastSpell = spellID
+            PlaceFill(b.tidyCastFill)
         end
     end)
+    castWatch:SetScript("OnUpdate", cast.mode == "manual" and CastOnUpdate or nil)
+end
+
+-- pushback / a channel made longer
+local function CastUpdate()
+    if not castSpell or castEndT or not FlatCast() then return end
+    ReadCast()
+    ForLit(function(b) PlaceFill(b.tidyCastFill) end)
+    castWatch:SetScript("OnUpdate", cast.mode == "manual" and CastOnUpdate or nil)
 end
 
 local function CastEnd()
     castEndT = castEndT or GetTime()
+    castWatch:SetScript("OnUpdate", nil)
     ForTidyButtons(function(b)
-        if b.tidyCastSpell then CastBorder(b, false) end
+        if b.tidyCastSpell then CastFill(b, false) end
     end)
 end
 
@@ -735,15 +788,21 @@ local function CastInterrupted(spellID)
     end)
 end
 
-local castWatch = CreateFrame("Frame")
 for _, e in ipairs({ "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_EMPOWER_START",
     "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_CHANNEL_STOP", "UNIT_SPELLCAST_EMPOWER_STOP",
-    "UNIT_SPELLCAST_INTERRUPTED" }) do
+    "UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_DELAYED", "UNIT_SPELLCAST_CHANNEL_UPDATE",
+    "UNIT_SPELLCAST_EMPOWER_UPDATE" }) do
     pcall(castWatch.RegisterUnitEvent, castWatch, e, "player") -- empower: not on every client
 end
 castWatch:SetScript("OnEvent", function(_, event, _, _, spellID, complete)
-    if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" or event == "UNIT_SPELLCAST_EMPOWER_START" then
-        CastStart(spellID)
+    if event == "UNIT_SPELLCAST_START" then
+        CastStart(spellID, false, false)
+    elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
+        CastStart(spellID, true, true)
+    elseif event == "UNIT_SPELLCAST_EMPOWER_START" then
+        CastStart(spellID, true, false) -- empowering fills up
+    elseif event == "UNIT_SPELLCAST_DELAYED" or event == "UNIT_SPELLCAST_CHANNEL_UPDATE" or event == "UNIT_SPELLCAST_EMPOWER_UPDATE" then
+        CastUpdate()
     elseif event == "UNIT_SPELLCAST_INTERRUPTED" or (event == "UNIT_SPELLCAST_EMPOWER_STOP" and not complete) then
         CastInterrupted(spellID)
     else
@@ -751,11 +810,11 @@ castWatch:SetScript("OnEvent", function(_, event, _, _, spellID, complete)
     end
 end)
 
--- the page changed during a cast: the border leaves a slot that now holds
+-- the page changed during a cast: the fill leaves a slot that now holds
 -- another spell
 local castKey = {}
 LAB.RegisterCallback(castKey, "OnButtonUpdate", function(_, b)
-    if b.tidyCastSpell and SpellOf(b) ~= b.tidyCastSpell then CastBorder(b, false) end
+    if b.tidyCastSpell and SpellOf(b) ~= b.tidyCastSpell then CastFill(b, false) end
 end)
 
 -- A key held on the button: the pressed look until it is released (at most
@@ -859,7 +918,7 @@ local function Layout(h, c)
             b:UpdateConfig(ButtonConfig(b, c))
             ApplySwipe(b)
             StyleCountdown(b)
-            if not FlatCast() then CastBorder(b, false) end
+            if not FlatCast() then CastFill(b, false) end
             -- texts turned off for every bar (the per-bar hides are in the
             -- config); by alpha, as LibActionButton shows and hides them itself
             local T = B.buttons.texts

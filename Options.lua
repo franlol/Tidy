@@ -471,8 +471,8 @@ local function BuildButtons(container)
             local flatOn = function() return G().castVFX and G().castStyle == "flat" end
             local stg, sts = GB("castStyle")
             card:Add(UI.Segmented(card, L["Style"], { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } }, stg, sts,
-                { enableIf = castOn, tip = L["Flat: a thin border while casting and a flash if it is interrupted. Blizzard: the game's animation."] }))
-            card:Add(UI.Swatch(card, L["Casting border"], function() return G().castColor end, ApplyAllBars,
+                { enableIf = castOn, tip = L["Flat: the button fills as the cast goes (a channel empties) and flashes if it is interrupted. Blizzard: the game's animation."] }))
+            card:Add(UI.Swatch(card, L["Casting fill"], function() return G().castFillColor end, ApplyAllBars,
                 { alpha = true, enableIf = flatOn }))
             card:Add(UI.Swatch(card, L["Interrupted"], function() return G().interruptColor end, ApplyAllBars,
                 { alpha = true, enableIf = flatOn, tip = L["A short flash when the cast is interrupted. Opacity 0 turns it off."] }))

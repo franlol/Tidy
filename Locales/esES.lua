@@ -280,10 +280,10 @@ ns.translations.esES = {
     ["Spells cannot be dragged off the bars (Shift + drag still can)."] =
         "Los hechizos no se pueden sacar de las barras (Mayús + arrastrar sí).",
     ["Cast animation"] = "Animación de lanzamiento",
-    ["Flat: a thin border while casting and a flash if it is interrupted. Blizzard: the game's animation."] =
-        "Plano: un borde fino mientras lanzas y un destello si se interrumpe. Blizzard: la animación del juego.",
+    ["Flat: the button fills as the cast goes (a channel empties) and flashes if it is interrupted. Blizzard: the game's animation."] =
+        "Plano: el botón se llena mientras lanzas (una canalización se vacía) y destella si se interrumpe. Blizzard: la animación del juego.",
     ["Style"] = "Estilo",
-    ["Casting border"] = "Borde al lanzar",
+    ["Casting fill"] = "Relleno al lanzar",
     ["Interrupted"] = "Interrumpido",
     ["A short flash when the cast is interrupted. Opacity 0 turns it off."] =
         "Un destello breve cuando se interrumpe el lanzamiento. Opacidad 0 lo desactiva.",
