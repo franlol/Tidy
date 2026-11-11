@@ -274,8 +274,6 @@ ns.translations.esES = {
     ["on cooldown -> flash"] = "en reutilización -> destello",
     ["global cooldown -> flash"] = "reutilización global -> destello",
     ["not usable / out of range -> flash"] = "no utilizable / fuera de alcance -> destello",
-    ["needs a target -> flash (%s)"] = "necesita objetivo -> destello (%s)",
-    ["no flash yet (%s)"] = "sin destello por ahora (%s)",
     ["key"] = "tecla",
     ["click"] = "clic",
     ["down"] = "pulsar",
@@ -283,7 +281,6 @@ ns.translations.esES = {
     ["spell %d has no range"] = "el hechizo %d no tiene alcance",
     ["spell %d: harmful unknown, not ranged"] = "hechizo %d: no se sabe si es ofensivo, sin alcance",
     ["spell %d is not harmful"] = "el hechizo %d no es ofensivo",
-    ["spell %d: no valid target"] = "hechizo %d: sin objetivo válido",
     ["Not usable color"] = "Color no utilizable",
     ["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] =
         "El icono cuando no se puede usar ahora (forma equivocada, necesita objetivo, sin componentes...).",
