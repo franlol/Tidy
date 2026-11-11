@@ -303,8 +303,18 @@ local function ButtonConfig(b, c)
         flyoutDirection = c.flyout,
         spellCastVFX = G.castVFX,
         text = { hotkey = TextConfig(G.texts.hotkey), count = TextConfig(G.texts.count), macro = TextConfig(G.texts.macro) },
-        cooldownCount = G.texts.cooldown.show, -- over the game's "cooldown numbers" option
     }
+end
+
+-- Countdown shown or hidden by Tidy, over the game's "cooldown numbers"
+-- option. LibActionButton's cooldownCount setting is lost (its default is
+-- nil, its merge skips it) and it sets the game's choice again on every
+-- cooldown type change and option change, so every set is corrected here.
+local function KeepCountdown(cd)
+    if cd.tidyCounting or not B then return end
+    cd.tidyCounting = true
+    cd:SetHideCountdownNumbers(not B.buttons.texts.cooldown.show)
+    cd.tidyCounting = nil
 end
 
 -- The cooldown countdown: the game draws it (its times are secret), Tidy
@@ -313,6 +323,7 @@ local countdownFont
 local function StyleCountdown(b)
     local cd = b.cooldown
     if not cd then return end
+    KeepCountdown(cd)
     local t = B.buttons.texts.cooldown
     local c = t.color
     if cd.SetCountdownFont then
@@ -679,6 +690,7 @@ local function CreateButton(header, id, i)
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
         if b.cooldown.GetDrawEdge then b.cooldown.tidyLibEdge = b.cooldown:GetDrawEdge() and true or false end
         hooksecurefunc(b.cooldown, "SetDrawEdge", KeepLibEdge)
+        hooksecurefunc(b.cooldown, "SetHideCountdownNumbers", KeepCountdown)
         for _, m in ipairs({ "SetCooldown", "SetCooldownFromDurationObject", "SetCooldownDuration" }) do
             if b.cooldown[m] then hooksecurefunc(b.cooldown, m, function() ApplySwipe(b) end) end
         end
