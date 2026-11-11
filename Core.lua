@@ -57,6 +57,7 @@ ns.defaults = {
             cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon
             gcdAlpha = 0.5,       -- darkness of the swipe on the global cooldown only
             gcdSpark = false,     -- a bright line following the global cooldown swipe
+            readyColor = { r = 0.3, g = 1, b = 0.4, a = 0.6 }, -- flash when a cooldown ends (alpha 0: off)
             unusableColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }, -- icon when it cannot be used now
             cdPressColor = { r = 1, g = 0.15, b = 0.15, a = 0.55 }, -- flash when pressed on cooldown (alpha 0: off)
             gcdPressColor = { r = 1, g = 0.85, b = 0.1, a = 0.55 }, -- flash when pressed on the global cooldown (alpha 0: off)
@@ -368,10 +369,14 @@ SlashCmdList.TIDY = function(msg)
         ns.DumpHolders()
     elseif msg == "probe" then
         ns.Probe()
+    elseif msg == "presses" then
+        ns.tracePresses = not ns.tracePresses
+        ns.Print(ns.tracePresses and L["Press trace: on"] or L["Press trace: off"])
     elseif msg == "help" then
         ns.Print(L["Commands:"])
         print("  /tidy - " .. L["open the options"])
         print("  /tidy lang en|es - " .. L["language: en or es"])
+        print("  /tidy presses - " .. L["trace every button press (on/off)"])
     else
         ns.ToggleOptions()
     end

@@ -521,7 +521,16 @@ local function CannotUse(b)
     return ok and Readable(usable) and not usable
 end
 
-local function Flash(b, c)
+-- /tidy presses: every press and what it gave, with the time since the press
+local pressT0
+local function Trace(b, what)
+    if not ns.tracePresses then return end
+    local ms = pressT0 and (debugprofilestop() - pressT0) or 0
+    ns.Print(("%s +%dms: %s"):format(b and b:GetName() or "?", ms, what))
+end
+
+-- mark: false for flashes that are not a press answer (ready)
+local function Flash(b, c, mark)
     if not c or (c.a or 1) <= 0 then return end
     local t = b.tidyPressFlash
     if not t then
@@ -540,7 +549,7 @@ local function Flash(b, c)
     t:SetColorTexture(c.r, c.g, c.b, c.a or 1)
     t.anim:Stop()
     t.anim:Play()
-    b.tidyFlashT = GetTime()
+    if mark ~= false then b.tidyFlashT = GetTime() end
 end
 
 -- Any other reason (no target, wrong target, facing, moving...): the game's
@@ -554,12 +563,19 @@ local function GCDRunning()
 end
 local errorWatch = CreateFrame("Frame")
 errorWatch:RegisterEvent("UI_ERROR_MESSAGE")
-errorWatch:SetScript("OnEvent", function()
+errorWatch:SetScript("OnEvent", function(_, _, _, msg)
     local b = lastPress
     if not b or not B or GetTime() - lastPressT > ERROR_WINDOW then return end
     lastPress = nil
-    if b.tidyFlashT and GetTime() - b.tidyFlashT < ERROR_WINDOW then return end -- already flashed
-    if GCDRunning() then return end
+    if b.tidyFlashT and GetTime() - b.tidyFlashT < ERROR_WINDOW then
+        Trace(b, "game error, already flashed (" .. tostring(msg) .. ")")
+        return
+    end
+    if GCDRunning() then
+        Trace(b, "game error during the global cooldown, no flash (" .. tostring(msg) .. ")")
+        return
+    end
+    Trace(b, "game error -> flash (" .. tostring(msg) .. ")")
     Flash(b, B.buttons.failPressColor)
 end)
 
@@ -602,37 +618,71 @@ local function PressFeedback(b, key)
     local G = B.buttons
     local cd = OnCooldown(b)
     if cd == "cd" then
+        Trace(b, "on cooldown -> flash")
         Flash(b, G.cdPressColor)
     elseif cd == "gcd" then
+        Trace(b, "global cooldown -> flash")
         Flash(b, G.gcdPressColor)
     elseif CannotUse(b) then
+        Trace(b, "not usable / out of range -> flash")
         Flash(b, G.failPressColor)
     else
         b.tidyCheckTarget = true -- looked at in PostClick, after the cast try
     end
 end
 
--- No target for a spell that needs one: the game's error can come late (cast
--- on release, the server), so right after the click it is guessed: a
--- harmful spell, nothing to cast it on and no ground-target cursor waiting.
--- The game's error stays the fallback for every other reason.
-local function UnitThere(unit)
-    local ok, v = pcall(UnitExists, unit)
-    return ok and Readable(v) and v or false
+-- No valid target for a spell that needs one: the game's error can come late
+-- (cast on release, the server), so right after the click it is guessed: a
+-- harmful spell, nothing alive and hostile to cast it on, and no
+-- ground-target cursor waiting. The game's error stays the fallback for
+-- every other reason (facing, line of sight, moving...).
+local function Plain(fn, ...)
+    local ok, v = pcall(fn, ...)
+    if ok and Readable(v) then return v end
 end
 
+-- a unit a harmful spell can go to
+local function Hostile(unit)
+    return Plain(UnitExists, unit) and Plain(UnitCanAttack, "player", unit)
+        and not Plain(UnitIsDeadOrGhost, unit) or false
+end
+
+-- true / false, or nil when the game does not say
+local function IsHarmful(b, id)
+    if C_Spell and C_Spell.IsSpellHarmful then
+        local h = Plain(C_Spell.IsSpellHarmful, id)
+        if h ~= nil then return h and true or false end
+    end
+    if IsHarmfulSpell then
+        local h = Plain(IsHarmfulSpell, id)
+        if h == nil and GetSpellInfo then
+            local name = Plain(GetSpellInfo, id)
+            if name then h = Plain(IsHarmfulSpell, name) end
+        end
+        if h ~= nil then return h and true or false end
+    end
+end
+
+-- returns the answer and why (for the trace)
 local function NeedsTarget(b)
-    if SpellIsTargeting and SpellIsTargeting() then return false end
-    local ok, id = pcall(b.GetSpellId, b)
-    if not ok or not Readable(id) or not id then return false end
-    local harmful = (C_Spell and C_Spell.IsSpellHarmful) or IsHarmfulSpell
-    if not harmful then return false end
-    local ok2, h = pcall(harmful, id)
-    if not ok2 or not Readable(h) or not h then return false end
-    if UnitThere("target") or UnitThere("softenemy") then return false end
-    if B.casting.focusCast and IsModifiedClick("FOCUSCAST") and UnitThere("focus") then return false end
-    if B.casting.mouseover and UnitThere("mouseover") then return false end
-    return true
+    if SpellIsTargeting and SpellIsTargeting() then return false, "ground target cursor" end
+    local id = Plain(b.GetSpellId, b)
+    if not id then return false, "no readable spell" end
+    local harmful = IsHarmful(b, id)
+    if harmful == nil then
+        -- the game does not say: a ranged action that is not a helpful spell
+        local helpful = IsHelpfulSpell and Plain(IsHelpfulSpell, id)
+        local ranged = ActionHasRange and b._state_type == "action" and Plain(ActionHasRange, b._state_action)
+        harmful = ranged and not helpful or false
+        if not harmful then return false, "spell " .. id .. ": harmful unknown, not ranged" end
+    elseif not harmful then
+        return false, "spell " .. id .. " is not harmful"
+    end
+    if Hostile("target") then return false, "has a hostile target" end
+    if Hostile("softenemy") then return false, "soft enemy target" end
+    if B.casting.focusCast and IsModifiedClick("FOCUSCAST") and Hostile("focus") then return false, "focus cast" end
+    if B.casting.mouseover and Hostile("mouseover") then return false, "mouseover" end
+    return true, "spell " .. id .. ": no valid target"
 end
 
 local function OnPostClick(self)
@@ -640,7 +690,9 @@ local function OnPostClick(self)
     self.tidyCheckTarget = nil
     if not B then return end
     if self.tidyFlashT and GetTime() - self.tidyFlashT < ERROR_WINDOW then return end -- already flashed
-    if NeedsTarget(self) then Flash(self, B.buttons.failPressColor) end
+    local need, why = NeedsTarget(self)
+    Trace(self, (need and "needs a target -> flash (" or "no flash yet (") .. why .. ")")
+    if need then Flash(self, B.buttons.failPressColor) end
 end
 
 -------------------------------------------------------------------------------
@@ -817,6 +869,50 @@ LAB.RegisterCallback(castKey, "OnButtonUpdate", function(_, b)
     if b.tidyCastSpell and SpellOf(b) ~= b.tidyCastSpell then CastFill(b, false) end
 end)
 
+-------------------------------------------------------------------------------
+-- Ready flash: a button whose real cooldown (not the global one) has just
+-- ended flashes once. The times are secret: only the "active" flag is read,
+-- on the cooldown events and every 0.1 s while a cooldown runs (the game
+-- does not always send an event when one ends).
+-------------------------------------------------------------------------------
+local READY_MIN = 2 -- shorter cooldowns do not flash (seconds)
+local readyWatch = CreateFrame("Frame")
+local readyTicker
+
+local function ReadyCheck()
+    local tracking = false
+    ForTidyButtons(function(b)
+        local spell = b:IsVisible() and SpellOf(b)
+        local state = spell and OnCooldown(b)
+        if b.tidyCDSpell and b.tidyCDSpell ~= spell then
+            b.tidyCDSpell = nil -- another spell in the slot (page, drag): no flash
+        end
+        if state == "cd" then
+            if not b.tidyCDSpell then b.tidyCDSpell, b.tidyCDStart = spell, GetTime() end
+            tracking = true
+        elseif state == "gcd" and b.tidyCDSpell then
+            -- unsure: the game may only say "global cooldown" while both run
+            tracking = true
+        elseif b.tidyCDSpell then
+            if GetTime() - b.tidyCDStart >= READY_MIN and B then
+                Flash(b, B.buttons.readyColor, false)
+            end
+            b.tidyCDSpell = nil
+        end
+    end)
+    if tracking and not readyTicker then
+        readyTicker = C_Timer.NewTicker(0.1, ReadyCheck)
+    elseif not tracking and readyTicker then
+        readyTicker:Cancel()
+        readyTicker = nil
+    end
+end
+
+for _, e in ipairs({ "SPELL_UPDATE_COOLDOWN", "ACTIONBAR_UPDATE_COOLDOWN", "SPELL_UPDATE_CHARGES" }) do
+    pcall(readyWatch.RegisterEvent, readyWatch, e)
+end
+readyWatch:SetScript("OnEvent", function() ReadyCheck() end)
+
 -- A key held on the button: the pressed look until it is released (at most
 -- KEY_HOLD seconds: a release can go to another binding if a modifier
 -- changed meanwhile)
@@ -840,6 +936,8 @@ local function OnPreClick(self, mouse, down)
     -- the cast happens on press or on release (game setting, mouse drag
     -- protection): both count for the game's error
     lastPress, lastPressT = self, GetTime()
+    if down ~= false or not self.tidyDownSeen then pressT0 = debugprofilestop() end
+    Trace(self, ("%s %s"):format(key and "key" or tostring(mouse), down == nil and "click" or (down and "down" or "up")))
     if down == false then
         if key then KeyPressed(self, false) end
         if self.tidyDownSeen then
