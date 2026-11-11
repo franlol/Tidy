@@ -263,8 +263,9 @@ ns.translations.esES = {
     ["A bright line that follows the global cooldown as it turns."] =
         "Una línea brillante que acompaña al tiempo de reutilización global mientras gira.",
     ["Ready flash"] = "Destello al estar listo",
-    ["A short flash when a cooldown of 2 seconds or more ends and the button is ready again. Opacity 0 turns it off."] =
-        "Un destello breve cuando termina un tiempo de reutilización de 2 segundos o más y el botón vuelve a estar listo. Opacidad 0 lo desactiva.",
+    ["Flash when a cooldown ends"] = "Destellar al terminar la reutilización",
+    ["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."] =
+        "Un destello breve cuando termina un tiempo de reutilización de 2 segundos o más y el botón vuelve a estar listo.",
     ["trace every button press (on/off)"] = "muestra cada pulsación de botón (activar/desactivar)",
     ["Press trace: on"] = "Registro de pulsaciones: activado",
     ["Press trace: off"] = "Registro de pulsaciones: desactivado",

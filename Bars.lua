@@ -894,7 +894,7 @@ local function ReadyCheck()
             -- unsure: the game may only say "global cooldown" while both run
             tracking = true
         elseif b.tidyCDSpell then
-            if GetTime() - b.tidyCDStart >= READY_MIN and B then
+            if GetTime() - b.tidyCDStart >= READY_MIN and B and B.buttons.readyFlash then
                 Flash(b, B.buttons.readyColor, false)
             end
             b.tidyCDSpell = nil
@@ -960,7 +960,10 @@ local function CreateButton(header, id, i)
     if b.icon then hooksecurefunc(b.icon, "SetVertexColor", TintUnusable) end
     if b.cooldown then
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
-        if b.cooldown.GetDrawEdge then b.cooldown.tidyLibEdge = b.cooldown:GetDrawEdge() and true or false end
+        -- no edge until the library asks for one (loss of control): the
+        -- template's default is on, and with duration objects the library
+        -- never sets it, so the spark showed even when turned off
+        b.cooldown.tidyLibEdge = false
         hooksecurefunc(b.cooldown, "SetDrawEdge", KeepLibEdge)
         hooksecurefunc(b.cooldown, "SetHideCountdownNumbers", KeepCountdown)
         for _, m in ipairs({ "SetCooldown", "SetCooldownFromDurationObject", "SetCooldownDuration" }) do

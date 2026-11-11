@@ -465,8 +465,15 @@ local function BuildButtons(container)
             local sg, ss = GB("gcdSpark")
             card:Add(UI.Check(card, L["Global cooldown spark"], sg, ss,
                 { tip = L["A bright line that follows the global cooldown as it turns."] }))
-            card:Add(UI.Swatch(card, L["Ready flash"], function() return G().readyColor end, ApplyAllBars,
-                { alpha = true, tip = L["A short flash when a cooldown of 2 seconds or more ends and the button is ready again. Opacity 0 turns it off."] }))
+
+            card = page:Add(1, UI.Card(page.content, L["Ready flash"]))
+            local rfg, rfs = GB("readyFlash")
+            card:Add(UI.Check(card, L["Flash when a cooldown ends"], rfg, rfs,
+                { tip = L["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."] }))
+            card:Add(UI.Swatch(card, L["Color"], function() return G().readyColor end, ApplyAllBars,
+                { alpha = true, enableIf = function() return G().readyFlash end }))
+
+            card = page:Add(2, UI.Card(page.content, L["Cast animation"]))
             local vg, vs = GB("castVFX")
             card:Add(UI.Check(card, L["Cast animation"], vg, vs))
             local castOn = function() return G().castVFX end
