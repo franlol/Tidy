@@ -3,7 +3,7 @@
 One pass, in order. Note the number of anything that fails (and paste any Lua error).
 
 ## Start
-1. `/reload` with Bartender4 **off**. No Lua errors on login.
+1. `/reload`. No Lua errors on login.
 2. Blizzard action bars are gone; Tidy bars show your spells and keybinds.
 
 ## General

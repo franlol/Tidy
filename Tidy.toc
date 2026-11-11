@@ -7,7 +7,6 @@
 ## Version: 0.2.0
 ## IconTexture: Interface\AddOns\Tidy\Media\Icon
 ## SavedVariables: TidyDB
-## OptionalDeps: Bartender4
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua

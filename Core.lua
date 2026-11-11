@@ -41,7 +41,6 @@ ns.defaults = {
         enabled = false,  -- replaces Blizzard's action bars
         locked = true,
         snap = true,      -- moving a bar sticks it to other bars and screen lines
-        imported = false, -- layout copied from Bartender4 once
         gryphons = false, -- Blizzard's gryphons / wyverns at the sides of bar 1
         list = {},        -- [bar id] = settings; missing keys come from ns.BarDefaults
         -- every action button

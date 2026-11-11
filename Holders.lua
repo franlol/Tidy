@@ -185,8 +185,7 @@ local FULL = { 0, 1, 0, 1 }
 -- last resort for any class / any missing icon (exists in every client)
 local QUESTION = { tex = "Interface\\Icons\\INV_Misc_QuestionMark", coords = CROP }
 
--- Stance / form spells of each class on this client (spell ids from
--- Bartender4's stance map for Forever and Classic). Their icons are asked
+-- Stance / form spells of each class on this client. Their icons are asked
 -- to the game: a spell the client lacks just gives no icon.
 local CLASS_FORMS = {
     WARRIOR = { 2457, 71, 2458 },          -- battle, defensive, berserker stance

@@ -7,7 +7,7 @@
 --     vehicle and override like Blizzard's main bar)
 --   * keybinds: your Blizzard binds point to these buttons (override binds)
 --   * hiding Blizzard's action bars
--- Bar N shows action page N (actions (N-1)*12+1 ... N*12), like Bartender.
+-- Bar N shows action page N (actions (N-1)*12+1 ... N*12).
 -------------------------------------------------------------------------------
 
 local _, ns = ...
@@ -248,7 +248,7 @@ local ON_PAGE = [[
 ]]
 
 -------------------------------------------------------------------------------
--- Buttons: LibActionButton-1.0 (BSD), the engine Bartender uses. It works
+-- Buttons: LibActionButton-1.0 (BSD). It works
 -- with this client's protected cooldown data ("secret values"), which
 -- Blizzard's own template does not allow from an addon.
 -- Each button has one action per page ("state"): state N = page N.
@@ -1444,59 +1444,10 @@ function ns.UpdateBinds()
 end
 
 -------------------------------------------------------------------------------
--- Copy the layout of Bartender4 (once, or from the options)
--------------------------------------------------------------------------------
-function ns.ImportBartender()
-    local db = Bartender4DB
-    local mod = db and db.namespaces and db.namespaces.ActionBars
-    if not mod then return false end
-    -- Forever: UnitName gives (name, surname) and Bartender's profile is
-    -- "<name> <surname>"; the classic "<name> - <realm>" is tried too
-    local name, surname = UnitName("player")
-    local profiles = mod.profiles or {}
-    local keys = db.profileKeys or {}
-    local prof
-    for _, k in ipairs({ surname and (name .. " " .. surname), name .. " - " .. GetRealmName(), name }) do
-        prof = profiles[keys[k] or k]
-        if prof then break end
-    end
-    local list = prof and prof.actionbars
-    if not list then return false end
-    for _, id in ipairs(BAR_IDS) do
-        local src = list[id]
-        if src then
-            local c = ns.BarConfig(id)
-            c.enabled = src.enabled ~= false and (id <= 6 or src.enabled == true)
-            c.buttons = src.buttons or 12
-            c.rows = src.rows or 1
-            c.padding = src.padding or 2
-            local p = src.position
-            c.scale = (p and p.scale) or src.scale or 1
-            c.alpha = src.alpha or 1
-            c.showGrid = src.showgrid or false
-            if p and p.point then
-                c.pos = { point = p.point, x = p.x or 0, y = p.y or 0 }
-            end
-        end
-    end
-    B.imported = true
-    return true
-end
-
--------------------------------------------------------------------------------
 -- Start
 -------------------------------------------------------------------------------
-local function BartenderLoaded()
-    local f = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
-    return f and f("Bartender4") and true or false
-end
-ns.BartenderLoaded = BartenderLoaded
-
--- Turns Tidy's bars on or off while playing (out of combat). With Bartender4
--- loaded they stay off: both would fight over the binds.
+-- Turns Tidy's bars on or off while playing (out of combat)
 function ns.SetBarsActive(on)
-    ns.barsConflict = on and BartenderLoaded() or nil
-    if ns.barsConflict then on = false end
     ns.RunOOC("barsActive", function()
         if on == (ns.barsActive or false) then return end
         ns.barsActive = on
@@ -1522,7 +1473,6 @@ end
 
 ns.Module(function()
     B = ns.P.bars
-    if B.enabled and not B.imported then ns.ImportBartender() end
     ns.SetBarsActive(B.enabled)
 
     -- (empty buttons while dragging a spell: LibActionButton does it)

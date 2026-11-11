@@ -31,7 +31,6 @@ ns.translations.esES = {
     ["Blizzard's frames (Tile draws its own)."] = "Los marcos de Blizzard (Tile dibuja los suyos).",
     ["Items"] = "Objetos",
     ["Bags, bank, loot, merchant, character..."] = "Bolsas, banco, botín, vendedor, personaje...",
-    ["Reload interface"] = "Recargar interfaz",
     ["Look"] = "Aspecto",
     ["Border thickness"] = "Grosor del borde",
     ["Border color"] = "Color del borde",
@@ -309,26 +308,18 @@ ns.translations.esES = {
     ["Bottom left"] = "Abajo izquierda",
     ["Bottom"] = "Abajo",
     ["Bottom right"] = "Abajo derecha",
-    ["Tidy, Blizzard and Bartender4 bars, pet and stance bars."] =
-        "Barras de Tidy, Blizzard y Bartender4, de mascota y de posturas.",
+    ["Tidy and Blizzard bars, pet and stance bars."] =
+        "Barras de Tidy y de Blizzard, de mascota y de posturas.",
 
     -- Bars
     ["Bars"] = "Barras",
     ["Bar %d"] = "Barra %d",
     ["Your spells and keybinds, on bars you place. Replaces Blizzard's action bars."] =
         "Tus hechizos y atajos, en barras que colocas tú. Sustituye a las barras de acción de Blizzard.",
-    ["Coming from Bartender4: turn it off in the addon list and reload, only once."] =
-        "Si vienes de Bartender4: desactívalo en la lista de addons y recarga, solo una vez.",
     ["Lock / unlock bars"] = "Bloquear / desbloquear barras",
     ["Snap while moving"] = "Imantar al mover",
     ["A bar you drag sticks to the edges and centers of other bars, the screen center lines and the screen borders."] =
         "La barra que arrastras se pega a los bordes y centros de otras barras, a las líneas centrales de la pantalla y a sus bordes.",
-    ["Copy Bartender4 layout"] = "Copiar diseño de Bartender4",
-    ["Bartender4 layout copied."] = "Diseño de Bartender4 copiado.",
-    ["Positions, rows, padding, scale and alpha. Only while Bartender4 is loaded."] =
-        "Posiciones, filas, espaciado, escala y opacidad. Solo mientras Bartender4 está cargado.",
-    ["Bartender4 is loaded: disable it and reload to use Tidy's bars."] =
-        "Bartender4 está cargado: desactívalo y recarga para usar las barras de Tidy.",
     ["Show this bar"] = "Mostrar esta barra",
     ["Pet bar"] = "Barra de mascota",
     ["Stance bar"] = "Barra de posturas",

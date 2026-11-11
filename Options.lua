@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Tidy - Options window (LibFlatyUI-1.0)
 --
---   General  : everything global: bars on/off, Bartender4, snap, presets,
+--   General  : everything global: bars on/off, snap, presets,
 --              minimap, language (unlock / keybinding mode: window header)
 --   Bars     : one bar at a time (dropdown, or click it on screen):
 --              layout · visibility · actions
@@ -9,8 +9,7 @@
 --   Icons    : square icons
 --   Profiles : profiles, export / import
 -- Every change is applied at once. Controls that do not apply are greyed
--- out, never hidden (no layout jumps). Only switching from Bartender4 needs
--- a reload (the game cannot turn an addon off without one).
+-- out, never hidden (no layout jumps).
 -------------------------------------------------------------------------------
 
 local _, ns = ...
@@ -24,11 +23,6 @@ UI.strings = setmetatable({}, { __index = function(_, key) return L[STRINGS[key]
 local win
 local WHERE = { "enabled", "actionbars", "playerAuras", "unitAuras", "raidAuras", "items" }
 local active = function() return ns.barsActive end
-
-local function UpdateStatus()
-    if not win then return end
-    win:SetStatus(ns.barsConflict and L["Bartender4 is loaded: disable it and reload to use Tidy's bars."] or "")
-end
 
 -- Re-applies every bar (button looks, casting, lock...)
 local function ApplyAllBars()
@@ -118,23 +112,8 @@ local function BuildGeneral(container)
         L["Your spells and keybinds, on bars you place. Replaces Blizzard's action bars."]))
     gen:Add(UI.Switch(gen, L["Enabled"], function() return ns.P.bars.enabled end, function(v)
         ns.P.bars.enabled = v
-        -- Bartender's settings are only readable while it is loaded
-        if v and not ns.P.bars.imported and Bartender4DB then ns.ImportBartender() end
         ns.SetBarsActive(v)
     end))
-    gen:Add(UI.Note(gen, L["Coming from Bartender4: turn it off in the addon list and reload, only once."]))
-    gen:Add(UI.Buttons(gen, { { L["Reload interface"], ReloadUI, "accent" } },
-        { enableIf = function() return ns.barsConflict and true or false end }))
-    gen:Add(UI.Buttons(gen, {
-        { L["Copy Bartender4 layout"], function()
-            if ns.ImportBartender() then
-                ns.Print(L["Bartender4 layout copied."])
-                ApplyAllBars()
-            end
-            UI.RefreshAll()
-        end },
-    }, { enableIf = function() return Bartender4DB ~= nil end,
-        tip = L["Positions, rows, padding, scale and alpha. Only while Bartender4 is loaded."] }))
 
     -- unlocking and keybinding mode: the buttons in the window header
     local edit = page:Add(1, UI.Card(page.content, L["Editing"],
@@ -572,7 +551,7 @@ local function BuildIcons(container)
     local where = page:Add(1, UI.Card(page.content, L["Where"], L["Square icons with a flat border."]))
     where:Add(UI.Switch(where, L["Enabled"], IB("enabled")))
     for _, def in ipairs({
-        { "actionbars", "Action bars", "Tidy, Blizzard and Bartender4 bars, pet and stance bars." },
+        { "actionbars", "Action bars", "Tidy and Blizzard bars, pet and stance bars." },
         { "playerAuras", "Your buffs and debuffs" },
         { "unitAuras", "Target and focus auras" },
         { "raidAuras", "Raid and party frame auras", "Blizzard's frames (Tile draws its own)." },
@@ -727,7 +706,6 @@ local function Build()
     win:AddNav("profiles", L["Profiles"], BuildProfiles)
     UI.OnRefresh = function()
         win:SetSubtitle((L["Profile: %s"]):format(ns.profileName or ""))
-        UpdateStatus()
     end
     -- changes made outside the window (minimap, Esc, combat) refresh it
     ns.OnBindMode = function() UI.RefreshAll() end

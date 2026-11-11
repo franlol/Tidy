@@ -2,7 +2,7 @@
 -- Tidy - Square icons
 -- Crops every icon to a square, removes Blizzard's round masks and frames and
 -- draws a flat border behind it (thickness, color and zoom in the options).
--- Covers: action bars (Blizzard, Tidy and Bartender4 / LibActionButton), pet
+-- Covers: action bars (Blizzard, Tidy and any LibActionButton bar), pet
 -- and stance bars, your buffs/debuffs, target/focus auras, raid/party frame
 -- auras and item buttons (bags, bank, loot, merchant, character...).
 --
@@ -348,7 +348,7 @@ local function SkinAllActionButtons()
             if classicActionHook then ActionArt(b) else HookBlizzardAction(b) end
         end
     end
-    -- Bartender4 / any LibActionButton user: its callback fires after each
+    -- any LibActionButton bar: its callback fires after each
     -- update, so its buttons are not hooked twice
     local LAB = LibStub and LibStub("LibActionButton-1.0", true)
     if LAB then
