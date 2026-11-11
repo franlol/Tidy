@@ -643,88 +643,7 @@ local function PressFeedback(b, key)
     elseif CannotUse(b) then
         Trace(b, L["not usable / out of range -> flash"])
         Flash(b, "failPress")
-    else
-        b.tidyCheckTarget = true -- looked at in PostClick, after the cast try
     end
-end
-
--- No valid target for a spell that needs one: the game's error can come late
--- (cast on release, the server), so right after the click it is guessed: a
--- harmful spell, nothing alive and hostile to cast it on, and no
--- ground-target cursor waiting. The game's error stays the fallback for
--- every other reason (facing, line of sight, moving...).
-local function Plain(fn, ...)
-    local ok, v = pcall(fn, ...)
-    if ok and Readable(v) then return v end
-end
-
--- a unit a harmful spell can go to
-local function Hostile(unit)
-    return Plain(UnitExists, unit) and Plain(UnitCanAttack, "player", unit)
-        and not Plain(UnitIsDeadOrGhost, unit) or false
-end
-
--- true / false, or nil when the game does not say
-local function IsHarmful(b, id)
-    if C_Spell and C_Spell.IsSpellHarmful then
-        local h = Plain(C_Spell.IsSpellHarmful, id)
-        if h ~= nil then return h and true or false end
-    end
-    if IsHarmfulSpell then
-        local h = Plain(IsHarmfulSpell, id)
-        if h == nil and GetSpellInfo then
-            local name = Plain(GetSpellInfo, id)
-            if name then h = Plain(IsHarmfulSpell, name) end
-        end
-        if h ~= nil then return h and true or false end
-    end
-end
-
--- spells seen asking for a ground target: they never need a unit target
-local groundSpells = {}
-
--- returns the answer and why (for the trace)
-local function NeedsTarget(b)
-    if SpellIsTargeting and SpellIsTargeting() then return false, L["ground target cursor"] end
-    local id = Plain(b.GetSpellId, b)
-    if not id then return false, L["no readable spell"] end
-    if groundSpells[id] then return false, L["ground target spell"] end
-    -- no range: it hits around you (no target needed)
-    local ranged = ActionHasRange and b._state_type == "action" and Plain(ActionHasRange, b._state_action)
-    if ranged == false then return false, L["spell %d has no range"]:format(id) end
-    local harmful = IsHarmful(b, id)
-    if harmful == nil then
-        -- the game does not say: a ranged action that is not a helpful spell
-        local helpful = IsHelpfulSpell and Plain(IsHelpfulSpell, id)
-        harmful = ranged and not helpful or false
-        if not harmful then return false, L["spell %d: harmful unknown, not ranged"]:format(id) end
-    elseif not harmful then
-        return false, L["spell %d is not harmful"]:format(id)
-    end
-    if Hostile("target") then return false, L["has a hostile target"] end
-    if Hostile("softenemy") then return false, L["soft enemy target"] end
-    if B.casting.focusCast and IsModifiedClick("FOCUSCAST") and Hostile("focus") then return false, L["focus cast"] end
-    if B.casting.mouseover and Hostile("mouseover") then return false, L["mouseover"] end
-    return true, L["spell %d: no valid target"]:format(id)
-end
-
--- the guess, right away (key down) or after the cast try (PostClick)
-local function GuessTarget(b)
-    if not b.tidyCheckTarget or not B then return end
-    b.tidyCheckTarget = nil
-    if b.tidyAnswered then return end
-    local need, why = NeedsTarget(b)
-    Trace(b, (need and L["needs a target -> flash (%s)"] or L["no flash yet (%s)"]):format(why))
-    if need then Flash(b, "failPress") end
-end
-
-local function OnPostClick(self)
-    -- learn the ground-target spells (after the cast try the cursor shows)
-    if SpellIsTargeting and SpellIsTargeting() then
-        local id = Plain(self.GetSpellId, self)
-        if id then groundSpells[id] = true end
-    end
-    GuessTarget(self)
 end
 
 -------------------------------------------------------------------------------
@@ -991,7 +910,6 @@ local function CreateButton(header, id, i)
     b.tidyCommand = COMMANDS[id] and (COMMANDS[id] .. i) -- Blizzard binding it uses
     b.GetHotkey = GetHotkey
     b:HookScript("PreClick", OnPreClick)
-    b:HookScript("PostClick", OnPostClick)
     if b.icon then hooksecurefunc(b.icon, "SetVertexColor", TintUnusable) end
     if b.cooldown then
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
