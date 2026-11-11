@@ -1446,8 +1446,20 @@ end
 -------------------------------------------------------------------------------
 -- Start
 -------------------------------------------------------------------------------
+-- Other action bar addons: with one loaded, Tidy's bars stay off (both
+-- would take the same keybinds)
+local OTHER_BARS = { "Bartender4", "Dominos" }
+local function OtherBarAddon()
+    local loaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
+    for _, name in ipairs(OTHER_BARS) do
+        if loaded(name) then return name end
+    end
+end
+
 -- Turns Tidy's bars on or off while playing (out of combat)
 function ns.SetBarsActive(on)
+    ns.barsConflict = on and OtherBarAddon() or nil
+    if ns.barsConflict then on = false end
     ns.RunOOC("barsActive", function()
         if on == (ns.barsActive or false) then return end
         ns.barsActive = on

@@ -312,6 +312,8 @@ ns.translations.esES = {
         "Barras de Tidy y de Blizzard, de mascota y de posturas.",
 
     -- Bars
+    ["%s is loaded: Tidy's bars stay off. Disable one of them and reload."] =
+        "%s está cargado: las barras de Tidy se quedan desactivadas. Desactiva uno de los dos y recarga.",
     ["Bars"] = "Barras",
     ["Bar %d"] = "Barra %d",
     ["Your spells and keybinds, on bars you place. Replaces Blizzard's action bars."] =

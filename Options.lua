@@ -706,6 +706,7 @@ local function Build()
     win:AddNav("profiles", L["Profiles"], BuildProfiles)
     UI.OnRefresh = function()
         win:SetSubtitle((L["Profile: %s"]):format(ns.profileName or ""))
+        win:SetStatus(ns.barsConflict and L["%s is loaded: Tidy's bars stay off. Disable one of them and reload."]:format(ns.barsConflict) or "")
     end
     -- changes made outside the window (minimap, Esc, combat) refresh it
     ns.OnBindMode = function() UI.RefreshAll() end
