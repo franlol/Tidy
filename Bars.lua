@@ -303,7 +303,33 @@ local function ButtonConfig(b, c)
         flyoutDirection = c.flyout,
         spellCastVFX = G.castVFX,
         text = { hotkey = TextConfig(G.texts.hotkey), count = TextConfig(G.texts.count), macro = TextConfig(G.texts.macro) },
+        cooldownCount = G.texts.cooldown.show, -- over the game's "cooldown numbers" option
     }
+end
+
+-- The cooldown countdown: the game draws it (its times are secret), Tidy
+-- gives it a font and a place on the button
+local countdownFont
+local function StyleCountdown(b)
+    local cd = b.cooldown
+    if not cd then return end
+    local t = B.buttons.texts.cooldown
+    local c = t.color
+    if cd.SetCountdownFont then
+        countdownFont = countdownFont or CreateFont("TidyCountdownFont")
+        countdownFont:SetFont(t.font, t.size, t.outline)
+        countdownFont:SetTextColor(c.r, c.g, c.b, c.a or 1)
+        cd:SetCountdownFont("TidyCountdownFont")
+    end
+    local fs = cd.GetCountdownFontString and cd:GetCountdownFontString()
+    if fs then
+        if not cd.SetCountdownFont then
+            fs:SetFont(t.font, t.size, t.outline)
+            fs:SetTextColor(c.r, c.g, c.b, c.a or 1)
+        end
+        fs:ClearAllPoints()
+        fs:SetPoint(t.point, b, t.point, t.x, t.y)
+    end
 end
 
 -- Secure attributes: button lock and casting helpers (out of combat)
@@ -570,7 +596,40 @@ local function PressFeedback(b, key)
         Flash(b, G.gcdPressColor)
     elseif CannotUse(b) then
         Flash(b, G.failPressColor)
+    else
+        b.tidyCheckTarget = true -- looked at in PostClick, after the cast try
     end
+end
+
+-- No target for a spell that needs one: the game's error can come late (cast
+-- on release, the server), so right after the click it is guessed: a
+-- harmful spell, nothing to cast it on and no ground-target cursor waiting.
+-- The game's error stays the fallback for every other reason.
+local function UnitThere(unit)
+    local ok, v = pcall(UnitExists, unit)
+    return ok and Readable(v) and v or false
+end
+
+local function NeedsTarget(b)
+    if SpellIsTargeting and SpellIsTargeting() then return false end
+    local ok, id = pcall(b.GetSpellId, b)
+    if not ok or not Readable(id) or not id then return false end
+    local harmful = (C_Spell and C_Spell.IsSpellHarmful) or IsHarmfulSpell
+    if not harmful then return false end
+    local ok2, h = pcall(harmful, id)
+    if not ok2 or not Readable(h) or not h then return false end
+    if UnitThere("target") or UnitThere("softenemy") then return false end
+    if B.casting.focusCast and IsModifiedClick("FOCUSCAST") and UnitThere("focus") then return false end
+    if B.casting.mouseover and UnitThere("mouseover") then return false end
+    return true
+end
+
+local function OnPostClick(self)
+    if not self.tidyCheckTarget then return end
+    self.tidyCheckTarget = nil
+    if not B then return end
+    if self.tidyFlashT and GetTime() - self.tidyFlashT < ERROR_WINDOW then return end -- already flashed
+    if NeedsTarget(self) then Flash(self, B.buttons.failPressColor) end
 end
 
 -- A key held on the button: the pressed look until it is released (at most
@@ -614,6 +673,7 @@ local function CreateButton(header, id, i)
     b.tidyCommand = COMMANDS[id] and (COMMANDS[id] .. i) -- Blizzard binding it uses
     b.GetHotkey = GetHotkey
     b:HookScript("PreClick", OnPreClick)
+    b:HookScript("PostClick", OnPostClick)
     if b.icon then hooksecurefunc(b.icon, "SetVertexColor", TintUnusable) end
     if b.cooldown then
         hooksecurefunc(b.cooldown, "SetSwipeColor", CapSwipe)
@@ -671,6 +731,7 @@ local function Layout(h, c)
             ButtonAttributes(b)
             b:UpdateConfig(ButtonConfig(b, c))
             ApplySwipe(b)
+            StyleCountdown(b)
             -- texts turned off for every bar (the per-bar hides are in the
             -- config); by alpha, as LibActionButton shows and hides them itself
             local T = B.buttons.texts

@@ -67,6 +67,9 @@ ns.defaults = {
                     color = { r = 1, g = 1, b = 1, a = 1 } },
                 macro = { show = true, font = "Fonts\\FRIZQT__.TTF", size = 10, outline = "OUTLINE", point = "BOTTOM", x = 0, y = 2,
                     color = { r = 1, g = 1, b = 1, a = 1 } },
+                -- the game's cooldown countdown (Tidy only styles it: its times are secret)
+                cooldown = { show = true, font = "Fonts\\ARIALN.TTF", size = 16, outline = "OUTLINE", point = "CENTER", x = 0, y = 0,
+                    color = { r = 1, g = 1, b = 1, a = 1 } },
             },
         },
         casting = {

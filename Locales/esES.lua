@@ -142,8 +142,8 @@ ns.translations.esES = {
     ["Menus that open from a button (portals, totems, pets...)."] =
         "Menús que se abren desde un botón (portales, tótems, mascotas...).",
     ["Show"] = "Mostrar",
-    ["Off: this text is hidden on every bar. Each bar can also hide it (Bars, Actions tab)."] =
-        "Desactivado: este texto se oculta en todas las barras. Cada barra también puede ocultarlo (Barras, pestaña Acciones).",
+    ["Off: this text is hidden on every bar. Keybind, count and macro name can also be hidden per bar (Bars, Actions tab)."] =
+        "Desactivado: este texto se oculta en todas las barras. El atajo, la cantidad y el nombre de macro también se pueden ocultar por barra (Barras, pestaña Acciones).",
 
     ["Bars recorded. Type /reload so they are saved."] = "Barras registradas. Escribe /reload para guardarlas.",
     ["Put the mouse over it: recording in 3 seconds..."] = "Pon el ratón encima: se registra en 3 segundos...",
@@ -294,6 +294,7 @@ ns.translations.esES = {
     ["Keybind"] = "Atajo",
     ["Count"] = "Cantidad",
     ["Macro name"] = "Nombre de macro",
+    ["Cooldown"] = "Reutilización",
     ["Font"] = "Fuente",
     ["Size"] = "Tamaño",
     ["Outline"] = "Contorno",

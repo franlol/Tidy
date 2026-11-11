@@ -493,11 +493,11 @@ local function BuildButtons(container)
                 return function() return T()[key] end, function(v) T()[key] = v ApplyAllBars() end
             end
             card = page:Add(2, UI.Card(page.content, L["Texts"], L["Choose a text, then its look."]))
-            card:Add(UI.Segmented(card, nil, { { "hotkey", L["Keybind"] }, { "count", L["Count"] }, { "macro", L["Macro name"] } },
+            card:Add(UI.Segmented(card, nil, { { "hotkey", L["Keybind"] }, { "count", L["Count"] }, { "macro", L["Macro name"] }, { "cooldown", L["Cooldown"] } },
                 function() return which.key end, function(v) which.key = v UI.RefreshAll() end))
             local shg, shs = TB("show")
             card:Add(UI.Check(card, L["Show"], shg, shs,
-                { tip = L["Off: this text is hidden on every bar. Each bar can also hide it (Bars, Actions tab)."] }))
+                { tip = L["Off: this text is hidden on every bar. Keybind, count and macro name can also be hidden per bar (Bars, Actions tab)."] }))
             local shown = function() return T().show end
             local fg, fs = TB("font")
             card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs, { enableIf = shown }))
