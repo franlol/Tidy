@@ -283,7 +283,6 @@ ns.translations.esES = {
     ["ground target cursor"] = "cursor de objetivo en el suelo",
     ["ground target spell"] = "hechizo con objetivo en el suelo",
     ["spell %d has no range"] = "el hechizo %d no tiene alcance",
-    ["key down (keyboard)"] = "tecla pulsada (teclado)",
     ["no readable spell"] = "sin hechizo legible",
     ["spell %d: harmful unknown, not ranged"] = "hechizo %d: no se sabe si es ofensivo, sin alcance",
     ["spell %d is not harmful"] = "el hechizo %d no es ofensivo",

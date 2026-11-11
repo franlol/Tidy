@@ -968,12 +968,6 @@ local function OnPreClick(self, mouse, down)
     -- the cast happens on press or on release (game setting, mouse drag
     -- protection): both count for the game's error
     lastPress, lastPressT = self, GetTime()
-    -- a key Tidy already answered on key down (below): the game's clicks
-    -- for it (on press and/or release) give no second answer
-    if key and self.tidyKeyHeld then
-        Trace(self, ("%s %s"):format(L["key"], down == false and L["up"] or L["down"]))
-        return
-    end
     if down ~= false or not self.tidyDownSeen then
         pressT0 = debugprofilestop()
         self.tidyAnswered = nil -- a new press
@@ -991,63 +985,6 @@ local function OnPreClick(self, mouse, down)
     end
     PressFeedback(self, key)
 end
-
--------------------------------------------------------------------------------
--- Keys answered on key down. With the game's "cast on key down" off, a key
--- only reaches its button on release, so a press that cannot work answered
--- late while a mouse press answers at once. Tidy listens to the keyboard
--- itself (passing every key on to the game, it never blocks one) and gives
--- the same answer at key down. Mouse-button bindings still go by the clicks.
--------------------------------------------------------------------------------
-local keyMap = {}  -- [binding key, e.g. "SHIFT-1"] = Tidy button
-local keyDownOf = {} -- [raw key] = button pressed with it (for its release)
-
-local MODIFIER = { LSHIFT = true, RSHIFT = true, LCTRL = true, RCTRL = true, LALT = true, RALT = true,
-    LMETA = true, RMETA = true }
-
-local function Combo(key)
-    return (IsAltKeyDown() and "ALT-" or "") .. (IsControlKeyDown() and "CTRL-" or "")
-        .. (IsShiftKeyDown() and "SHIFT-" or "") .. (IsMetaKeyDown and IsMetaKeyDown() and "META-" or "") .. key
-end
-
-local keyWatch = CreateFrame("Frame", nil, UIParent)
--- it must pass every key on: listening only starts once that is set (not
--- possible in combat, e.g. after a /reload in combat: then after it)
-local function StartKeyWatch()
-    if pcall(keyWatch.SetPropagateKeyboardInput, keyWatch, true)
-        and (not keyWatch.GetPropagateKeyboardInput or keyWatch:GetPropagateKeyboardInput()) then
-        keyWatch:EnableKeyboard(true)
-        keyWatch:UnregisterEvent("PLAYER_REGEN_ENABLED")
-    else
-        keyWatch:EnableKeyboard(false)
-        keyWatch:RegisterEvent("PLAYER_REGEN_ENABLED")
-    end
-end
-keyWatch:SetScript("OnEvent", StartKeyWatch)
-StartKeyWatch()
-keyWatch:SetScript("OnKeyDown", function(_, key)
-    if MODIFIER[key] or not B then return end
-    local b = keyMap[Combo(key)]
-    if not b or not b:IsVisible() then return end
-    if keyDownOf[key] == b then return end -- key repeat while held
-    keyDownOf[key] = b
-    pressT0 = debugprofilestop()
-    b.tidyKeyHeld = true
-    b.tidyAnswered = nil
-    lastPress, lastPressT = b, GetTime()
-    Trace(b, L["key down (keyboard)"])
-    KeyPressed(b, true)
-    PressFeedback(b, true)
-    GuessTarget(b) -- no PostClick yet: the cast may come only on release
-end)
-keyWatch:SetScript("OnKeyUp", function(_, key)
-    local b = keyDownOf[key]
-    if not b then return end
-    keyDownOf[key] = nil
-    KeyPressed(b, false)
-    -- the game's release click may come just after this: still this press
-    C_Timer.After(0, function() b.tidyKeyHeld = nil end)
-end)
 
 local function CreateButton(header, id, i)
     local b = LAB:CreateButton((id - 1) * 12 + i, "TidyBar" .. id .. "Button" .. i, header)
@@ -1593,7 +1530,6 @@ local bindOwner = CreateFrame("Frame")
 function ns.UpdateBinds()
     ns.RunOOC("binds", function()
         ClearOverrideBindings(bindOwner)
-        wipe(keyMap)
         for id, h in pairs(bars) do
             if h.kind == "action" and ns.BarConfig(id).enabled then
                 for _, b in ipairs(h.buttons) do
@@ -1602,7 +1538,6 @@ function ns.UpdateBinds()
                         -- on key down / up as the game setting says)
                         for _, key in ipairs({ GetBindingKey(b.tidyCommand) }) do
                             SetOverrideBindingClick(bindOwner, false, key, b:GetName(), "Keybind")
-                            keyMap[key] = b
                         end
                     end
                 end
