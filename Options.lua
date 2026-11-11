@@ -465,26 +465,23 @@ local function BuildButtons(container)
             local sg, ss = GB("gcdSpark")
             card:Add(UI.Check(card, L["Global cooldown spark"], sg, ss,
                 { tip = L["A bright line that follows the global cooldown as it turns."] }))
-
-            card = page:Add(1, UI.Card(page.content, L["Ready flash"]))
+            -- sub-options (sub = true) sit right under their checkbox
             local rfg, rfs = GB("readyFlash")
-            card:Add(UI.Check(card, L["Flash when a cooldown ends"], rfg, rfs,
+            card:Add(UI.Check(card, L["Ready flash"], rfg, rfs,
                 { tip = L["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."] }))
             card:Add(UI.Swatch(card, L["Color"], function() return G().readyColor end, ApplyAllBars,
-                { alpha = true, enableIf = function() return G().readyFlash end }))
-
-            card = page:Add(2, UI.Card(page.content, L["Cast animation"]))
+                { alpha = true, sub = true, enableIf = function() return G().readyFlash end }))
             local vg, vs = GB("castVFX")
             card:Add(UI.Check(card, L["Cast animation"], vg, vs))
             local castOn = function() return G().castVFX end
             local flatOn = function() return G().castVFX and G().castStyle == "flat" end
             local stg, sts = GB("castStyle")
             card:Add(UI.Segmented(card, L["Style"], { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } }, stg, sts,
-                { enableIf = castOn, tip = L["Flat: the button fills as the cast goes (a channel empties) and flashes if it is interrupted. Blizzard: the game's animation."] }))
+                { sub = true, enableIf = castOn, tip = L["Flat: the button fills as the cast goes (a channel empties) and flashes if it is interrupted. Blizzard: the game's animation."] }))
             card:Add(UI.Swatch(card, L["Casting fill"], function() return G().castFillColor end, ApplyAllBars,
-                { alpha = true, enableIf = flatOn }))
+                { alpha = true, sub = true, enableIf = flatOn }))
             card:Add(UI.Swatch(card, L["Interrupted"], function() return G().interruptColor end, ApplyAllBars,
-                { alpha = true, enableIf = flatOn, tip = L["A short flash when the cast is interrupted. Opacity 0 turns it off."] }))
+                { alpha = true, sub = true, enableIf = flatOn, tip = L["A short flash when the cast is interrupted. Opacity 0 turns it off."] }))
 
             card = page:Add(1, UI.Card(page.content, L["Colors"]))
             local rg, rs = GB("range")
