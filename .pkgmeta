@@ -8,6 +8,3 @@ externals:
 ignore:
   - README.md
   - docs
-
-embedded-libraries:
-  - libflatyui-1-0
