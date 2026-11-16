@@ -120,10 +120,6 @@ local function Copy(t)
 end
 ns.Copy = Copy
 
-function ns.Print(msg)
-    print("|cff6fc3ffTidy|r: " .. msg)
-end
-
 -------------------------------------------------------------------------------
 -- Modules: start() once at login, apply() when the profile changes
 -------------------------------------------------------------------------------
@@ -320,11 +316,6 @@ SlashCmdList.TIDY = function(msg)
     if lang == "es" or lang == "en" then
         ns.db.language = lang == "es" and "esES" or "enUS"
         ApplyLanguage()
-        ns.Print(L["Language: English"] .. " " .. L["(reload to update the window)"])
-    elseif msg == "help" then
-        ns.Print(L["Commands:"])
-        print("  /tidy - " .. L["open the options"])
-        print("  /tidy lang en|es - " .. L["language: en or es"])
     else
         ns.ToggleOptions()
     end

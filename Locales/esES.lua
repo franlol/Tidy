@@ -7,11 +7,6 @@ local _, ns = ...
 
 ns.translations.esES = {
     -- Commands
-    ["Commands:"] = "Comandos:",
-    ["open the options"] = "abre las opciones",
-    ["language: en or es"] = "idioma: en o es",
-    ["Language: English"] = "Idioma: español",
-    ["(reload to update the window)"] = "(recarga para actualizar la ventana)",
 
     -- Window
     ["Icons"] = "Iconos",
