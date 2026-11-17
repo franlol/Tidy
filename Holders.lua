@@ -302,13 +302,38 @@ local function LayoutGroup(h, c, def)
             end
         end
     end
-    for i, b in ipairs(shown) do
-        local r, col = math.floor((i - 1) / cols), (i - 1) % cols
-        if c.growH == "LEFT" then col = cols - 1 - col end
-        if c.growV == "UP" then r = rows - 1 - r end
-        b:EnableMouse(not c.clickThrough)
-        b:ClearAllPoints()
-        b:SetPoint("CENTER", h, "TOPLEFT", col * (cw + pad) + cw / 2, -r * (ch + pad) - ch / 2)
+    local totalW, totalH
+    if rows == 1 or cols == 1 then
+        -- one row / one column: each button by its own size, so the padding
+        -- is the real gap (the key ring is narrower than the bags)
+        local across = rows == 1
+        local reverse = (across and c.growH == "LEFT") or (not across and c.growV == "UP")
+        local pos = 0
+        for k = 1, #shown do
+            local b = shown[reverse and (#shown - k + 1) or k]
+            b:EnableMouse(not c.clickThrough)
+            b:ClearAllPoints()
+            if across then
+                b:SetPoint("LEFT", h, "TOPLEFT", pos, -ch / 2)
+                pos = pos + b:GetWidth() + pad
+            else
+                b:SetPoint("TOP", h, "TOPLEFT", cw / 2, -pos)
+                pos = pos + b:GetHeight() + pad
+            end
+        end
+        pos = math.max(0, pos - pad)
+        if across then totalW, totalH = pos, ch else totalW, totalH = cw, pos end
+    else
+        -- grid: equal cells, so the columns line up
+        for i, b in ipairs(shown) do
+            local r, col = math.floor((i - 1) / cols), (i - 1) % cols
+            if c.growH == "LEFT" then col = cols - 1 - col end
+            if c.growV == "UP" then r = rows - 1 - r end
+            b:EnableMouse(not c.clickThrough)
+            b:ClearAllPoints()
+            b:SetPoint("CENTER", h, "TOPLEFT", col * (cw + pad) + cw / 2, -r * (ch + pad) - ch / 2)
+        end
+        totalW, totalH = cols * cw + (cols - 1) * pad, rows * ch + (rows - 1) * pad
     end
     busy = nil
     -- nothing to show (no forms yet, no pet...): a box the size of a button
@@ -337,7 +362,7 @@ local function LayoutGroup(h, c, def)
         n = #sources
         h:SetSize(math.max(1, scols * w + (scols - 1) * pad), math.max(1, srows * hh + (srows - 1) * pad))
     else
-        h:SetSize(math.max(1, cols * cw + (cols - 1) * pad), math.max(1, rows * ch + (rows - 1) * pad))
+        h:SetSize(math.max(1, totalW), math.max(1, totalH))
         -- samples on the slots that show nothing now (pet bar without a pet)
         if #sources > 0 then
             for _, b in ipairs(shown) do
@@ -680,6 +705,8 @@ function ns.ApplyHolder(id)
         ns.PlaceBar(h, c)
         h:SetAlpha(c.alpha)
         Layout(id)
+        -- Blizzard's bag dividers follow its own layout, not the holder's
+        if id == "bags" and ns.BagDividers then ns.BagDividers() end
         -- the user's hide conditions first, then the bar's own (pet: only
         -- with a pet...); unlocked: always visible, to move it
         local vis = "show"
@@ -761,6 +788,11 @@ function ns.ReleaseHolder(id)
         Call(EditModeManagerFrame, "UpdateBottomActionBarPositions")
         if UIParent_ManageFramePositions then pcall(UIParent_ManageFramePositions) end
     end
+end
+
+-- Whether Tidy's bag holder lays the bags out now
+function ns.BagsHeld()
+    return holders.bags and holders.bags.active and true or false
 end
 
 function ns.ReleaseHolders()

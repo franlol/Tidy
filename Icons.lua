@@ -464,12 +464,13 @@ local BAG_BUTTONS = { "MainMenuBarBackpackButton", "CharacterBag0Slot", "Charact
     "CharacterBag2Slot", "CharacterBag3Slot", "CharacterReagentBag0Slot", "KeyRingButton" }
 
 -- Blizzard's dividers on the right edge of each bag (BagsBar:UpdateDividers)
--- are drawn for its round slots: hidden with the square look (by alpha, the
--- bar acquires and places them itself)
+-- are drawn for its round slots and its own layout: hidden with the square
+-- look, and while Tidy's bag holder lays the bags out (by alpha, the bar
+-- acquires and places them itself)
 local function BagDividers()
     local bar = BagsBar
     if not bar then return end
-    local a = On("items") and 0 or 1
+    local a = (On("items") or (ns.BagsHeld and ns.BagsHeld())) and 0 or 1
     for _, key in ipairs({ "HorizontalDividersPool", "VerticalDividersPool" }) do
         local pool = bar[key]
         if pool then
@@ -477,6 +478,8 @@ local function BagDividers()
         end
     end
 end
+
+ns.BagDividers = BagDividers
 
 local function BagBar()
     BagDividers()
