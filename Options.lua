@@ -239,7 +239,11 @@ local function BuildBars(container)
             S(card, L["Button width"], "buttonWidth", 16, 100, 1, UI.px, IsAction)
             S(card, L["Button height"], "buttonHeight", 16, 100, 1, UI.px, IsAction)
             S(card, L["Width"], "width", 200, 1500, 1, UI.px, function() return selected == "status" end)
-            S(card, L["Scale"], "scale", 0.5, 2, 0.05, UI.pct)
+            -- half-percent steps, shown as "100%" / "99.5%"
+            S(card, L["Scale"], "scale", 0.5, 2, 0.005, function(v)
+                local p = math.floor(v * 200 + 0.5) / 2
+                return ((p % 1 == 0) and "%d%%" or "%.1f%%"):format(p)
+            end)
             S(card, L["Opacity"], "alpha", 0, 1, 0.05, UI.pct)
 
             card = page:Add(2, UI.Card(page.content, L["Arrangement"]))
