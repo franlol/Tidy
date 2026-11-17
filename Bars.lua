@@ -254,7 +254,12 @@ local ON_PAGE = [[
 -- Each button has one action per page ("state"): state N = page N.
 -------------------------------------------------------------------------------
 local LAB = LibStub("LibActionButton-1.0")
-local PAGES = 18
+-- enough pages for the vehicle / override / temp shapeshift bars, whose
+-- page numbers depend on the client (31-33 on Forever)
+local PAGES = math.max(18,
+    C_ActionBar.GetVehicleBarIndex() or 0,
+    C_ActionBar.GetOverrideBarIndex() or 0,
+    C_ActionBar.GetTempShapeshiftBarIndex() or 0)
 -- Short form of a key: SHIFT-1 -> S1, BUTTON4 -> M4, NUMPAD3 -> N3...
 local SHORT = {
     { "ALT%-", "A" }, { "CTRL%-", "C" }, { "SHIFT%-", "S" }, { "META%-", "M" },
