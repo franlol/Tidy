@@ -17,7 +17,7 @@ bars where you want them.
   active, ready, interrupted) and texts.
 - **Keybinding mode**: hover a button and press a key.
 - **Square icons** with a flat border on action bars, your auras and item
-  buttons. Target, focus and raid frame auras are drawn by the game itself,
+  buttons; the micro menu keeps Blizzard's symbols on a flat square button. Target, focus and raid frame auras are drawn by the game itself,
   which does not let addons restyle them.
 - **Profiles** per character, with export / import.
 - English and Spanish.

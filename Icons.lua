@@ -66,10 +66,10 @@ local EDGES = {
 
 local function Place(s)
     local n = O.size
-    -- Tidy's own buttons: around the whole button (with "contain" the icon
-    -- is smaller than the button, the button keeps its size); the rest:
-    -- around the icon, which fills its button
-    local box = s.frame.tidyFit and s.frame or s.icon
+    -- Tidy's own buttons and the micro menu: around the whole button (with
+    -- "contain" the icon is smaller than the button, the button keeps its
+    -- size); the rest: around the icon, which fills its button
+    local box = (s.frame.tidyFit or s.kind == "micro") and s.frame or s.icon
     for side, e in pairs(s.edges) do
         local d = EDGES[side]
         e:ClearAllPoints()
@@ -138,7 +138,9 @@ function ns.ShowPressed(b, on)
     end
 end
 
-local function FlatStates(b, s)
+-- keepArt: Blizzard's own highlight / pushed / checked pictures stay (the
+-- micro menu: they are its symbols)
+local function FlatStates(b, s, keepArt)
     local st = s.states
     if not st then
         st = {}
@@ -183,6 +185,7 @@ local function FlatStates(b, s)
     st.hover:SetAlpha(O.hoverShow and 1 or 0)
     if not O.pushShow then st.push:Hide() end
     st.check:SetShown(O.checkShow and b.GetChecked and b:GetChecked() and true or false)
+    if keepArt then return end
     Hide(s, b:GetHighlightTexture())
     Hide(s, b:GetPushedTexture())
     if b.GetCheckedTexture then Hide(s, b:GetCheckedTexture()) end
@@ -231,9 +234,13 @@ local function Unstyle(f, s)
     if s.off then return end
     s.off = true
     ShowBorder(s, false)
-    s.icon:SetTexCoord(0, 1, 0, 1)
+    -- (micro menu: only the character button has an icon, its portrait,
+    -- with Blizzard's own crop)
+    if s.icon then
+        if s.coord then s.icon:SetTexCoord(unpack(s.coord)) else s.icon:SetTexCoord(0, 1, 0, 1) end
+        for m in pairs(s.masks) do s.icon:AddMaskTexture(m) end
+    end
     if f.tidyFit and ns.FitIcon then ns.FitIcon(f, 0) end
-    for m in pairs(s.masks) do s.icon:AddMaskTexture(m) end
     wipe(s.masks)
     for region, a in pairs(s.hidden) do region:SetAlpha(a) end
     wipe(s.hidden)
@@ -496,17 +503,101 @@ local function BagBar()
 end
 
 -------------------------------------------------------------------------------
+-- Micro menu: Blizzard's symbols stay (with their own hover / pressed /
+-- disabled pictures, alert badge and glow); its rounded backdrop goes, and
+-- the button gets Tidy's flat background, border and states. The character
+-- button's portrait loses its round mask and fills the button.
+-------------------------------------------------------------------------------
+local MICRO_NAMES = { "CharacterMicroButton", "ProfessionMicroButton", "PlayerSpellsMicroButton",
+    "SpellbookMicroButton", "TalentMicroButton", "AchievementMicroButton", "LegacyMicroButton",
+    "QuestLogMicroButton", "HousingMicroButton", "GuildMicroButton", "LFDMicroButton",
+    "CollectionsMicroButton", "EJMicroButton", "HelpMicroButton", "StoreMicroButton",
+    "MainMenuMicroButton" }
+
+-- Blizzard's backdrop pieces (the ones a button has)
+local MICRO_ART = { "Background", "PushedBackground", "Shadow", "PushedShadow" }
+
+-- The portrait fills the button, cropped to keep its shape, with the zoom.
+-- Blizzard anchors it again when the button is pushed / released.
+local function MicroPortrait(b, s)
+    local p = s.icon
+    if not p then return end
+    p:ClearAllPoints()
+    p:SetAllPoints(b)
+    local w, h = b:GetSize()
+    local z = O.zoom
+    local span = 1 - 2 * z
+    local l, r, t, bo = z, 1 - z, z, 1 - z
+    if w and h and w > 0 and h > 0 then
+        if w < h then
+            l, r = 0.5 - span * w / h / 2, 0.5 + span * w / h / 2
+        elseif w > h then
+            t, bo = 0.5 - span * h / w / 2, 0.5 + span * h / w / 2
+        end
+    end
+    p:SetTexCoord(l, r, t, bo)
+end
+
+-- Redone after Blizzard redraws the button (pushed / normal), which shows
+-- its backdrop again. "Active" is Blizzard's pushed state: the button's
+-- window is open.
+local function MicroArt(b, s)
+    for _, k in ipairs(MICRO_ART) do Hide(s, b[k]) end
+    FlatStates(b, s, true)
+    s.states.check:SetShown(O.checkShow and b:GetButtonState() == "PUSHED" and true or false)
+    MicroPortrait(b, s)
+end
+
+local function SkinMicro(b)
+    if not b then return end
+    local s = skins[b]
+    if not On("micro") then
+        if s then Unstyle(b, s) end
+        return
+    end
+    if s and not s.off then return end
+    if not s then
+        s = GetSkin(b, b.Portrait, "micro", "micro")
+        local function Again() if not s.off then MicroArt(b, s) end end
+        for _, m in ipairs({ "SetPushed", "SetNormal" }) do
+            if type(b[m]) == "function" then hooksecurefunc(b, m, Again) end
+        end
+    end
+    s.off = nil
+    -- the portrait: Blizzard's place and crop kept, to give them back
+    if s.icon then
+        if not s.points then s.points = { icon = Points(s.icon) } end
+        s.coord = s.coord or { s.icon:GetTexCoord() }
+        RemoveMasks(s)
+    end
+    Place(s)
+    ShowBorder(s, true)
+    Paint(s)
+    MicroArt(b, s)
+end
+
+local function MicroMenu()
+    for _, n in ipairs(MICRO_NAMES) do SkinMicro(_G[n]) end
+end
+
+-------------------------------------------------------------------------------
 -- Options
 -------------------------------------------------------------------------------
 -- Look changed: applied to every styled icon
 function ns.ApplyIcons()
     for _, s in pairs(skins) do
         if not s.off then
-            ZoomSkin(s)
-            Place(s)
-            Paint(s)
-            if s.kind == "action" then FlatStates(s.frame, s)
-            elseif s.kind == "item" then ItemStates(s.frame, s) end
+            if s.kind == "micro" then
+                Place(s)
+                Paint(s)
+                MicroArt(s.frame, s)
+            else
+                ZoomSkin(s)
+                Place(s)
+                Paint(s)
+                if s.kind == "action" then FlatStates(s.frame, s)
+                elseif s.kind == "item" then ItemStates(s.frame, s) end
+            end
         end
     end
 end
@@ -520,6 +611,7 @@ function ns.RefreshIcons()
     SkinAllActionButtons()
     PlayerAuras()
     BagBar()
+    MicroMenu()
     for f, s in pairs(skins) do
         if s.off and On(s.cat) then
             if s.kind == "item" then SkinItem(f)

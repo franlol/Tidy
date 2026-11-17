@@ -24,7 +24,7 @@ UI.strings = setmetatable({}, { __index = function(_, key) return L[STRINGS[key]
 local win
 -- Icons settings its Defaults keeps: the places, and the button states
 -- (they are set in Buttons > States, which has its own Defaults)
-local KEEP_ICONS = { "enabled", "actionbars", "playerAuras", "items",
+local KEEP_ICONS = { "enabled", "actionbars", "playerAuras", "items", "micro",
     "hoverShow", "hoverColor", "pushShow", "pushColor", "checkShow", "checkColor" }
 local active = function() return ns.barsActive end
 
@@ -597,7 +597,7 @@ local function BuildButtons(container)
     local function DI() return ns.defaults.icons end
     -- hover / pressed / active are drawn by the square look
     -- the flat states are drawn on square action buttons and item buttons
-    local function Square() return I().enabled and (I().actionbars or I().items) and true or false end
+    local function Square() return I().enabled and (I().actionbars or I().items or I().micro) and true or false end
     local flatOn = function() return G().castVFX and G().castStyle == "flat" end
 
     Tabbed(container, "buttons", {
@@ -828,6 +828,7 @@ local function BuildIcons(container)
         { "actionbars", "Action bars", "Tidy and Blizzard bars, pet and stance bars." },
         { "playerAuras", "Your buffs and debuffs" },
         { "items", "Items", "Bags, bank, loot, merchant, character..." },
+        { "micro", "Micro menu" },
     }) do
         local get, set = IB(def[1])
         where:Add(UI.Check(where, L[def[2]], get, set, { enableIf = on, tip = def[3] and L[def[3]] }))

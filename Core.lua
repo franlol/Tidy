@@ -24,6 +24,7 @@ ns.defaults = {
         actionbars = true,
         playerAuras = true,
         items = true,
+        micro = false,                         -- flat micro menu (opt-in)
         -- look
         size = 1,                              -- border thickness, px
         color = { r = 0, g = 0, b = 0, a = 1 },
