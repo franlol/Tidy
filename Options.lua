@@ -206,10 +206,8 @@ end
 local function PAGE_OPTIONS(withNone)
     local list = {}
     if withNone then list[1] = { 0, L["None"] } end
-    -- 1-10: the usual pages (7-10 are also the stance / form pages);
-    -- 13-15: the pages of the extra bars 13-15 (11 and 12 are the game's
-    -- vehicle / possess pages, not for free use)
-    for _, p in ipairs({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15 }) do
+    -- the same pages as the bars (7-10 are also the stance / form pages)
+    for _, p in ipairs(ns.BAR_IDS) do
         list[#list + 1] = { p, (L["Page %d"]):format(p) }
     end
     return list

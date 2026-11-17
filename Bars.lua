@@ -3,8 +3,8 @@
 -- The buttons come from LibActionButton-1.0 (icon, cooldown, range, charges,
 -- secure clicks). Tidy only does:
 --   * layout: buttons, rows, padding, scale, alpha, position
---   * paging: a state driver per bar (bar 1 follows stance/form, possess,
---     vehicle and override like Blizzard's main bar)
+--   * paging: a state driver per bar (bar 1 follows stance/form, vehicle,
+--     override and bonus bars like Blizzard's main bar)
 --   * keybinds: your Blizzard binds point to these buttons (override binds)
 --   * hiding Blizzard's action bars
 -- Bar N shows action page N (actions (N-1)*12+1 ... N*12).
@@ -14,7 +14,9 @@ local _, ns = ...
 local L = ns.L
 
 local BUTTON = 45 -- size of a Blizzard action button
-local BAR_IDS = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15 }
+-- Every action page a bar can use. Page 11 is left out: it is the game's
+-- bonus bar 5 (C_ActionBar.GetBonusBarIndexForSlot(121) returns 11).
+local BAR_IDS = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15 }
 ns.BAR_IDS = BAR_IDS
 
 -- Blizzard binding names for each bar (their keys are reused here)
@@ -164,14 +166,18 @@ end
 -------------------------------------------------------------------------------
 -- Paging
 -------------------------------------------------------------------------------
--- Bar 1: like Blizzard's main bar. Stances/forms use the bonus bars:
--- warrior battle/def/berserker 7/8/9, druid cat 7 (prowl 8), bear 9,
--- moonkin 10, rogue stealth 7, priest shadowform 7.
--- Order: possess/vehicle (bar 1), Ctrl/Alt/Shift pages, Shift+number
--- pages (bar 1), stance/form pages, the bar's own page.
+-- Bar 1: like Blizzard's main bar (ActionBarController). Stances/forms use
+-- the bonus bars: warrior battle/def/berserker 7/8/9, druid cat 7 (prowl 8),
+-- bear 9, moonkin 10, rogue stealth 7, priest shadowform 7. Bonus bar 5 is
+-- page 11 (the game's own page: C_ActionBar.GetBonusBarIndexForSlot(121)).
+-- Order: vehicle, override, temporary shapeshift, bonus bar 5 (bar 1),
+-- Ctrl/Alt/Shift pages, Shift+number pages (bar 1), stance/form pages, the
+-- bar's own page.
 local function PageDriver(id, c)
     local s = ""
-    if id == 1 then s = "[overridebar][possessbar][vehicleui][shapeshift][bonusbar:5]possess;" end
+    if id == 1 then
+        s = "[vehicleui]vehicle;[overridebar]override;[shapeshift]shapeshift;[bonusbar:5]11;"
+    end
     for _, mod in ipairs({ "ctrl", "alt", "shift" }) do
         local p = c[mod .. "Page"]
         if p and p > 0 then s = s .. ("[mod:%s]%d;"):format(mod, p) end
@@ -233,15 +239,12 @@ function ns.SetFade(h, c)
     fader:SetScript("OnUpdate", next(faded) and FadeTick or nil)
 end
 
--- secure: picks the real page for "possess" and tells the buttons
+-- secure: the game's page for the vehicle / override / temporary shapeshift
+-- bars, then tells the buttons
 local ON_PAGE = [[
-    if newstate == "possess" then
-        if HasVehicleActionBar and HasVehicleActionBar() then newstate = GetVehicleBarIndex()
-        elseif HasOverrideActionBar and HasOverrideActionBar() then newstate = GetOverrideBarIndex()
-        elseif HasTempShapeshiftActionBar and HasTempShapeshiftActionBar() then newstate = GetTempShapeshiftBarIndex()
-        elseif HasBonusActionBar and HasBonusActionBar() then newstate = GetBonusBarIndex()
-        else newstate = 12 end
-    end
+    if newstate == "vehicle" then newstate = GetVehicleBarIndex()
+    elseif newstate == "override" then newstate = GetOverrideBarIndex()
+    elseif newstate == "shapeshift" then newstate = GetTempShapeshiftBarIndex() end
     newstate = tonumber(newstate) or 1
     self:SetAttribute("state", newstate)
     control:ChildUpdate("state", newstate)
