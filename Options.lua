@@ -132,17 +132,6 @@ local function BuildGeneral(container)
         function(v) ns.P.bars.snap = v end, { enableIf = active,
             tip = L["A bar you drag sticks to the edges and centers of other bars, the screen center lines and the screen borders."] }))
 
-    -- presets are actions: one button each, asking to confirm
-    local pre = page:Add(2, UI.Card(page.content, L["Presets"],
-        L["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."]))
-    local presets = UI.Buttons(pre, {
-        { L["Blizzard-like"], function() ns.ApplyPreset("blizzard") UI.RefreshAll() end, "danger" },
-        { L["Compact"], function() ns.ApplyPreset("compact") UI.RefreshAll() end, "danger" },
-        { L["Split"], function() ns.ApplyPreset("split") UI.RefreshAll() end, "danger" },
-    }, { enableIf = active })
-    for _, b in ipairs(presets.buttons) do UI.Confirm(b) end
-    pre:Add(presets)
-
     local misc = page:Add(2, UI.Card(page.content, L["Addon"]))
     misc:Add(UI.Check(misc, L["Minimap button"], function() return not ns.db.minimap.hide end,
         function(v) ns.db.minimap.hide = not v ns.UpdateMinimapButton() end))
@@ -940,6 +929,17 @@ local function BuildProfiles(container)
             end)
         end },
     }))
+
+    -- presets are actions: one button each, asking to confirm
+    card = page:Add(2, UI.Card(page.content, L["Presets"],
+        L["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."]))
+    local presets = UI.Buttons(card, {
+        { L["Blizzard-like"], function() ns.ApplyPreset("blizzard") UI.RefreshAll() end, "danger" },
+        { L["Compact"], function() ns.ApplyPreset("compact") UI.RefreshAll() end, "danger" },
+        { L["Split"], function() ns.ApplyPreset("split") UI.RefreshAll() end, "danger" },
+    }, { enableIf = active })
+    for _, b in ipairs(presets.buttons) do UI.Confirm(b) end
+    card:Add(presets)
 end
 
 -------------------------------------------------------------------------------

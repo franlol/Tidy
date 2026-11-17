@@ -12,7 +12,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 5. Click a bar (no drag): the panel opens on that bar.
 6. **Keybinding mode** (window header): hover a button, press a key → the key shows on it. Esc leaves.
 7. **Enabled** off → Blizzard's bars come back, no errors, no empty boxes. On again → Tidy's back.
-8. Each **Preset** (Blizzard-like, Compact, Split) moves bars 1 and 3-6.
+8. Profiles → each **Preset** (Blizzard-like, Compact, Split) moves bars 1 and 3-6.
 9. Bars → Bar 1 → Layout → **Gryphons** on/off (greyed on every other bar); **Reset this bar** on bar 1 turns them off again.
 
 ## One bar (Bar 1, then Pet bar, then Bags) — tabs Layout · Visibility · Actions
