@@ -63,7 +63,9 @@ ns.defaults = {
             equipColor = { r = 0, g = 1, b = 0, a = 0.35 },
             castVFX = true,       -- cast animation on the button
             castStyle = "flat",   -- flat: Tidy's border and flash / blizzard: the game's animation
-            castFillColor = { r = 1, g = 0.82, b = 0.2, a = 0.35 },   -- fill while casting (flat; its edge is opaque)
+            castFillColor = { r = 1, g = 0.82, b = 0.2, a = 0.35 },   -- fill while casting (flat)
+            castSpark = true,     -- a bright line on the moving edge of the fill (flat)
+            castSparkColor = { r = 1, g = 0.82, b = 0.2, a = 1 },
             interruptFlash = true, -- flash when the cast is interrupted (flat)
             interruptColor = { r = 1, g = 0.15, b = 0.15, a = 0.6 },
             cooldownAlpha = 0.8,  -- darkness of the cooldown swipe over the icon

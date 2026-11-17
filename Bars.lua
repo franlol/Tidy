@@ -698,9 +698,11 @@ local function CastFill(b, on)
         f.edge:SetWidth(2)
         b.tidyCastFill = f
     end
-    local c = B.buttons.castFillColor
+    local G = B.buttons
+    local c, s = G.castFillColor, G.castSparkColor
     f:SetStatusBarColor(c.r, c.g, c.b, c.a or 1)
-    f.edge:SetColorTexture(c.r, c.g, c.b, 1)
+    f.edge:SetColorTexture(s.r, s.g, s.b, s.a or 1)
+    f.edge:SetShown(G.castSpark and true or false)
     f:SetFrameLevel(b:GetFrameLevel() + 5)
     f:Show()
 end

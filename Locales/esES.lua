@@ -315,6 +315,9 @@ ns.translations.esES = {
     ["When a cooldown of 2 seconds or more ends."] = "Cuando termina una reutilización de 2 segundos o más.",
     ["With the flat cast animation (Timers, Casting)."] = "Con la animación de lanzamiento plana (Tiempos, Lanzando).",
     ["Can also be hidden per bar (Bars, Actions tab)."] = "También se puede ocultar por barra (Barras, pestaña Acciones).",
+    ["A bright line on the moving edge of the fill."] = "Una línea brillante en el borde que avanza del relleno.",
+    ["The Blizzard style plays only on the bars: the game starts it from a real cast."] =
+        "El estilo Blizzard solo se ve en las barras: el juego lo inicia con un lanzamiento real.",
     ["With square icons on action bars (Icons)."] = "Con iconos cuadrados en las barras de acción (Iconos).",
     ["Every setting of this tab back to its default."] = "Todos los ajustes de esta pestaña a sus valores por defecto.",
     ["The look back to its defaults (the places stay)."] = "El aspecto a sus valores por defecto (los lugares se mantienen).",

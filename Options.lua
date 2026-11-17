@@ -524,9 +524,10 @@ local CAST_TIME = 2
 local function CastTick(f)
     f:SetValue((GetTime() % CAST_TIME) / CAST_TIME)
 end
-local function SampleCast(p, c)
+local function SampleCast(p, c, spark)
     p.fill:SetStatusBarColor(c.r, c.g, c.b, c.a or 1)
-    p.fill.edge:SetColorTexture(c.r, c.g, c.b, 1)
+    if spark then p.fill.edge:SetColorTexture(spark.r, spark.g, spark.b, spark.a or 1) end
+    p.fill.edge:SetShown(spark and true or false)
     p.fill:SetScript("OnUpdate", CastTick)
     CastTick(p.fill)
     p.fill:Show()
@@ -728,15 +729,25 @@ local function BuildButtons(container)
                     card:Add(UI.Swatch(card, L["Color"], function() return G().gcdSparkColor end, ApplyAllBars,
                         { alpha = true, sub = true, enableIf = function() return G().gcdSpark end }))
                 end },
-                { label = L["Casting"], t = G, show = "castVFX", color = "castFillColor", colorIf = flatOn, draw = function(p)
-                    if G().castStyle == "flat" then SampleCast(p, G().castFillColor) end
-                end, extra = function(card, on)
+                { label = L["Casting"], t = G, show = "castVFX", color = "castFillColor", colorIf = flatOn,
+                    note = L["The Blizzard style plays only on the bars: the game starts it from a real cast."],
+                    draw = function(p)
+                        if G().castStyle == "flat" then
+                            SampleCast(p, G().castFillColor, G().castSpark and G().castSparkColor)
+                        end
+                    end, extra = function(card, on)
                     local stg, sts = GB("castStyle")
                     card:Add(UI.Segmented(card, L["Style"], { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } }, stg, sts,
                         { enableIf = on, tip = L["Flat: the button fills as the cast goes (a channel empties); the color is the fill. Blizzard: the game's animation."] }))
+                    local sg, ss = GB("castSpark")
+                    card:Add(UI.Check(card, L["Spark"], sg, ss, { enableIf = flatOn,
+                        tip = L["A bright line on the moving edge of the fill."] }))
+                    card:Add(UI.Swatch(card, L["Color"], function() return G().castSparkColor end, ApplyAllBars,
+                        { alpha = true, sub = true, enableIf = function() return flatOn() and G().castSpark end }))
                 end },
             }, {
-                { G, DG, { "cooldownAlpha", "gcdAlpha", "gcdSpark", "gcdSparkColor", "castVFX", "castStyle", "castFillColor" } },
+                { G, DG, { "cooldownAlpha", "gcdAlpha", "gcdSpark", "gcdSparkColor", "castVFX", "castStyle", "castFillColor",
+                    "castSpark", "castSparkColor" } },
             })
         end, true },
 
