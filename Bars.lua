@@ -554,7 +554,9 @@ local function OnCooldown(b)
     if not info or not Readable(info.isActive) or not info.isActive then return false end
     local only = OnlyGCD(b)
     if only ~= nil then return only and "gcd" or "cd" end
-    local gcd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(61304)
+    -- the game did not say: the global cooldown spell (61304 never runs on
+    -- Forever; 29515 does)
+    local gcd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(29515)
     if gcd and Readable(gcd.isActive) and gcd.isActive then return "gcd" end
     return "cd"
 end
