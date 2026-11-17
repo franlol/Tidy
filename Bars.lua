@@ -910,28 +910,35 @@ local function KeyPressed(b, on)
     end
 end
 
--- PreClick: before the cast (after it the spell is on cooldown). Clicks come
--- on press and on release: the release after a press gives no feedback.
--- Keys click with "Keybind" (keyBoundClickButton).
-local function OnPreClick(self, mouse, down)
-    local key = mouse == "Keybind"
+-- Every press of every button (Tidy's and Blizzard's) goes through here.
+-- down: true on press, false on release, nil when only one call comes.
+-- key: pressed with a keybind (the pressed look is shown here; the mouse
+-- shows it by itself). q: see PressFeedback. A press and its release give
+-- one answer; the release alone (clicks on release) gives it.
+local function Press(b, down, key, q)
     -- the cast happens on press or on release (game setting, mouse drag
     -- protection): both count for the game's error
-    lastPress, lastPressT = self, GetTime()
-    if down ~= false or not self.tidyDownSeen then
-        self.tidyAnswered = nil -- a new press
+    lastPress, lastPressT = b, GetTime()
+    if down ~= false or not b.tidyDownSeen then
+        b.tidyAnswered = nil -- a new press
     end
     if down == false then
-        if key then KeyPressed(self, false) end
-        if self.tidyDownSeen then
-            self.tidyDownSeen = nil
+        if key then KeyPressed(b, false) end
+        if b.tidyDownSeen then
+            b.tidyDownSeen = nil
             return
         end
     elseif down then
-        if key then KeyPressed(self, true) end
-        self.tidyDownSeen = true
+        if key then KeyPressed(b, true) end
+        b.tidyDownSeen = true
     end
-    PressFeedback(self)
+    PressFeedback(b, q)
+end
+
+-- PreClick: before the cast (after it the spell is on cooldown). Keys click
+-- with "Keybind" (keyBoundClickButton).
+local function OnPreClick(self, mouse, down)
+    Press(self, down, mouse == "Keybind")
 end
 
 -------------------------------------------------------------------------------
@@ -984,22 +991,11 @@ local function ExtraQuery(b)
     return q
 end
 
-local function BlizzardPress(b, makeQuery, arg)
+-- only while Tidy's bars are on (they are the ones that move these buttons)
+local function BlizzardPress(b, down, key, makeQuery, arg)
     if not ns.barsActive or not b or not b:IsVisible() then return end
-    lastPress, lastPressT = b, GetTime()
-    b.tidyAnswered = nil
     local ok, q = pcall(makeQuery, arg)
-    if ok then PressFeedback(b, q) end
-end
-
--- a click can come on press and on release: one answer per press
-local function OnBlizzardClick(b, down, makeQuery, arg)
-    if down == false and b.tidyDownSeen then
-        b.tidyDownSeen = nil
-        return
-    end
-    if down then b.tidyDownSeen = true end
-    BlizzardPress(b, makeQuery, arg)
+    if ok then Press(b, down, key, q) end
 end
 
 for i = 1, 10 do
@@ -1007,25 +1003,28 @@ for i = 1, 10 do
     if pet then
         -- right click turns autocast on / off: not a cast
         pet:HookScript("PreClick", function(self, mouse, down)
-            if mouse == "LeftButton" then OnBlizzardClick(self, down, PetQuery, self:GetID()) end
+            if mouse == "LeftButton" then BlizzardPress(self, down, false, PetQuery, self:GetID()) end
         end)
     end
 end
 if PetActionBar and PetActionBar.PetActionButtonDown then
-    hooksecurefunc(PetActionBar, "PetActionButtonDown", function(self, id)
-        BlizzardPress(self.actionButtons and self.actionButtons[id], PetQuery, id)
-    end)
+    local function PetKey(bar, id, down)
+        BlizzardPress(bar.actionButtons and bar.actionButtons[id], down, true, PetQuery, id)
+    end
+    hooksecurefunc(PetActionBar, "PetActionButtonDown", function(self, id) PetKey(self, id, true) end)
+    hooksecurefunc(PetActionBar, "PetActionButtonUp", function(self, id) PetKey(self, id, false) end)
 end
--- the stance buttons and their keys both go through StanceBar:Select
+-- the stance buttons and their keys both go through StanceBar:Select (one
+-- call, no release: the game shows no pressed look for a stance key either)
 if StanceBar and StanceBar.Select then
     hooksecurefunc(StanceBar, "Select", function(self, id)
-        BlizzardPress(self.actionButtons and self.actionButtons[id], StanceQuery, id)
+        BlizzardPress(self.actionButtons and self.actionButtons[id], nil, false, StanceQuery, id)
     end)
 end
 -- (mouse only: Forever has no extra button binding)
 local extra = ExtraActionBarFrame and ExtraActionBarFrame.button
 if extra then
-    extra:HookScript("PreClick", function(self, _, down) OnBlizzardClick(self, down, ExtraQuery, self) end)
+    extra:HookScript("PreClick", function(self, _, down) BlizzardPress(self, down, false, ExtraQuery, self) end)
 end
 
 local function CreateButton(header, id, i)
