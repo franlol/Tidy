@@ -476,9 +476,9 @@ end
 
 -- One look tab. items: { label, t = the settings table, show = on/off key,
 -- color = color key, icons = true (Icons' settings), enable() (only
--- when it can be seen), colorIf() (only when its color is used), draw(p),
--- extra(card, on) }. keys: what its
--- Defaults puts back ({ table, defaults, list of keys }).
+-- when it can be seen), colorIf() (only when its color is used), note
+-- (the editor's subtitle, like other cards), draw(p), extra(card, on) }.
+-- keys: what its Defaults puts back ({ table, defaults, list of keys }).
 local function LookTab(left, right, title, items, keys)
     local sel = 1
     local function Apply(it)
@@ -512,12 +512,12 @@ local function LookTab(left, right, title, items, keys)
         ApplyAllBars()
         ns.ApplyIcons()
         UI.RefreshAll()
-    end, "danger" } })
+    end, "danger" } }, { tip = L["Every setting of this tab back to its default."] })
     UI.Confirm(reset.buttons[1])
     card:Add(reset)
 
     for i, it in ipairs(items) do
-        local ed = right:Add(1, UI.Card(right.content, it.label))
+        local ed = right:Add(1, UI.Card(right.content, it.label, it.note))
         ed.showIf = function() return sel == i end
         local function on()
             return (not it.show or it.t()[it.show]) and (not it.enable or it.enable()) and true or false
@@ -613,13 +613,12 @@ local function BuildButtons(container)
                     p.flash:Show()
                 end
             end
+            -- drawn by the square look; without it, Blizzard's own
+            local SQUARE = { icons = true, enable = Square, note = L["With square icons on action bars (Icons)."] }
             LookTab(left, right, L["States"], {
-                State(L["Hover"], I, "hoverShow", "hoverColor", function(p) Overlay(p, I().hoverColor) end,
-                    { icons = true, enable = Square }),
-                State(L["Pressed"], I, "pushShow", "pushColor", function(p) Overlay(p, I().pushColor) end,
-                    { icons = true, enable = Square }),
-                State(L["Active"], I, "checkShow", "checkColor", function(p) Overlay(p, I().checkColor) end,
-                    { icons = true, enable = Square }),
+                State(L["Hover"], I, "hoverShow", "hoverColor", function(p) Overlay(p, I().hoverColor) end, SQUARE),
+                State(L["Pressed"], I, "pushShow", "pushColor", function(p) Overlay(p, I().pushColor) end, SQUARE),
+                State(L["Active"], I, "checkShow", "checkColor", function(p) Overlay(p, I().checkColor) end, SQUARE),
                 State(L["Attacking"], G, "attackShow", "attackColor", Flashing("attackColor")),
                 State(L["Auto-repeat"], G, "autoRepeatShow", "autoRepeatColor", Flashing("autoRepeatColor")),
                 State(L["Out of range"], G, "rangeShow", "rangeColor", function(p)
@@ -679,10 +678,9 @@ local function BuildButtons(container)
         end, true },
 
         { "flashes", L["Flashes"], function(left, right)
-            local function FlashItem(label, key, colorKey, tip, enable)
-                return { label = label, t = G, show = key, color = colorKey, enable = enable,
-                    draw = function(p) Overlay(p, G()[colorKey]) end,
-                    extra = tip and function(card) card:Add(UI.Note(card, tip)) end }
+            local function FlashItem(label, key, colorKey, note, enable)
+                return { label = label, t = G, show = key, color = colorKey, enable = enable, note = note,
+                    draw = function(p) Overlay(p, G()[colorKey]) end }
             end
             LookTab(left, right, L["Flashes"], {
                 FlashItem(L["Pressed on cooldown"], "cdPress", "cdPressColor"),
@@ -709,6 +707,7 @@ local function BuildButtons(container)
                     return function() return T()[field] end, function(v) T()[field] = v ApplyAllBars() end
                 end
                 return { label = label, t = T, show = "show", color = "color",
+                    note = key ~= "cooldown" and L["Can also be hidden per bar (Bars, Actions tab)."] or nil,
                     draw = function(p) SampleText(p, T(), SAMPLE[key]) end,
                     extra = function(card, on)
                         local fg, fs = TB("font")
@@ -723,9 +722,6 @@ local function BuildButtons(container)
                         card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs, { format = UI.px, enableIf = on, sub = true }))
                         local yg, ys = TB("y")
                         card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys, { format = UI.px, enableIf = on, sub = true }))
-                        if key ~= "cooldown" then
-                            card:Add(UI.Note(card, L["Can also be hidden per bar (Bars, Actions tab)."]))
-                        end
                     end }
             end
             LookTab(left, right, L["Texts"], {

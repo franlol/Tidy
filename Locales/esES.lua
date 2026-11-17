@@ -315,6 +315,7 @@ ns.translations.esES = {
     ["When a cooldown of 2 seconds or more ends."] = "Cuando termina una reutilización de 2 segundos o más.",
     ["With the flat cast animation (Timers, Casting)."] = "Con la animación de lanzamiento plana (Tiempos, Lanzando).",
     ["Can also be hidden per bar (Bars, Actions tab)."] = "También se puede ocultar por barra (Barras, pestaña Acciones).",
+    ["With square icons on action bars (Icons)."] = "Con iconos cuadrados en las barras de acción (Iconos).",
     ["Every setting of this tab back to its default."] = "Todos los ajustes de esta pestaña a sus valores por defecto.",
     ["The look back to its defaults (the places stay)."] = "El aspecto a sus valores por defecto (los lugares se mantienen).",
 }
