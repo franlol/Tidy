@@ -575,6 +575,16 @@ local function IsActive(b)
     return ok and Readable(on) and on and true or false
 end
 
+-- What a press left on a button (answered, pressed down, key token, its
+-- flash textures): kept here, never on the button. Blizzard's pet / stance
+-- / extra buttons get these too, and anything written on them taints them.
+local pressState = setmetatable({}, { __mode = "k" })
+local function PS(b)
+    local s = pressState[b]
+    if not s then s = {} pressState[b] = s end
+    return s
+end
+
 -- Every flash: its on/off setting and its color
 local FLASH_COLOR = { cdPress = "cdPressColor", gcdPress = "gcdPressColor", failPress = "failPressColor",
     activePress = "activePressColor",
@@ -586,10 +596,10 @@ local FLASH_COLOR = { cdPress = "cdPressColor", gcdPress = "gcdPressColor", fail
 local function Flash(b, key, mark)
     local G = B and B.buttons
     if not G then return end
-    if mark ~= false then b.tidyAnswered = true end -- this press has its answer
+    if mark ~= false then PS(b).answered = true end -- this press has its answer
     local c = G[key] and G[FLASH_COLOR[key]]
     if not c or (c.a or 1) <= 0 then return end
-    local t = b.tidyPressFlash
+    local t = PS(b).flash
     if not t then
         t = b:CreateTexture(nil, "OVERLAY", nil, 7)
         t:SetAllPoints(b)
@@ -601,7 +611,7 @@ local function Flash(b, key, mark)
         a:SetDuration(0.35)
         a:SetSmoothing("OUT")
         t.anim = ag
-        b.tidyPressFlash = t
+        PS(b).flash = t
     end
     t:SetColorTexture(c.r, c.g, c.b, c.a or 1)
     t.anim:Stop()
@@ -619,7 +629,7 @@ errorWatch:SetScript("OnEvent", function()
     local b = lastPress
     if not b or not B or GetTime() - lastPressT > ERROR_WINDOW then return end
     lastPress = nil
-    if b.tidyAnswered then return end
+    if PS(b).answered then return end
     Flash(b, "failPress")
 end)
 
@@ -629,7 +639,7 @@ local function FlashEmpty(b)
     if not B.buttons.emptyPress then return end
     local c = B.buttons.emptyPressColor
     if not c or (c.a or 1) <= 0 or not b:IsVisible() then return end
-    local f = b.tidyEmptyFlash
+    local f = PS(b).emptyFlash
     if not f then
         f = CreateFrame("Frame", nil, UIParent)
         f:SetAllPoints(b)
@@ -644,7 +654,7 @@ local function FlashEmpty(b)
         a:SetDuration(0.35)
         a:SetSmoothing("OUT")
         f.anim = ag
-        b.tidyEmptyFlash = f
+        PS(b).emptyFlash = f
     end
     f:SetFrameStrata(b:GetFrameStrata())
     f:SetFrameLevel(b:GetFrameLevel() + 10)
@@ -900,12 +910,12 @@ readyWatch:SetScript("OnEvent", function() ReadyCheck() end)
 -- changed meanwhile)
 local KEY_HOLD = 1
 local function KeyPressed(b, on)
-    b.tidyKeyToken = (b.tidyKeyToken or 0) + 1
+    PS(b).keyToken = (PS(b).keyToken or 0) + 1
     if ns.ShowPressed then ns.ShowPressed(b, on) end
     if on then
-        local token = b.tidyKeyToken
+        local token = PS(b).keyToken
         C_Timer.After(KEY_HOLD, function()
-            if b.tidyKeyToken == token then KeyPressed(b, false) end
+            if PS(b).keyToken == token then KeyPressed(b, false) end
         end)
     end
 end
@@ -919,18 +929,18 @@ local function Press(b, down, key, q)
     -- the cast happens on press or on release (game setting, mouse drag
     -- protection): both count for the game's error
     lastPress, lastPressT = b, GetTime()
-    if down ~= false or not b.tidyDownSeen then
-        b.tidyAnswered = nil -- a new press
+    if down ~= false or not PS(b).downSeen then
+        PS(b).answered = nil -- a new press
     end
     if down == false then
         if key then KeyPressed(b, false) end
-        if b.tidyDownSeen then
-            b.tidyDownSeen = nil
+        if PS(b).downSeen then
+            PS(b).downSeen = nil
             return
         end
     elseif down then
         if key then KeyPressed(b, true) end
-        b.tidyDownSeen = true
+        PS(b).downSeen = true
     end
     PressFeedback(b, q)
 end

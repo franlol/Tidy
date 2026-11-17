@@ -18,6 +18,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 ## One bar (Bar 1, then Pet bar, then Bags) — tabs Layout · Visibility · Actions
 10. **Show this bar** off hides it (Blizzard's does not come back). Layout: buttons, rows, padding, button width/height, icon fit, scale, opacity, fill direction, click-through all change it at once.
 11. X / Y typed values move it; **Center horizontally / vertically**.
+11b. Pet bar and stance bar in 2 rows, moved anywhere: every button shows its hover and takes clicks (Blizzard's empty bar frame left behind takes no mouse). Unlocked: no unnamed box where Blizzard's bar was.
 12. **Reset this bar** puts it back.
 13. Visibility: fade (mouse out → faded after the delay), each hide option, custom `[combat] show; hide`.
 14. Actions, paging (bar 1): Shift+2 changes page and the texts; Ctrl / Alt / Shift pages; stance pages (if your class has them).

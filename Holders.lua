@@ -40,10 +40,13 @@ local MICRO = MICRO_BUTTONS or {
 -- How each holder is made
 local HIDE_IN_VEHICLE = "[petbattle][overridebar][vehicleui][possessbar] hide; "
 local DEFS = {
-    pet = { group = Names("PetActionButton", 10), secure = true, padding = 2,
+    -- emptiedFrame: Blizzard's bar the buttons leave; it takes the mouse
+    -- (enableMouse, frame level 70), so empty it would catch the clicks and
+    -- the hover of whatever is under it: mouse off meanwhile, on again after
+    pet = { group = Names("PetActionButton", 10), secure = true, padding = 2, emptiedFrame = "PetActionBar",
         sample = "class", -- no pet ability icons are known without a pet: the class icon
         visibility = HIDE_IN_VEHICLE .. "[pet] show; hide" },
-    stance = { group = Names("StanceButton", 10), secure = true, padding = 2,
+    stance = { group = Names("StanceButton", 10), secure = true, padding = 2, emptiedFrame = "StanceBar",
         sample = "stance", -- the forms of the class (CLASS_FORMS), else the class icon
         count = function() return GetNumShapeshiftForms and GetNumShapeshiftForms() or 0 end,
         visibility = HIDE_IN_VEHICLE .. "show" },
@@ -477,6 +480,12 @@ local function HideArt(art, id)
     busy = nil
 end
 
+-- (a frame with protected buttons in it: only out of combat)
+local function EmptiedMouse(def, on)
+    local f = def.emptiedFrame and _G[def.emptiedFrame]
+    if f and not InCombatLockdown() and f:IsMouseEnabled() ~= on then f:EnableMouse(on) end
+end
+
 local function Layout(id)
     local h, def = holders[id], DEFS[id]
     if not h or not h.active then return end
@@ -494,6 +503,7 @@ local function Layout(id)
             local art = _G[e[1]] and _G[e[1]][e[2]]
             if art then HideArt(art, id) end
         end
+        EmptiedMouse(def, false)
     else
         local f = Content(def)
         Take(f, h, true)
@@ -744,6 +754,7 @@ function ns.ReleaseHolder(id)
         local art = _G[e[1]] and _G[e[1]][e[2]]
         if art then art:SetAlpha(1) end
     end
+    EmptiedMouse(def, true)
     if id == "micro" then Call(MicroMenu, "Layout") end
     if id == "bags" then Call(BagsBar, "Layout") end
     if id == "status" or id == "extra" or id == "vehicle" then
