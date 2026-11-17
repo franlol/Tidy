@@ -3,8 +3,9 @@
 -- Crops every icon to a square, removes Blizzard's round masks and frames and
 -- draws a flat border behind it (thickness, color and zoom in the options).
 -- Covers: action bars (Blizzard, Tidy and any LibActionButton bar), pet
--- and stance bars, your buffs/debuffs, target/focus auras, raid/party frame
--- auras and item buttons (bags, bank, loot, merchant, character...).
+-- and stance bars, your buffs/debuffs and item buttons (bags, bank, loot,
+-- merchant, character...). Target, focus and raid frame auras are drawn by
+-- the game's native aura containers, which give addons no icons to style.
 --
 -- Everything is live: what Tidy changes on a frame is remembered, so turning
 -- a place off puts Blizzard's look back without a reload.
@@ -368,8 +369,6 @@ local function SkinAura(f, cat)
 end
 
 local function PlayerAura(f) SkinAura(f, "playerAuras") end
-local function UnitAura(f) SkinAura(f, "unitAuras") end
-local function RaidAura(f) SkinAura(f, "raidAuras") end
 
 -- Frames named Prefix1, Prefix2...: stops at the first one that does not
 -- exist yet (Blizzard creates them in order); names are cached
@@ -403,19 +402,6 @@ local function PlayerAuras()
         NamedFrames("BuffButton", 40, PlayerAura)
         NamedFrames("DebuffButton", 40, PlayerAura)
         NamedFrames("TempEnchant", 3, PlayerAura)
-    end
-end
-
-local function UnitFrameAuras(uf)
-    if not uf or not On("unitAuras") then return end
-    if uf.auraPools and uf.auraPools.EnumerateActive then
-        for f in uf.auraPools:EnumerateActive() do UnitAura(f) end
-        return
-    end
-    local name = uf:GetName()
-    if name then
-        NamedFrames(name .. "Buff", 40, UnitAura)
-        NamedFrames(name .. "Debuff", 40, UnitAura)
     end
 end
 
@@ -460,8 +446,6 @@ function ns.RefreshIcons()
     end
     SkinAllActionButtons()
     PlayerAuras()
-    UnitFrameAuras(TargetFrame)
-    UnitFrameAuras(FocusFrame)
     for f, s in pairs(skins) do
         if s.off and On(s.cat) then
             if s.kind == "item" then SkinItem(f)
@@ -497,23 +481,6 @@ ns.Module(function()
                 break
             end
         end
-    end
-
-    local unitHooked
-    for _, ufName in ipairs({ "TargetFrame", "FocusFrame" }) do
-        local uf = _G[ufName]
-        if uf and type(uf.UpdateAuras) == "function" then
-            hooksecurefunc(uf, "UpdateAuras", UnitFrameAuras)
-            unitHooked = true
-        end
-    end
-    if not unitHooked and type(TargetFrame_UpdateAuras) == "function" then
-        hooksecurefunc("TargetFrame_UpdateAuras", UnitFrameAuras)
-    end
-
-    for _, fn in ipairs({ "CompactUnitFrame_UtilSetBuff", "CompactUnitFrame_UtilSetDebuff",
-        "CompactUnitFrame_UtilSetDispelDebuff" }) do
-        if type(_G[fn]) == "function" then hooksecurefunc(fn, RaidAura) end
     end
 
     if type(SetItemButtonTexture) == "function" then

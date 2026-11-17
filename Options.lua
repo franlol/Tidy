@@ -24,7 +24,7 @@ UI.strings = setmetatable({}, { __index = function(_, key) return L[STRINGS[key]
 local win
 -- Icons settings its Defaults keeps: the places, and the button states
 -- (they are set in Buttons > States, which has its own Defaults)
-local KEEP_ICONS = { "enabled", "actionbars", "playerAuras", "unitAuras", "raidAuras", "items",
+local KEEP_ICONS = { "enabled", "actionbars", "playerAuras", "items",
     "hoverShow", "hoverColor", "pushShow", "pushColor", "checkShow", "checkColor" }
 local active = function() return ns.barsActive end
 
@@ -826,8 +826,6 @@ local function BuildIcons(container)
     for _, def in ipairs({
         { "actionbars", "Action bars", "Tidy and Blizzard bars, pet and stance bars." },
         { "playerAuras", "Your buffs and debuffs" },
-        { "unitAuras", "Target and focus auras" },
-        { "raidAuras", "Raid and party frame auras", "Blizzard's frames (Tile draws its own)." },
         { "items", "Items", "Bags, bank, loot, merchant, character..." },
     }) do
         local get, set = IB(def[1])

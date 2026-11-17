@@ -16,7 +16,9 @@ bars where you want them.
   casting), flashes (pressed on cooldown / not usable / empty slot / while
   active, ready, interrupted) and texts.
 - **Keybinding mode**: hover a button and press a key.
-- **Square icons** with a flat border on action bars, auras and item buttons.
+- **Square icons** with a flat border on action bars, your auras and item
+  buttons. Target, focus and raid frame auras are drawn by the game itself,
+  which does not let addons restyle them.
 - **Profiles** per character, with export / import.
 - English and Spanish.
 

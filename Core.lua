@@ -23,8 +23,6 @@ ns.defaults = {
         -- where
         actionbars = true,
         playerAuras = true,
-        unitAuras = true,
-        raidAuras = true,
         items = true,
         -- look
         size = 1,                              -- border thickness, px
