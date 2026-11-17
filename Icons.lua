@@ -411,7 +411,12 @@ end
 local function SkinItem(b)
     if not b then return end
     local s = skins[b]
-    if s and not s.off then return end
+    -- already styled: Blizzard resets the icon crop on every texture change
+    -- (SetTexCoord 0, 1, 0, 1), so the zoom is put back
+    if s and not s.off then
+        ZoomSkin(s)
+        return
+    end
     if not On("items") then return end
     local icon = s and s.icon or IconOf(b)
     if not icon or not icon.SetTexCoord then return end
