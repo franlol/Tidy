@@ -76,11 +76,12 @@ ns.defaults = {
             readyColor = { r = 0.3, g = 1, b = 0.4, a = 0.6 },
             unusableColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }, -- icon when it cannot be used now
             -- flashes when a button is pressed: on cooldown / on the global
-            -- cooldown / not usable / on an empty slot
+            -- cooldown / not usable / on an empty slot / already active
             cdPress = true, cdPressColor = { r = 1, g = 0.15, b = 0.15, a = 0.55 },
             gcdPress = true, gcdPressColor = { r = 1, g = 0.85, b = 0.1, a = 0.55 },
             failPress = true, failPressColor = { r = 1, g = 0.55, b = 0, a = 0.5 },
             emptyPress = true, emptyPressColor = { r = 1, g = 1, b = 1, a = 0.3 },
+            activePress = true, activePressColor = { r = 0.3, g = 0.7, b = 1, a = 0.5 }, -- already active (next swing, toggles)
             lock = false,         -- no dragging spells off (Shift drags)
             texts = {
                 hotkey = { show = true, font = "Fonts\\ARIALN.TTF", size = 14, outline = "OUTLINE", point = "TOPRIGHT", x = -2, y = -4,

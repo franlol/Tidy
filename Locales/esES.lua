@@ -220,6 +220,9 @@ ns.translations.esES = {
         "Línea brillante en el borde del barrido.",
     ["Pressed when not usable"] = "Pulsado sin poder usarse",
     ["Pressed on an empty slot"] = "Pulsado en un hueco vacío",
+    ["Pressed while active"] = "Pulsado estando activo",
+    ["Queued next-swing spell, auto attack, current stance."] =
+        "Hechizo de siguiente golpe en cola, ataque automático, actitud actual.",
     ["Pressed on global cooldown"] = "Pulsado en reutilización global",
     ["Lock buttons"] = "Bloquear botones",
     ["Spells can't be dragged off. Shift-drag still works."] =

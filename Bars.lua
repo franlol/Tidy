@@ -566,8 +566,16 @@ local function CannotUse(b)
     return ok and Readable(usable) and not usable
 end
 
+-- already active: a queued next-swing spell, auto attack, a stance (the
+-- button's "checked" state)
+local function IsActive(b)
+    local ok, on = pcall(b.IsCurrentlyActive, b)
+    return ok and Readable(on) and on and true or false
+end
+
 -- Every flash: its on/off setting and its color
 local FLASH_COLOR = { cdPress = "cdPressColor", gcdPress = "gcdPressColor", failPress = "failPressColor",
+    activePress = "activePressColor",
     emptyPress = "emptyPressColor", interruptFlash = "interruptColor", readyFlash = "readyColor" }
 
 -- key: a FLASH_COLOR key. mark: false for flashes that are not a press
@@ -661,6 +669,8 @@ local function PressFeedback(b, key)
         Flash(b, "gcdPress")
     elseif CannotUse(b) then
         Flash(b, "failPress")
+    elseif IsActive(b) then
+        Flash(b, "activePress")
     end
 end
 

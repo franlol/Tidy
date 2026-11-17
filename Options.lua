@@ -750,13 +750,15 @@ local function BuildButtons(container)
                     L["No target, out of range, not enough power, not usable..."]),
                 FlashItem(L["Pressed on an empty slot"], "emptyPress", "emptyPressColor",
                     L["Works on hidden empty slots too."]),
+                FlashItem(L["Pressed while active"], "activePress", "activePressColor",
+                    L["Queued next-swing spell, auto attack, current stance."]),
                 FlashItem(L["Ready"], "readyFlash", "readyColor",
                     L["When a cooldown of 2 seconds or more ends."]),
                 FlashItem(L["Interrupted"], "interruptFlash", "interruptColor",
                     L["Needs the Flat style (Timers > Casting)."], flatOn),
             }, {
                 { G, DG, { "cdPress", "cdPressColor", "gcdPress", "gcdPressColor", "failPress", "failPressColor",
-                    "emptyPress", "emptyPressColor", "readyFlash", "readyColor", "interruptFlash", "interruptColor" } },
+                    "emptyPress", "emptyPressColor", "activePress", "activePressColor", "readyFlash", "readyColor", "interruptFlash", "interruptColor" } },
             })
         end, true },
 

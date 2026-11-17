@@ -32,7 +32,7 @@ Each look tab: list on the left (check = on/off, swatch = color), the picked one
 20. **Texts**: keybind, count, macro name, cooldown — on/off, font, size, outline, color, position; the sample shows it.
 21. Casting: self-cast key, focus-cast key, mouse-over, right click on yourself.
 21b. Click a button while moving the mouse (starts a drag): it never stays darker afterwards.
-21c. **Flashes**: press a spell on cooldown → red; during the global cooldown only → yellow; not usable / out of range / no mana → orange; key of an empty slot → white; a 2 s+ cooldown ends → green; interrupted cast (flat) → red. Each on/off and color works; Interrupted greyed with the Blizzard cast style.
+21c. **Flashes**: press a spell on cooldown → red; during the global cooldown only → yellow; not usable / out of range / no mana → orange; key of an empty slot → white; an active button (queued Raptor Strike, Auto Attack on) pressed again → blue; a 2 s+ cooldown ends → green; interrupted cast (flat) → red. Each on/off and color works; Interrupted greyed with the Blizzard cast style.
 21d. **States > Hover / Pressed / Active** (square look on): hover tint, pressed while held (never stays, also changing Shift), active (current stance, queued Raptor Strike / Heroic Strike). Each off: nothing shows. Square look off: greyed, Blizzard's look.
 21e. **Timers**: global cooldown swipe lighter than a real cooldown; spark on/off and color; Casting off / flat (fill color, spark on/off and color, animated sample) / Blizzard (plays on the bars only).
 21f. **States > Not usable / Out of mana / Out of range**: colors; off = the icon keeps its colors; out of range tints the button or the keybind.

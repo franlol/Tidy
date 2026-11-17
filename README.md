@@ -13,8 +13,8 @@ bars where you want them.
 - **Buttons**: every look with its own on/off and color, with a sample
   button: states (hover, pressed, active, attacking, auto-repeat, out of
   range / mana, not usable, equipped), timers (cooldown, global cooldown,
-  casting), flashes (pressed on cooldown / not usable / empty slot, ready,
-  interrupted) and texts.
+  casting), flashes (pressed on cooldown / not usable / empty slot / while
+  active, ready, interrupted) and texts.
 - **Keybinding mode**: hover a button and press a key.
 - **Square icons** with a flat border on action bars, auras and item buttons.
 - **Profiles** per character, with export / import.
