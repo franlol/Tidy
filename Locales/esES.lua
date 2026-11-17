@@ -31,10 +31,10 @@ ns.translations.esES = {
     ["Border color"] = "Color del borde",
     ["Zoom"] = "Zoom",
     ["Background"] = "Fondo",
-    ["Seen on empty buttons. Lower its opacity to make it lighter or invisible."] =
-        "Se ve en los botones vacíos. Baja su opacidad para aclararlo o hacerlo invisible.",
-    ["How much of the icon edge is cut off. Blizzard icons have a bevel around 8%."] =
-        "Cuánto se recorta del borde del icono. Los iconos de Blizzard tienen un bisel de un 8% aprox.",
+    ["Shown on empty buttons. Opacity 0 hides it."] =
+        "Se ve en botones vacíos. Opacidad 0 lo oculta.",
+    ["Crops the icon edge. Blizzard icons have a ~8% bevel."] =
+        "Recorta el borde del icono. Los iconos de Blizzard tienen un bisel de ~8%.",
     ["Debuff type color"] = "Color por tipo de perjuicio",
     ["Debuff border by type (magic, curse, poison...) instead of the chosen color."] =
         "Borde de los perjuicios según su tipo (magia, maldición, veneno...) en vez del color elegido.",
@@ -51,8 +51,8 @@ ns.translations.esES = {
         "Un perfil guarda todos los ajustes. Varios personajes pueden compartirlo.",
     ["Profile in use"] = "Perfil en uso",
     ["New profile"] = "Nuevo perfil",
-    ["Type a name and press Enter: a new profile with the default settings."] =
-        "Escribe un nombre y pulsa Intro: un perfil nuevo con los ajustes por defecto.",
+    ["Type a name, press Enter. Starts with default settings."] =
+        "Escribe un nombre y pulsa Intro. Empieza con los ajustes por defecto.",
     ["Copy and reset"] = "Copiar y restablecer",
     ["Copy from"] = "Copiar de",
     ["Copy into this profile"] = "Copiar en este perfil",
@@ -75,18 +75,18 @@ ns.translations.esES = {
     ["General"] = "General",
     ["Editing"] = "Edición",
     ["Keybinding mode"] = "Modo de atajos",
-    ["Unlock bars (top of the window) and drag a bar to move it, or click it to edit it."] =
-        "Desbloquea las barras (arriba en la ventana) y arrastra una barra para moverla, o haz clic para editarla.",
+    ["Unlock bars (window header): drag a bar to move it, click it to edit it."] =
+        "Desbloquear barras (cabecera de la ventana): arrastra una barra para moverla, haz clic para editarla.",
     ["Presets"] = "Plantillas",
     ["Layout"] = "Disposición",
     ["Blizzard-like"] = "Como Blizzard",
     ["Compact"] = "Compacta",
     ["Split"] = "Dividida",
-    ["Places the action bars 1 and 3-6 in a ready layout (position, rows, padding, scale). The other settings stay."] =
-        "Coloca las barras de acción 1 y 3-6 en una disposición lista (posición, filas, espaciado, escala). El resto de ajustes se mantiene.",
+    ["Sets position, rows, padding and scale of bars 1 and 3-6. Nothing else changes."] =
+        "Ajusta posición, filas, espaciado y escala de las barras 1 y 3-6. Nada más cambia.",
     ["Gryphons"] = "Grifos",
-    ["Blizzard's gryphons (wyverns for the Horde) at the sides of bar 1."] =
-        "Los grifos de Blizzard (dracoleones para la Horda) a los lados de la barra 1.",
+    ["At the sides of bar 1. Wyverns for the Horde."] =
+        "A los lados de la barra 1. Dracoleones para la Horda.",
     ["Minimap button"] = "Botón del minimapa",
     ["Profile"] = "Perfil",
     ["Click"] = "Clic",
@@ -99,8 +99,8 @@ ns.translations.esES = {
     ["Language"] = "Idioma",
     ["Reset this bar"] = "Restablecer esta barra",
     ["Move 0.5 px. Shift-click: 5 px."] = "Mover 0,5 px. Mayús+clic: 5 px.",
-    ["Every setting of this bar back to its default, position included."] =
-        "Todos los ajustes de esta barra a sus valores por defecto, posición incluida.",
+    ["Resets every setting of this bar, position included."] =
+        "Restablece todos los ajustes de esta barra, posición incluida.",
 
     -- Tabs and card titles
     ["Size"] = "Tamaño",
@@ -110,18 +110,14 @@ ns.translations.esES = {
     ["Paging"] = "Páginas",
     ["Actions"] = "Acciones",
     ["This bar's buttons"] = "Botones de esta barra",
-    ["Which page of actions the bar shows. Action bars only."] =
-        "Qué página de acciones muestra la barra. Solo barras de acción.",
-    ["What the buttons of this bar show. Action bars only."] =
-        "Qué muestran los botones de esta barra. Solo barras de acción.",
     ["For every button of Tidy's action bars."] = "Para todos los botones de las barras de acción de Tidy.",
     ["Self-cast"] = "Lanzar sobre ti",
     ["Focus"] = "Foco",
     ["Mouse-over"] = "Bajo el ratón",
 
     ["Modifier keys"] = "Teclas modificadoras",
-    ["While the key is held, the bar shows another page."] =
-        "Mientras mantienes la tecla, la barra muestra otra página.",
+    ["Hold the key to switch the bar to that page."] =
+        "Mantén la tecla para cambiar la barra a esa página.",
     ["Flyouts"] = "Desplegables",
     ["Menus that open from a button (portals, totems, pets...)."] =
         "Menús que se abren desde un botón (portales, tótems, mascotas...).",
@@ -135,16 +131,17 @@ ns.translations.esES = {
     ["Only the backpack"] = "Solo la mochila",
     ["Keyring"] = "Llavero",
     ["Hide the artwork"] = "Ocultar el adorno",
-    ["The decorative frame around the extra button and the zone ability."] =
-        "El marco decorativo del botón extra y de la habilidad de zona.",
+    ["The frame around the extra button and the zone ability."] =
+        "El marco alrededor del botón extra y la habilidad de zona.",
 
     ["Unlock bars"] = "Desbloquear barras",
     ["Drag a bar to move it, click it to edit it."] = "Arrastra una barra para moverla, haz clic para editarla.",
     ["Hover a button and press a key. Esc to leave."] = "Pasa el ratón por un botón y pulsa una tecla. Esc para salir.",
 
-    ["Where button 1 is and which way the others follow. The bar does not move."] =
-        "Dónde está el botón 1 y hacia dónde siguen los demás. La barra no se mueve.",
-    ["Which row comes first. Only with more than one row."] = "Qué fila va primero. Solo con más de una fila.",
+    ["Side where button 1 starts. The bar stays in place."] =
+        "Lado donde empieza el botón 1. La barra no se mueve.",
+    ["Side where row 1 starts."] =
+        "Lado donde empieza la fila 1.",
 
     ["Flat"] = "Plano",
     ["Blizzard"] = "Blizzard",
@@ -168,20 +165,20 @@ ns.translations.esES = {
     ["Cover"] = "Cubrir",
     ["Contain"] = "Contener",
     ["Stretch"] = "Estirar",
-    ["Cover: fills the button, cropped. Contain: the whole icon, centered. Stretch: fills it, deformed."] =
-        "Cubrir: llena el botón, recortado. Contener: el icono entero, centrado. Estirar: lo llena, deformado.",
+    ["Cover: fills, cropped. Contain: whole icon, may leave gaps. Stretch: fills, distorted."] =
+        "Cubrir: llena, recortado. Contener: icono entero, puede dejar huecos. Estirar: llena, deformado.",
     ["Fill"] = "Rellenar",
     ["To the right"] = "Hacia la derecha",
     ["To the left"] = "Hacia la izquierda",
     ["Downwards"] = "Hacia abajo",
     ["Upwards"] = "Hacia arriba",
     ["Click-through"] = "Atravesable por el ratón",
-    ["The mouse goes through the buttons (keybinds still work)."] =
-        "El ratón atraviesa los botones (los atajos siguen funcionando).",
+    ["Clicks pass through. Keybinds still work."] =
+        "Los clics atraviesan los botones. Los atajos siguen funcionando.",
     ["X position"] = "Posición X",
     ["Y position"] = "Posición Y",
-    ["From the bottom left corner of the screen to the top left corner of the bar."] =
-        "Desde la esquina inferior izquierda de la pantalla hasta la esquina superior izquierda de la barra.",
+    ["From the screen's bottom-left corner to the bar's top-left corner."] =
+        "Desde la esquina inferior izquierda de la pantalla a la superior izquierda de la barra.",
     ["Visibility"] = "Visibilidad",
     ["Fade out when the mouse is not over it"] = "Desvanecer cuando el ratón no está encima",
     ["Faded opacity"] = "Opacidad desvanecida",
@@ -192,8 +189,8 @@ ns.translations.esES = {
     ["Hide without a pet"] = "Ocultar sin mascota",
     ["Hide in vehicles"] = "Ocultar en vehículos",
     ["Custom conditions"] = "Condiciones propias",
-    ["Macro conditions, e.g. [combat] show; hide. When set, they replace the options above."] =
-        "Condiciones de macro, p. ej. [combat] show; hide. Si las pones, sustituyen a las opciones de arriba.",
+    ["Macro conditions, e.g. [combat] show; hide. Overrides the options above."] =
+        "Condiciones de macro, p. ej. [combat] show; hide. Anulan las opciones de arriba.",
     ["Page"] = "Página",
     ["Page %d"] = "Página %d",
     ["None"] = "Ninguna",
@@ -219,18 +216,19 @@ ns.translations.esES = {
     ["Never"] = "Nunca",
     ["Out of range"] = "Fuera de alcance",
     ["Pressed on cooldown"] = "Pulsado en reutilización",
-    ["A bright line that follows the global cooldown as it turns."] =
-        "Una línea brillante que acompaña al tiempo de reutilización global mientras gira.",
+    ["Bright line on the sweep edge."] =
+        "Línea brillante en el borde del barrido.",
     ["Pressed when not usable"] = "Pulsado sin poder usarse",
     ["Pressed on an empty slot"] = "Pulsado en un hueco vacío",
     ["Pressed on global cooldown"] = "Pulsado en reutilización global",
     ["Lock buttons"] = "Bloquear botones",
-    ["Spells cannot be dragged off the bars (Shift + drag still can)."] =
-        "Los hechizos no se pueden sacar de las barras (Mayús + arrastrar sí).",
+    ["Spells can't be dragged off. Shift-drag still works."] =
+        "No se pueden sacar hechizos arrastrando. Mayús + arrastrar sí.",
     ["Style"] = "Estilo",
     ["Interrupted"] = "Interrumpido",
     ["Cast on key down"] = "Lanzar al pulsar la tecla",
-    ["A game setting: for every bar."] = "Un ajuste del juego: para todas las barras.",
+    ["Game setting: also affects Blizzard's bars."] =
+        "Ajuste del juego: afecta también a las barras de Blizzard.",
     ["Self-cast with a key"] = "Lanzar sobre ti con una tecla",
     ["Self-cast key"] = "Tecla para lanzar sobre ti",
     ["Focus-cast with a key"] = "Lanzar al foco con una tecla",
@@ -266,12 +264,12 @@ ns.translations.esES = {
         "%s está cargado: las barras de Tidy se quedan desactivadas. Desactiva uno de los dos y recarga.",
     ["Bars"] = "Barras",
     ["Bar %d"] = "Barra %d",
-    ["Your spells and keybinds, on bars you place. Replaces Blizzard's action bars."] =
-        "Tus hechizos y atajos, en barras que colocas tú. Sustituye a las barras de acción de Blizzard.",
+    ["Replaces Blizzard's action bars."] =
+        "Sustituye las barras de acción de Blizzard.",
     ["Lock / unlock bars"] = "Bloquear / desbloquear barras",
     ["Snap while moving"] = "Imantar al mover",
-    ["A bar you drag sticks to the edges and centers of other bars, the screen center lines and the screen borders."] =
-        "La barra que arrastras se pega a los bordes y centros de otras barras, a las líneas centrales de la pantalla y a sus bordes.",
+    ["Bars stick to other bars, the screen center and the screen edges."] =
+        "Las barras se pegan a otras barras, al centro y a los bordes de la pantalla.",
     ["Show this bar"] = "Mostrar esta barra",
     ["Pet bar"] = "Barra de mascota",
     ["Stance bar"] = "Barra de posturas",
@@ -305,21 +303,28 @@ ns.translations.esES = {
     ["Spark"] = "Destello",
     ["Ready"] = "Listo",
     ["Macro"] = "Macro",
-    ["If the game does not tell it is the global cooldown, the cooldown darkness is used."] =
-        "Si el juego no indica que es la reutilización global, se usa la oscuridad de la reutilización.",
-    ["Flat: the button fills as the cast goes (a channel empties); the color is the fill. Blizzard: the game's animation."] =
-        "Plano: el botón se llena mientras lanzas (una canalización se vacía); el color es el relleno. Blizzard: la animación del juego.",
+    ["When the game doesn't flag the GCD, Cooldown darkness is used."] =
+        "Si el juego no marca el GCD, se usa la oscuridad de Reutilización.",
+    ["Flat: the button fills during a cast, empties during a channel. Blizzard: the game's animation."] =
+        "Plano: el botón se llena al lanzar y se vacía al canalizar. Blizzard: la animación del juego.",
     ["No target, out of range, not enough power, not usable..."] =
         "Sin objetivo, fuera de alcance, sin recurso suficiente, no utilizable...",
-    ["Also where empty slots are hidden."] = "También donde los huecos vacíos están ocultos.",
+    ["Works on hidden empty slots too."] =
+        "También en huecos vacíos ocultos.",
     ["When a cooldown of 2 seconds or more ends."] = "Cuando termina una reutilización de 2 segundos o más.",
-    ["With the flat cast animation (Timers, Casting)."] = "Con la animación de lanzamiento plana (Tiempos, Lanzando).",
-    ["Can also be hidden per bar (Bars, Actions tab)."] = "También se puede ocultar por barra (Barras, pestaña Acciones).",
-    ["A bright line on the moving edge of the fill."] = "Una línea brillante en el borde que avanza del relleno.",
-    ["The Blizzard style plays only on the bars: the game starts it from a real cast."] =
-        "El estilo Blizzard solo se ve en las barras: el juego lo inicia con un lanzamiento real.",
-    ["With square icons on action bars (Icons)."] = "Con iconos cuadrados en las barras de acción (Iconos).",
-    ["Every setting of this tab back to its default."] = "Todos los ajustes de esta pestaña a sus valores por defecto.",
-    ["The look back to its defaults (the places stay)."] = "El aspecto a sus valores por defecto (los lugares se mantienen).",
+    ["Needs the Flat style (Timers > Casting)."] =
+        "Requiere el estilo Plano (Tiempos > Lanzando).",
+    ["Per-bar hide: Bars > Actions."] =
+        "Ocultar por barra: Barras > Acciones.",
+    ["Bright line on the fill edge."] =
+        "Línea brillante en el borde del relleno.",
+    ["Blizzard style has no preview: it only plays on a real cast."] =
+        "El estilo Blizzard no tiene vista previa: solo se ve en un lanzamiento real.",
+    ["Needs square icons on action bars (Icons page)."] =
+        "Requiere iconos cuadrados en las barras de acción (página Iconos).",
+    ["Resets every setting in this tab."] =
+        "Restablece todos los ajustes de esta pestaña.",
+    ["Resets the look. Where is kept."] =
+        "Restablece el aspecto. Dónde se mantiene.",
 }
 ns.translations.esMX = ns.translations.esES
