@@ -400,14 +400,18 @@ function ns.FitIcon(b, z)
     else
         icon:SetAllPoints(b)
     end
-    -- Blizzard's frame art (46x45) and round mask are drawn for a 45 px
-    -- icon at a fixed size: scaled with the icon (default style; the
-    -- square style hides both)
+    -- Blizzard's frame art and round mask are drawn for a 45 px icon at a
+    -- fixed size: scaled with the icon, in Blizzard's own proportions
+    -- (default style; the square style hides both). The library uses the
+    -- "AddRow" frame, which Blizzard draws at 51x51 from the top left; the
+    -- bar frame is 46x45.
     local frame = b.NormalTexture
     if frame then
+        local fw, fh = 46, 45
+        if frame:GetAtlas() == "UI-HUD-ActionBar-IconFrame-AddRow" then fw, fh = 51, 51 end
         frame:ClearAllPoints()
         frame:SetPoint("TOPLEFT", icon, "TOPLEFT")
-        frame:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", iw / 45, 0)
+        frame:SetSize(iw * fw / 45, ih * fh / 45)
     end
     local mask = b.IconMask
     if mask then
