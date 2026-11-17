@@ -5,7 +5,8 @@
 --              minimap, language (unlock / keybinding mode: window header)
 --   Bars     : one bar at a time (dropdown, or click it on screen):
 --              layout · visibility · actions
---   Buttons  : every action button: behaviour (with casting) · look (with texts)
+--   Buttons  : every action button: behaviour (with casting) · states ·
+--              timers · flashes · texts
 --   Icons    : square icons
 --   Profiles : profiles, export / import
 -- Every change is applied at once. Controls that do not apply are greyed
@@ -21,7 +22,10 @@ local STRINGS = { confirm = "Click again to confirm", search = "Search...", acce
 UI.strings = setmetatable({}, { __index = function(_, key) return L[STRINGS[key]] end })
 
 local win
-local WHERE = { "enabled", "actionbars", "playerAuras", "unitAuras", "raidAuras", "items" }
+-- Icons settings its Defaults keeps: the places, and the button states
+-- (they are set in Buttons > States, which has its own Defaults)
+local KEEP_ICONS = { "enabled", "actionbars", "playerAuras", "unitAuras", "raidAuras", "items",
+    "hoverShow", "hoverColor", "pushShow", "pushColor", "checkShow", "checkColor" }
 local active = function() return ns.barsActive end
 
 -- Re-applies every bar (button looks, casting, lock...)
@@ -66,7 +70,9 @@ end
 -- Page with tabs: a row of tabs at the top and, under it, one page per tab
 -- (two columns, built the first time it is opened). top(strip): fixed
 -- controls under the tabs (the bar selector), the same on every tab
--- ({ key, label, build }). The tabs never move; the open tab is remembered.
+-- ({ key, label, build, split }). split = true: a list on the left and its
+-- editor on the right, build(left, right). The tabs never move; the open
+-- tab is remembered.
 -------------------------------------------------------------------------------
 local lastTab = {}
 local TABS_H, STRIP_H = 34, 32
@@ -93,7 +99,11 @@ local function Tabbed(container, name, tabs, top)
             f:SetPoint("TOPLEFT", 0, -TABS_H - (strip and STRIP_H or 0))
             f:SetPoint("BOTTOMRIGHT")
             frames[key] = f
-            defs[key][3](UI.Page(f, 2))
+            if defs[key][4] then
+                defs[key][3](UI.Split(f, 200))
+            else
+                defs[key][3](UI.Page(f, 2))
+            end
         end
         UI.RefreshAll()
     end)
@@ -380,10 +390,151 @@ local function BuildBars(container)
 end
 
 -------------------------------------------------------------------------------
--- Buttons: every action button
+-- Buttons: every action button. Behaviour, then one tab per kind of look:
+-- states (while something is true), timers, flashes (a moment) and texts.
+-- Each look tab: a list on the left (each one's on/off and color), the one
+-- picked on the right, with a sample button.
 -------------------------------------------------------------------------------
+local PREVIEW = 44
+
+local function Paint(t, c) t:SetColorTexture(c.r, c.g, c.b, c.a or 1) end
+
+-- Sample button: an icon with the pieces the real buttons use. draw(p)
+-- puts one look on it with the current settings.
+local function Preview(parent, draw)
+    local r = UI.Row(parent, PREVIEW + 12)
+    local p = CreateFrame("Frame", nil, r)
+    p:SetSize(PREVIEW, PREVIEW)
+    p:SetPoint("TOP", 0, -6)
+    local edge = p:CreateTexture(nil, "BACKGROUND")
+    edge:SetPoint("TOPLEFT", -1, 1)
+    edge:SetPoint("BOTTOMRIGHT", 1, -1)
+    edge:SetColorTexture(0, 0, 0, 1)
+    p.icon = p:CreateTexture(nil, "ARTWORK")
+    p.icon:SetAllPoints()
+    p.icon:SetTexture("Interface\\Icons\\INV_Sword_04")
+    p.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    p.cd = CreateFrame("Cooldown", nil, p, "CooldownFrameTemplate")
+    p.cd:SetAllPoints()
+    p.cd:SetHideCountdownNumbers(true)
+    -- the sample cooldown starts again when it ends
+    p.cd:SetScript("OnCooldownDone", function(self)
+        if self.loop then self:SetCooldown(GetTime(), self.loop) end
+    end)
+    -- the rest over the cooldown, like on the buttons
+    local top = CreateFrame("Frame", nil, p)
+    top:SetAllPoints()
+    top:SetFrameLevel(p.cd:GetFrameLevel() + 2)
+    p.fill = top:CreateTexture(nil, "ARTWORK")
+    p.fill:SetPoint("TOPLEFT")
+    p.fill:SetPoint("BOTTOMLEFT")
+    p.fill:SetWidth(PREVIEW * 0.6)
+    p.overlay = top:CreateTexture(nil, "ARTWORK", nil, 1)
+    p.overlay:SetAllPoints()
+    p.flash = top:CreateTexture(nil, "ARTWORK", nil, 2)
+    p.flash:SetAllPoints()
+    p.flash:SetTexture("Interface\\Buttons\\UI-QuickslotRed")
+    p.flash:SetDesaturated(true)
+    p.border = top:CreateTexture(nil, "OVERLAY")
+    p.border:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+    p.border:SetBlendMode("ADD")
+    p.border:SetPoint("CENTER")
+    p.border:SetSize(PREVIEW * 1.75, PREVIEW * 1.75)
+    p.text = top:CreateFontString(nil, "OVERLAY")
+    r.Refresh = function()
+        p.icon:SetVertexColor(1, 1, 1, 1)
+        p.cd.loop = nil
+        p.cd:Clear()
+        p.fill:Hide()
+        p.overlay:Hide()
+        p.flash:Hide()
+        p.border:Hide()
+        p.text:Hide()
+        draw(p)
+    end
+    table.insert(UI.widgets, r)
+    return r
+end
+
+-- Sample pieces
+local function Tint(p, c) p.icon:SetVertexColor(c.r, c.g, c.b, c.a or 1) end
+local function Overlay(p, c) Paint(p.overlay, c) p.overlay:Show() end
+local function SampleText(p, t, text, color)
+    local c = color or t.color
+    p.text:SetFont(t.font, t.size, t.outline)
+    p.text:SetTextColor(c.r, c.g, c.b, c.a or 1)
+    p.text:ClearAllPoints()
+    p.text:SetPoint(t.point, p, t.point, t.x, t.y)
+    p.text:SetText(text)
+    p.text:Show()
+end
+local function SampleCooldown(p, alpha, seconds)
+    p.cd:SetSwipeColor(0, 0, 0, alpha)
+    p.cd.loop = seconds
+    p.cd:SetCooldown(GetTime(), seconds)
+end
+
+-- One look tab. items: { label, t = the settings table, show = on/off key,
+-- color = color key, icons = true (Icons' settings), enable() (only
+-- when it can be seen), colorIf() (only when its color is used), draw(p),
+-- extra(card, on) }. keys: what its
+-- Defaults puts back ({ table, defaults, list of keys }).
+local function LookTab(left, right, title, items, keys)
+    local sel = 1
+    local function Apply(it)
+        if it.icons then ns.ApplyIcons() else ApplyAllBars() end
+    end
+
+    local card = left:Add(1, UI.Card(left.content, title))
+    card:Add(UI.List(card, {
+        rows = #items,
+        items = function() return items end,
+        label = function(it) return it.label end,
+        lead = "swatch",
+        color = function(it)
+            local c = it.color and it.t()[it.color]
+            return c and { c.r, c.g, c.b }
+        end,
+        checked = function(it)
+            if it.show then return it.t()[it.show] and true or false end
+        end,
+        onCheck = function(it, v) it.t()[it.show] = v Apply(it) end,
+        off = function(it) return it.enable and not it.enable() end,
+        selected = function(_, i) return i == sel end,
+        onSelect = function(i) sel = i UI.RefreshAll() end,
+    }))
+    -- like every reset: red, and a second click to confirm
+    local reset = UI.Buttons(card, { { L["Defaults"], function()
+        for _, k in ipairs(keys) do
+            local t, d = k[1](), k[2]()
+            for _, key in ipairs(k[3]) do t[key] = ns.Copy(d[key]) end
+        end
+        ApplyAllBars()
+        ns.ApplyIcons()
+        UI.RefreshAll()
+    end, "danger" } })
+    UI.Confirm(reset.buttons[1])
+    card:Add(reset)
+
+    for i, it in ipairs(items) do
+        local ed = right:Add(1, UI.Card(right.content, it.label))
+        ed.showIf = function() return sel == i end
+        local function on()
+            return (not it.show or it.t()[it.show]) and (not it.enable or it.enable()) and true or false
+        end
+        ed:Add(Preview(ed, function(p) if on() then it.draw(p) end end))
+        if it.color then
+            ed:Add(UI.Swatch(ed, L["Color"], function() return it.t()[it.color] end,
+                function() Apply(it) end, { alpha = true,
+                    enableIf = function() return on() and (not it.colorIf or it.colorIf()) end }))
+        end
+        if it.extra then it.extra(ed, on) end
+    end
+end
+
 local function BuildButtons(container)
     local function G() return ns.P.bars.buttons end
+    local function I() return ns.P.icons end
     local function GB(key)
         return function() return G()[key] end, function(v) G()[key] = v ApplyAllBars() end
     end
@@ -391,6 +542,11 @@ local function BuildButtons(container)
     local function KB(key, also)
         return function() return K()[key] end, function(v) K()[key] = v if also then also(v) end ApplyAllBars() end
     end
+    local function DG() return ns.defaults.bars.buttons end
+    local function DI() return ns.defaults.icons end
+    -- hover / pressed / active are drawn by the square look
+    local function Square() return I().enabled and I().actionbars and true or false end
+    local flatOn = function() return G().castVFX and G().castStyle == "flat" end
 
     Tabbed(container, "buttons", {
         { "behaviour", L["Behaviour"], function(page)
@@ -429,104 +585,158 @@ local function BuildButtons(container)
             g, s = KB("mouseover", function(v) SetCVar("enableMouseoverCast", v and "1" or "0") end)
             card:Add(UI.Check(card, L["Mouse-over casting"], g, s, { tip = L["Spells go to the unit under the mouse."] }))
             ModDropdown(card, L["Mouse-over key"], "MOUSEOVERCAST", function() return K().mouseover end)
-        end },
-
-        { "look", L["Look"], function(page)
-            local card = page:Add(1, UI.Card(page.content, L["Cooldowns"]))
-            local cg, cs = GB("cooldownAlpha")
-            card:Add(UI.Slider(card, L["Cooldown darkness"], 0, 1, 0.05, cg, cs, { format = UI.pct,
-                tip = L["How dark the cooldown is over the icon. Lower it to see the icon better."] }))
-            local gg, gs = GB("gcdAlpha")
-            card:Add(UI.Slider(card, L["Global cooldown darkness"], 0, 1, 0.05, gg, gs, { format = UI.pct,
-                tip = L["How dark the global cooldown alone is, so a real cooldown stands out. If the game does not tell which one it is, the cooldown darkness is used."] }))
-            local sg, ss = GB("gcdSpark")
-            card:Add(UI.Check(card, L["Global cooldown spark"], sg, ss,
-                { tip = L["A bright line that follows the global cooldown as it turns."] }))
-            -- sub-options (sub = true) sit right under their checkbox
-            card:Add(UI.Swatch(card, L["Color"], function() return G().gcdSparkColor end, ApplyAllBars,
-                { alpha = true, sub = true, enableIf = function() return G().gcdSpark end }))
-            local vg, vs = GB("castVFX")
-            card:Add(UI.Check(card, L["Cast animation"], vg, vs))
-            local castOn = function() return G().castVFX end
-            local flatOn = function() return G().castVFX and G().castStyle == "flat" end
-            local stg, sts = GB("castStyle")
-            card:Add(UI.Segmented(card, L["Style"], { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } }, stg, sts,
-                { sub = true, enableIf = castOn, tip = L["Flat: the button fills as the cast goes (a channel empties); its interrupt flash is in Colors. Blizzard: the game's animation."] }))
-            card:Add(UI.Swatch(card, L["Casting fill"], function() return G().castFillColor end, ApplyAllBars,
-                { alpha = true, sub = true, enableIf = flatOn }))
-
-            card = page:Add(1, UI.Card(page.content, L["Colors"]))
-            local rg, rs = GB("range")
-            card:Add(UI.Segmented(card, L["Out of range"], {
-                { "button", L["Button"] }, { "hotkey", L["Keybind"] }, { "none", L["Nothing"] },
-            }, rg, rs, { tip = L["What turns red when the target is out of range: the button or its keybind."] }))
-            card:Add(UI.Swatch(card, L["Out of range color"], function() return G().rangeColor end, ApplyAllBars,
-                { alpha = true, sub = true, enableIf = function() return G().range ~= "none" end }))
-            card:Add(UI.Swatch(card, L["Out of mana color"], function() return G().manaColor end, ApplyAllBars, { alpha = true }))
-            card:Add(UI.Swatch(card, L["Not usable color"], function() return G().unusableColor end, ApplyAllBars,
-                { alpha = true, tip = L["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] }))
-            -- every flash: an on/off, its color right under it
-            local function FlashRow(key, colorKey, label, tip, also)
-                local fg, fs = GB(key)
-                card:Add(UI.Check(card, label, fg, fs, { tip = tip, enableIf = also }))
-                card:Add(UI.Swatch(card, L["Color"], function() return G()[colorKey] end, ApplyAllBars,
-                    { alpha = true, sub = true, enableIf = function() return G()[key] and (not also or also()) end }))
-            end
-            FlashRow("cdPress", "cdPressColor", L["Pressed on cooldown"],
-                L["A short flash when you press a button that is on cooldown."])
-            FlashRow("gcdPress", "gcdPressColor", L["Pressed on global cooldown"],
-                L["A short flash when you press a button while only the global cooldown runs."])
-            FlashRow("failPress", "failPressColor", L["Pressed when not usable"],
-                L["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable..."])
-            FlashRow("emptyPress", "emptyPressColor", L["Pressed on an empty slot"],
-                L["A short flash where you press a key whose slot has no spell, even if empty slots are hidden."])
-            FlashRow("readyFlash", "readyColor", L["Ready flash"],
-                L["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."])
-            FlashRow("interruptFlash", "interruptColor", L["Interrupted"],
-                L["A short flash when the cast is interrupted (flat cast animation)."], flatOn)
-
-            -- one card: pick a text, then its look
-            local which = { key = "hotkey" }
-            local function T() return G().texts[which.key] end
-            local function TB(key)
-                return function() return T()[key] end, function(v) T()[key] = v ApplyAllBars() end
-            end
-            card = page:Add(2, UI.Card(page.content, L["Texts"], L["Choose a text, then its look."]))
-            card:Add(UI.Dropdown(card, nil, { { "hotkey", L["Keybind"] }, { "count", L["Count"] }, { "macro", L["Macro name"] }, { "cooldown", L["Cooldown"] } },
-                function() return which.key end, function(v) which.key = v UI.RefreshAll() end))
-            local shg, shs = TB("show")
-            card:Add(UI.Check(card, L["Show"], shg, shs,
-                { tip = L["Off: this text is hidden on every bar. Keybind, count and macro name can also be hidden per bar (Bars, Actions tab)."] }))
-            local shown = function() return T().show end
-            local fg, fs = TB("font")
-            card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs, { enableIf = shown, sub = true }))
-            local zg, zs = TB("size")
-            card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { format = UI.px, enableIf = shown, sub = true }))
-            local og, os = TB("outline")
-            card:Add(UI.Segmented(card, L["Outline"], OUTLINES(), og, os, { enableIf = shown, sub = true }))
-            card:Add(UI.Swatch(card, L["Color"], function() return T().color end, ApplyAllBars, { alpha = true, enableIf = shown, sub = true }))
-            local pg, ps = TB("point")
-            card:Add(UI.Dropdown(card, L["Position"], POINTS, pg, ps, { enableIf = shown, sub = true }))
-            local xg, xs = TB("x")
-            card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs, { format = UI.px, enableIf = shown, sub = true }))
-            local yg, ys = TB("y")
-            card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys, { format = UI.px, enableIf = shown, sub = true }))
 
             -- like every reset: red, and a second click to confirm
             card = page:Add(2, UI.Card(page.content, L["Defaults"]))
             local reset = UI.Buttons(card, { { L["Defaults"], function()
-                local D = ns.defaults.bars
-                for _, key in ipairs({ "buttons", "casting" }) do
-                    local t = ns.P.bars[key]
-                    wipe(t)
-                    for k, v in pairs(ns.Copy(D[key])) do t[k] = v end
-                end
+                G().tooltip, G().lock = DG().tooltip, DG().lock
+                local t = K()
+                wipe(t)
+                for k, v in pairs(ns.Copy(ns.defaults.bars.casting)) do t[k] = v end
                 ApplyAllBars()
                 UI.RefreshAll()
-            end, "danger" } }, { tip = L["Every setting of this page (both tabs) back to its default."] })
+            end, "danger" } }, { tip = L["Every setting of this tab back to its default."] })
             UI.Confirm(reset.buttons[1])
             card:Add(reset)
         end },
+
+        { "states", L["States"], function(left, right)
+            local function State(label, t, show, color, draw, more)
+                local it = { label = label, t = t, show = show, color = color, draw = draw }
+                for k, v in pairs(more or {}) do it[k] = v end
+                return it
+            end
+            local function Flashing(key)
+                return function(p)
+                    local c = G()[key]
+                    p.flash:SetVertexColor(c.r, c.g, c.b, c.a or 1)
+                    p.flash:Show()
+                end
+            end
+            LookTab(left, right, L["States"], {
+                State(L["Hover"], I, "hoverShow", "hoverColor", function(p) Overlay(p, I().hoverColor) end,
+                    { icons = true, enable = Square }),
+                State(L["Pressed"], I, "pushShow", "pushColor", function(p) Overlay(p, I().pushColor) end,
+                    { icons = true, enable = Square }),
+                State(L["Active"], I, "checkShow", "checkColor", function(p) Overlay(p, I().checkColor) end,
+                    { icons = true, enable = Square }),
+                State(L["Attacking"], G, "attackShow", "attackColor", Flashing("attackColor")),
+                State(L["Auto-repeat"], G, "autoRepeatShow", "autoRepeatColor", Flashing("autoRepeatColor")),
+                State(L["Out of range"], G, "rangeShow", "rangeColor", function(p)
+                    if G().range == "hotkey" then SampleText(p, G().texts.hotkey, "1", G().rangeColor)
+                    else Tint(p, G().rangeColor) end
+                end, { extra = function(card, on)
+                    local rg, rs = GB("range")
+                    card:Add(UI.Segmented(card, L["Tints"], { { "button", L["Button"] }, { "hotkey", L["Keybind"] } },
+                        rg, rs, { enableIf = on }))
+                end }),
+                State(L["Out of mana"], G, "manaShow", "manaColor", function(p) Tint(p, G().manaColor) end),
+                State(L["Not usable"], G, "unusableShow", "unusableColor", function(p) Tint(p, G().unusableColor) end),
+                State(L["Equipped"], G, "equipShow", "equipColor", function(p)
+                    local c = G().equipColor
+                    p.border:SetVertexColor(c.r, c.g, c.b, c.a or 1)
+                    p.border:Show()
+                end),
+            }, {
+                { G, DG, { "rangeShow", "range", "rangeColor", "manaShow", "manaColor", "unusableShow", "unusableColor",
+                    "attackShow", "attackColor", "autoRepeatShow", "autoRepeatColor", "equipShow", "equipColor" } },
+                { I, DI, { "hoverShow", "hoverColor", "pushShow", "pushColor", "checkShow", "checkColor" } },
+            })
+        end, true },
+
+        { "timers", L["Timers"], function(left, right)
+            LookTab(left, right, L["Timers"], {
+                { label = L["Cooldown"], t = G, draw = function(p) SampleCooldown(p, G().cooldownAlpha, 12) end,
+                    extra = function(card)
+                        local cg, cs = GB("cooldownAlpha")
+                        card:Add(UI.Slider(card, L["Darkness"], 0, 1, 0.05, cg, cs, { format = UI.pct }))
+                    end },
+                { label = L["Global cooldown"], t = G, draw = function(p)
+                    SampleCooldown(p, G().gcdAlpha, 1.5)
+                    p.cd:SetDrawEdge(G().gcdSpark and true or false)
+                    local c = G().gcdSparkColor
+                    if p.cd.SetEdgeColor then p.cd:SetEdgeColor(c.r, c.g, c.b, c.a or 1) end
+                end, extra = function(card)
+                    local gg, gs = GB("gcdAlpha")
+                    card:Add(UI.Slider(card, L["Darkness"], 0, 1, 0.05, gg, gs, { format = UI.pct,
+                        tip = L["If the game does not tell it is the global cooldown, the cooldown darkness is used."] }))
+                    local sg, ss = GB("gcdSpark")
+                    card:Add(UI.Check(card, L["Spark"], sg, ss,
+                        { tip = L["A bright line that follows the global cooldown as it turns."] }))
+                    card:Add(UI.Swatch(card, L["Color"], function() return G().gcdSparkColor end, ApplyAllBars,
+                        { alpha = true, sub = true, enableIf = function() return G().gcdSpark end }))
+                end },
+                { label = L["Casting"], t = G, show = "castVFX", color = "castFillColor", colorIf = flatOn, draw = function(p)
+                    if G().castStyle == "flat" then Paint(p.fill, G().castFillColor) p.fill:Show() end
+                end, extra = function(card, on)
+                    local stg, sts = GB("castStyle")
+                    card:Add(UI.Segmented(card, L["Style"], { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } }, stg, sts,
+                        { enableIf = on, tip = L["Flat: the button fills as the cast goes (a channel empties); the color is the fill. Blizzard: the game's animation."] }))
+                end },
+            }, {
+                { G, DG, { "cooldownAlpha", "gcdAlpha", "gcdSpark", "gcdSparkColor", "castVFX", "castStyle", "castFillColor" } },
+            })
+        end, true },
+
+        { "flashes", L["Flashes"], function(left, right)
+            local function FlashItem(label, key, colorKey, tip, enable)
+                return { label = label, t = G, show = key, color = colorKey, enable = enable,
+                    draw = function(p) Overlay(p, G()[colorKey]) end,
+                    extra = tip and function(card) card:Add(UI.Note(card, tip)) end }
+            end
+            LookTab(left, right, L["Flashes"], {
+                FlashItem(L["Pressed on cooldown"], "cdPress", "cdPressColor"),
+                FlashItem(L["Pressed on global cooldown"], "gcdPress", "gcdPressColor"),
+                FlashItem(L["Pressed when not usable"], "failPress", "failPressColor",
+                    L["No target, out of range, not enough power, not usable..."]),
+                FlashItem(L["Pressed on an empty slot"], "emptyPress", "emptyPressColor",
+                    L["Also where empty slots are hidden."]),
+                FlashItem(L["Ready"], "readyFlash", "readyColor",
+                    L["When a cooldown of 2 seconds or more ends."]),
+                FlashItem(L["Interrupted"], "interruptFlash", "interruptColor",
+                    L["With the flat cast animation (Timers, Casting)."], flatOn),
+            }, {
+                { G, DG, { "cdPress", "cdPressColor", "gcdPress", "gcdPressColor", "failPress", "failPressColor",
+                    "emptyPress", "emptyPressColor", "readyFlash", "readyColor", "interruptFlash", "interruptColor" } },
+            })
+        end, true },
+
+        { "texts", L["Texts"], function(left, right)
+            local SAMPLE = { hotkey = "1", count = "3", macro = L["Macro"], cooldown = "8" }
+            local function TextItem(key, label)
+                local function T() return G().texts[key] end
+                local function TB(field)
+                    return function() return T()[field] end, function(v) T()[field] = v ApplyAllBars() end
+                end
+                return { label = label, t = T, show = "show", color = "color",
+                    draw = function(p) SampleText(p, T(), SAMPLE[key]) end,
+                    extra = function(card, on)
+                        local fg, fs = TB("font")
+                        card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs, { enableIf = on }))
+                        local zg, zs = TB("size")
+                        card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { format = UI.px, enableIf = on }))
+                        local og, os = TB("outline")
+                        card:Add(UI.Segmented(card, L["Outline"], OUTLINES(), og, os, { enableIf = on }))
+                        local pg, ps = TB("point")
+                        card:Add(UI.Dropdown(card, L["Position"], POINTS, pg, ps, { enableIf = on }))
+                        local xg, xs = TB("x")
+                        card:Add(UI.Slider(card, L["X offset"], -20, 20, 1, xg, xs, { format = UI.px, enableIf = on, sub = true }))
+                        local yg, ys = TB("y")
+                        card:Add(UI.Slider(card, L["Y offset"], -20, 20, 1, yg, ys, { format = UI.px, enableIf = on, sub = true }))
+                        if key ~= "cooldown" then
+                            card:Add(UI.Note(card, L["Can also be hidden per bar (Bars, Actions tab)."]))
+                        end
+                    end }
+            end
+            LookTab(left, right, L["Texts"], {
+                TextItem("hotkey", L["Keybind"]),
+                TextItem("count", L["Count"]),
+                TextItem("macro", L["Macro name"]),
+                TextItem("cooldown", L["Cooldown"]),
+            }, {
+                { G, DG, { "texts" } },
+            })
+        end, true },
     })
 end
 
@@ -576,26 +786,15 @@ local function BuildIcons(container)
     look:Add(UI.Check(look, L["Item quality color"], qg, qs, { enableIf = on,
         tip = L["Item border by rarity (green, blue, purple...) instead of the chosen color."] }))
 
-    -- action buttons: hover / pressed / active
-    local states = page:Add(2, UI.Card(page.content, L["Button states"],
-        L["How action buttons look when hovered, pressed or active (auto attack, current stance)."]))
-    local stg, sts = IB("states", true)
-    states:Add(UI.Segmented(states, nil, { { "flat", L["Flat"] }, { "blizzard", L["Blizzard"] } },
-        stg, sts, { enableIf = on }))
-    local flat = function() return on() and O().states ~= "blizzard" end
-    for _, def in ipairs({ { "hoverColor", "Hover" }, { "pushColor", "Pressed" }, { "checkColor", "Active" } }) do
-        states:Add(UI.Swatch(states, L[def[2]], function() return O()[def[1]] end, ns.ApplyIcons,
-            { alpha = true, enableIf = flat, sub = true }))
-    end
     -- like every reset: red, and a second click to confirm
     local reset = UI.Buttons(look, { { L["Defaults"], function()
         local keep = {}
-        for _, k in ipairs(WHERE) do keep[k] = ns.P.icons[k] end
+        for _, k in ipairs(KEEP_ICONS) do keep[k] = ns.P.icons[k] end
         ns.ResetModule("icons")
         for k, v in pairs(keep) do ns.P.icons[k] = v end
         ns.ApplyIcons()
         UI.RefreshAll()
-    end, "danger" } }, { tip = L["Look and button states back to their defaults (the places stay)."] })
+    end, "danger" } }, { tip = L["The look back to its defaults (the places stay)."] })
     UI.Confirm(reset.buttons[1])
     look:Add(reset)
 end

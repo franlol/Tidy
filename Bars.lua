@@ -302,13 +302,14 @@ local function ButtonConfig(b, c)
         keyBoundTarget = b.tidyCommand or false,
         keyBoundClickButton = "Keybind",
         actionButtonUI = true,
-        outOfRangeColoring = G.range,
+        outOfRangeColoring = G.rangeShow and G.range or "none",
         tooltip = G.tooltip,
         colors = {
             range = { G.rangeColor.r, G.rangeColor.g, G.rangeColor.b, G.rangeColor.a or 1 },
-            mana = { G.manaColor.r, G.manaColor.g, G.manaColor.b, G.manaColor.a or 1 },
+            -- out of mana off: the icon keeps its own colors
+            mana = G.manaShow and { G.manaColor.r, G.manaColor.g, G.manaColor.b, G.manaColor.a or 1 } or { 1, 1, 1, 1 },
         },
-        hideElements = { macro = c.hideMacro, hotkey = c.hideHotkey, equipped = c.hideEquipped },
+        hideElements = { macro = c.hideMacro, hotkey = c.hideHotkey, equipped = c.hideEquipped or not G.equipShow },
         flyoutDirection = c.flyout,
         spellCastVFX = G.castVFX and G.castStyle == "blizzard", -- flat: Tidy's own (below)
         text = { hotkey = TextConfig(G.texts.hotkey), count = TextConfig(G.texts.count), macro = TextConfig(G.texts.macro) },
@@ -425,11 +426,37 @@ local function IconZoom()
     return I.enabled and I.actionbars and I.zoom or 0
 end
 
--- After every update of a Tidy button: the icon fit again (own key for the
--- callback, Icons.lua has its own)
+-- Attacking / auto-repeat and equipped: the library's own textures, in the
+-- chosen colors. Its flash (Auto Attack while attacking, Auto Shot / Shoot
+-- while repeating) is a red texture: greyed, then tinted. Hidden by alpha,
+-- as the library shows and hides it itself.
+local function StyleStates(b)
+    local G = B and B.buttons
+    if not G then return end
+    local f = b.Flash
+    if f then
+        local ok, attack = pcall(b.IsAttack, b)
+        local show, c = G.autoRepeatShow, G.autoRepeatColor
+        if ok and attack then show, c = G.attackShow, G.attackColor end
+        f:SetDesaturated(true)
+        f:SetVertexColor(c.r, c.g, c.b, c.a or 1)
+        f:SetAlpha(show and 1 or 0)
+    end
+    -- the library sets its green on every update, before this callback
+    if b.Border and b.Border:IsShown() then
+        local c = G.equipColor
+        b.Border:SetVertexColor(c.r, c.g, c.b, c.a or 1)
+    end
+end
+
+-- After every update of a Tidy button: the icon fit and the state colors
+-- again (own key for the callback, Icons.lua has its own)
 local fitKey = {}
 LAB.RegisterCallback(fitKey, "OnButtonUpdate", function(_, b)
-    if b.tidyFit then ns.FitIcon(b, IconZoom()) end
+    if b.tidyFit then
+        ns.FitIcon(b, IconZoom())
+        StyleStates(b)
+    end
 end)
 
 -- Cooldown flags: the times are secret on this client, only the flags
@@ -508,11 +535,12 @@ local function KeepLibEdge(cd, on)
 end
 
 -- Not usable: the library greys the icon with a fixed 0.4; Tidy's color
--- goes over it
+-- goes over it (white when the state is off: the icon keeps its colors)
 local function TintUnusable(icon, r, g, bl)
     if icon.tidyTinting or not B then return end
     if r == 0.4 and g == 0.4 and bl == 0.4 then
-        local c = B.buttons.unusableColor
+        local G = B.buttons
+        local c = G.unusableShow and G.unusableColor or { r = 1, g = 1, b = 1, a = 1 }
         icon.tidyTinting = true
         icon:SetVertexColor(c.r, c.g, c.b, c.a or 1)
         icon.tidyTinting = nil
@@ -958,6 +986,7 @@ local function Layout(h, c)
             b:EnableMouse(not c.clickThrough)
             ButtonAttributes(b)
             b:UpdateConfig(ButtonConfig(b, c))
+            StyleStates(b)
             ApplySwipe(b)
             StyleCountdown(b)
             if not FlatCast() then CastFill(b, false) end

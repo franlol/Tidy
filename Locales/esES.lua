@@ -101,8 +101,6 @@ ns.translations.esES = {
     ["Move 0.5 px. Shift-click: 5 px."] = "Mover 0,5 px. Mayús+clic: 5 px.",
     ["Every setting of this bar back to its default, position included."] =
         "Todos los ajustes de esta barra a sus valores por defecto, posición incluida.",
-    ["Every setting of this page (both tabs) back to its default."] =
-        "Todos los ajustes de esta página (las dos pestañas) a sus valores por defecto.",
 
     -- Tabs and card titles
     ["Size"] = "Tamaño",
@@ -112,17 +110,14 @@ ns.translations.esES = {
     ["Paging"] = "Páginas",
     ["Actions"] = "Acciones",
     ["This bar's buttons"] = "Botones de esta barra",
-    ["Cooldowns"] = "Reutilización",
     ["Which page of actions the bar shows. Action bars only."] =
         "Qué página de acciones muestra la barra. Solo barras de acción.",
     ["What the buttons of this bar show. Action bars only."] =
         "Qué muestran los botones de esta barra. Solo barras de acción.",
     ["For every button of Tidy's action bars."] = "Para todos los botones de las barras de acción de Tidy.",
-    ["Colors"] = "Colores",
     ["Self-cast"] = "Lanzar sobre ti",
     ["Focus"] = "Foco",
     ["Mouse-over"] = "Bajo el ratón",
-    ["Choose a text, then its look."] = "Elige un texto y luego su aspecto.",
 
     ["Modifier keys"] = "Teclas modificadoras",
     ["While the key is held, the bar shows another page."] =
@@ -131,8 +126,6 @@ ns.translations.esES = {
     ["Menus that open from a button (portals, totems, pets...)."] =
         "Menús que se abren desde un botón (portales, tótems, mascotas...).",
     ["Show"] = "Mostrar",
-    ["Off: this text is hidden on every bar. Keybind, count and macro name can also be hidden per bar (Bars, Actions tab)."] =
-        "Desactivado: este texto se oculta en todas las barras. El atajo, la cantidad y el nombre de macro también se pueden ocultar por barra (Barras, pestaña Acciones).",
 
 
     ["Hide in a stance or form"] = "Ocultar en una postura o forma",
@@ -153,9 +146,6 @@ ns.translations.esES = {
         "Dónde está el botón 1 y hacia dónde siguen los demás. La barra no se mueve.",
     ["Which row comes first. Only with more than one row."] = "Qué fila va primero. Solo con más de una fila.",
 
-    ["Button states"] = "Estados de los botones",
-    ["How action buttons look when hovered, pressed or active (auto attack, current stance)."] =
-        "Cómo se ven los botones de acción al pasar el ratón, al pulsarlos o activos (ataque automático, postura actual).",
     ["Flat"] = "Plano",
     ["Blizzard"] = "Blizzard",
     ["Hover"] = "Al pasar el ratón",
@@ -163,13 +153,6 @@ ns.translations.esES = {
     ["Active"] = "Activo",
 
     ["Button"] = "Botón",
-    ["Cooldown darkness"] = "Oscuridad del tiempo de reutilización",
-    ["How dark the cooldown is over the icon. Lower it to see the icon better."] =
-        "Cuánto oscurece el tiempo de reutilización al icono. Bájalo para ver mejor el icono.",
-    ["What turns red when the target is out of range: the button or its keybind."] =
-        "Qué se pone rojo cuando el objetivo está fuera de alcance: el botón o su atajo.",
-    ["Look and button states back to their defaults (the places stay)."] =
-        "Aspecto y estados de los botones a sus valores por defecto (los lugares se mantienen).",
 
     -- Keybinding mode
     ["no key"] = "sin tecla",
@@ -235,44 +218,17 @@ ns.translations.esES = {
     ["Out of combat"] = "Fuera de combate",
     ["Never"] = "Nunca",
     ["Out of range"] = "Fuera de alcance",
-    ["Nothing"] = "Nada",
-    ["Out of range color"] = "Color fuera de alcance",
-    ["Out of mana color"] = "Color sin maná",
     ["Pressed on cooldown"] = "Pulsado en reutilización",
-    ["Global cooldown darkness"] = "Oscuridad del tiempo de reutilización global",
-    ["How dark the global cooldown alone is, so a real cooldown stands out. If the game does not tell which one it is, the cooldown darkness is used."] =
-        "Lo oscuro que se ve el tiempo de reutilización global solo, para que uno de verdad destaque. Si el juego no dice cuál es, se usa la oscuridad del tiempo de reutilización.",
-    ["Global cooldown spark"] = "Destello del tiempo de reutilización global",
     ["A bright line that follows the global cooldown as it turns."] =
         "Una línea brillante que acompaña al tiempo de reutilización global mientras gira.",
-    ["Ready flash"] = "Destello al estar listo",
-    ["A short flash when a cooldown of 2 seconds or more ends and the button is ready again."] =
-        "Un destello breve cuando termina un tiempo de reutilización de 2 segundos o más y el botón vuelve a estar listo.",
-    ["Not usable color"] = "Color no utilizable",
-    ["The icon when it cannot be used now (wrong form, needs a target, no reagents...)."] =
-        "El icono cuando no se puede usar ahora (forma equivocada, necesita objetivo, sin componentes...).",
     ["Pressed when not usable"] = "Pulsado sin poder usarse",
-    ["A short flash when you press a button and it fails: no target, out of range, not enough power, not usable..."] =
-        "Un destello corto al pulsar un botón y fallar: sin objetivo, fuera de alcance, sin recurso suficiente, no utilizable...",
     ["Pressed on an empty slot"] = "Pulsado en un hueco vacío",
-    ["A short flash where you press a key whose slot has no spell, even if empty slots are hidden."] =
-        "Un destello corto donde pulsas una tecla cuyo hueco no tiene hechizo, aunque los huecos vacíos estén ocultos.",
-    ["A short flash when you press a button that is on cooldown."] =
-        "Un destello corto al pulsar un botón que está en reutilización.",
     ["Pressed on global cooldown"] = "Pulsado en reutilización global",
-    ["A short flash when you press a button while only the global cooldown runs."] =
-        "Un destello corto al pulsar un botón mientras solo corre el tiempo de reutilización global.",
     ["Lock buttons"] = "Bloquear botones",
     ["Spells cannot be dragged off the bars (Shift + drag still can)."] =
         "Los hechizos no se pueden sacar de las barras (Mayús + arrastrar sí).",
-    ["Cast animation"] = "Animación de lanzamiento",
-    ["Flat: the button fills as the cast goes (a channel empties); its interrupt flash is in Colors. Blizzard: the game's animation."] =
-        "Plano: el botón se llena mientras lanzas (una canalización se vacía); su destello al interrumpirse está en Colores. Blizzard: la animación del juego.",
     ["Style"] = "Estilo",
-    ["Casting fill"] = "Relleno al lanzar",
     ["Interrupted"] = "Interrumpido",
-    ["A short flash when the cast is interrupted (flat cast animation)."] =
-        "Un destello breve cuando se interrumpe el lanzamiento (animación de lanzamiento plana).",
     ["Cast on key down"] = "Lanzar al pulsar la tecla",
     ["A game setting: for every bar."] = "Un ajuste del juego: para todas las barras.",
     ["Self-cast with a key"] = "Lanzar sobre ti con una tecla",
@@ -289,7 +245,6 @@ ns.translations.esES = {
     ["Macro name"] = "Nombre de macro",
     ["Cooldown"] = "Reutilización",
     ["Font"] = "Fuente",
-    ["Size"] = "Tamaño",
     ["Outline"] = "Contorno",
     ["Thick outline"] = "Contorno grueso",
     ["Color"] = "Color",
@@ -334,5 +289,33 @@ ns.translations.esES = {
     ["Opacity"] = "Opacidad",
     ["Show empty buttons"] = "Mostrar botones vacíos",
     ["Change page with stance / form"] = "Cambiar de página con postura / forma",
+    -- Buttons: states, timers, flashes, texts
+    ["States"] = "Estados",
+    ["Timers"] = "Tiempos",
+    ["Flashes"] = "Destellos",
+    ["Attacking"] = "Atacando",
+    ["Auto-repeat"] = "Repetición automática",
+    ["Out of mana"] = "Sin maná",
+    ["Not usable"] = "No utilizable",
+    ["Equipped"] = "Equipado",
+    ["Tints"] = "Tiñe",
+    ["Global cooldown"] = "Reutilización global",
+    ["Casting"] = "Lanzando",
+    ["Darkness"] = "Oscuridad",
+    ["Spark"] = "Destello",
+    ["Ready"] = "Listo",
+    ["Macro"] = "Macro",
+    ["If the game does not tell it is the global cooldown, the cooldown darkness is used."] =
+        "Si el juego no indica que es la reutilización global, se usa la oscuridad de la reutilización.",
+    ["Flat: the button fills as the cast goes (a channel empties); the color is the fill. Blizzard: the game's animation."] =
+        "Plano: el botón se llena mientras lanzas (una canalización se vacía); el color es el relleno. Blizzard: la animación del juego.",
+    ["No target, out of range, not enough power, not usable..."] =
+        "Sin objetivo, fuera de alcance, sin recurso suficiente, no utilizable...",
+    ["Also where empty slots are hidden."] = "También donde los huecos vacíos están ocultos.",
+    ["When a cooldown of 2 seconds or more ends."] = "Cuando termina una reutilización de 2 segundos o más.",
+    ["With the flat cast animation (Timers, Casting)."] = "Con la animación de lanzamiento plana (Tiempos, Lanzando).",
+    ["Can also be hidden per bar (Bars, Actions tab)."] = "También se puede ocultar por barra (Barras, pestaña Acciones).",
+    ["Every setting of this tab back to its default."] = "Todos los ajustes de esta pestaña a sus valores por defecto.",
+    ["The look back to its defaults (the places stay)."] = "El aspecto a sus valores por defecto (los lugares se mantienen).",
 }
 ns.translations.esMX = ns.translations.esES

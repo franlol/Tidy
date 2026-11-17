@@ -33,11 +33,11 @@ ns.defaults = {
         zoom = 0.08,                           -- how much of the icon edge is cut
         debuffColor = false,                   -- border colored by debuff type
         qualityColor = true,                   -- border colored by item quality
-        -- action buttons: hover / pressed / active look
-        states = "flat",                       -- flat (Tidy) / blizzard (the game's frames)
-        hoverColor = { r = 1, g = 1, b = 1, a = 0.15 },
-        pushColor = { r = 0, g = 0, b = 0, a = 0.35 },
-        checkColor = { r = 1, g = 0.82, b = 0, a = 0.3 },
+        -- action buttons with the square look: hover / pressed / active
+        -- (set in Buttons > States; kept here, they cover every action bar)
+        hoverShow = true, hoverColor = { r = 1, g = 1, b = 1, a = 0.15 },
+        pushShow = true, pushColor = { r = 0, g = 0, b = 0, a = 0.35 },
+        checkShow = true, checkColor = { r = 1, g = 0.82, b = 0, a = 0.3 },
     },
     bars = {
         enabled = false,  -- replaces Blizzard's action bars
@@ -48,9 +48,19 @@ ns.defaults = {
         -- every action button
         buttons = {
             tooltip = "enabled",  -- enabled / nocombat / disabled
-            range = "button",     -- out of range: button / hotkey / none
+            -- states: shown or not, and their color
+            rangeShow = true,
+            range = "button",     -- out of range tints: button / hotkey
             rangeColor = { r = 0.8, g = 0.1, b = 0.1, a = 1 },
+            manaShow = true,
             manaColor = { r = 0.5, g = 0.5, b = 1, a = 1 },
+            unusableShow = true,
+            attackShow = true,    -- Auto Attack while attacking (the button flashes)
+            attackColor = { r = 1, g = 0.2, b = 0.2, a = 1 },
+            autoRepeatShow = true, -- Auto Shot, Shoot... while repeating
+            autoRepeatColor = { r = 1, g = 0.2, b = 0.2, a = 1 },
+            equipShow = true,     -- border of an equipped item
+            equipColor = { r = 0, g = 1, b = 0, a = 0.35 },
             castVFX = true,       -- cast animation on the button
             castStyle = "flat",   -- flat: Tidy's border and flash / blizzard: the game's animation
             castFillColor = { r = 1, g = 0.82, b = 0.2, a = 0.35 },   -- fill while casting (flat; its edge is opaque)
@@ -108,7 +118,21 @@ local function Fill(t, def)
     end
 end
 
+-- Older settings in the current form (before the defaults fill the rest)
+local function Migrate(p)
+    local b = type(p.bars) == "table" and p.bars.buttons
+    -- out of range "none" became its own on/off
+    if type(b) == "table" and b.range == "none" then
+        b.range = "button"
+        b.rangeShow = false
+    end
+    -- the flat / Blizzard choice of the button states is gone: each state
+    -- has its own on/off now
+    if type(p.icons) == "table" then p.icons.states = nil end
+end
+
 local function FillProfile(p)
+    Migrate(p)
     Fill(p, ns.defaults)
 end
 

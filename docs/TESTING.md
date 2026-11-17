@@ -24,22 +24,25 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 15. Actions, this bar's buttons (bar 1): empty buttons, hide macro / keybind / equipped, flyout direction.
 16. Bags: **Only the backpack**, **Keyring**. Extra button: **Hide the artwork** (needs an extra button).
 
-## Buttons — tabs Behaviour (with casting) · Look (cooldowns, colors, texts)
-17. Tooltips always / out of combat / never. Out of range colors.
+## Buttons — tabs Behaviour (with casting) · States · Timers · Flashes · Texts
+Each look tab: list on the left (check = on/off, swatch = color), the picked one on the right with a sample button, **Defaults** under the list (only that tab).
+17. Tooltips always / out of combat / never. Behaviour **Defaults**: tooltips, lock and casting back.
 18. **Lock buttons**: spells can't be dragged off (Shift+drag can).
 19. Drag a spell between buttons: it moves, it is **not** cast.
-20. Texts: show / hide, font, size, outline, color, position for keybind, count, macro name.
+20. **Texts**: keybind, count, macro name, cooldown — on/off, font, size, outline, color, position; the sample shows it.
 21. Casting: self-cast key, focus-cast key, mouse-over, right click on yourself.
 21b. Click a button while moving the mouse (starts a drag): it never stays darker afterwards.
-21c. Press the key of a spell on cooldown: short red flash; during the global cooldown only: short yellow flash. Not on a normal cast. **Pressed on cooldown** / **Pressed on global cooldown** colors, opacity 0 = off.
-21d. Press a key: the button looks pressed while held (flat and Blizzard states), never stays pressed (also changing Shift while holding).
-21e. Global cooldown swipe lighter than a real cooldown (**Global cooldown darkness**); a spell with its own cooldown uses **Cooldown darkness**.
-21f. A spell you cannot use (wrong form, no target needed...) uses **Not usable color**.
-21g. Press a spell with no target / out of range / without mana / not usable: orange flash (**Pressed when not usable**, opacity 0 = off). Empty buttons: no flash.
+21c. **Flashes**: press a spell on cooldown → red; during the global cooldown only → yellow; not usable / out of range / no mana → orange; key of an empty slot → white; a 2 s+ cooldown ends → green; interrupted cast (flat) → red. Each on/off and color works; Interrupted greyed with the Blizzard cast style.
+21d. **States > Hover / Pressed / Active** (square look on): hover tint, pressed while held (never stays, also changing Shift), active (current stance, queued Raptor Strike / Heroic Strike). Each off: nothing shows. Square look off: greyed, Blizzard's look.
+21e. **Timers**: global cooldown swipe lighter than a real cooldown; spark on/off and color; Casting off / flat (fill color) / Blizzard.
+21f. **States > Not usable / Out of mana / Out of range**: colors; off = the icon keeps its colors; out of range tints the button or the keybind.
+21g. **States > Attacking**: Auto Attack flashes in its color while attacking; **Auto-repeat**: Auto Shot / Shoot flash in theirs. Off: no flash.
+21h. **States > Equipped**: equipped item (trinket on a bar) border in its color; off = no border; Bars > Actions "Hide equipped border" still hides it per bar.
+21i. Old settings: a profile with out of range "Nothing" opens with Out of range unchecked.
 
 ## Icons
 22. Each place on/off: icons square ↔ Blizzard's look, live.
-23. Border size / color, background, zoom, debuff and quality colors.
+23. Border size / color, background, zoom, debuff and quality colors. Icons **Defaults** keeps the places and the button states (Buttons > States).
 
 ## Profiles
 24. New profile → defaults; switch back → your setup. Copy, reset, delete.

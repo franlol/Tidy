@@ -111,14 +111,6 @@ end
 -- button-sized overlays are used instead. Hooks are installed once and only
 -- act while the button is styled.
 -------------------------------------------------------------------------------
--- a region Tidy hid gets its own alpha back (and is no longer Tidy's)
-local function Unhide(s, region)
-    if region and s.hidden[region] ~= nil then
-        region:SetAlpha(s.hidden[region])
-        s.hidden[region] = nil
-    end
-end
-
 -- Pressed overlays shown (states -> { b = button, mouse = mouse button }):
 -- hidden as soon as that mouse button is up or the mouse is off the button
 local pushed = {}
@@ -133,13 +125,13 @@ local function PushTick()
     if not next(pushed) then pushWatch:SetScript("OnUpdate", nil) end
 end
 
--- Pressed look from a key (Bars.lua): Tidy's flat overlay, or Blizzard's
--- pushed state when the flat states are not in use
+-- Pressed look from a key (Bars.lua): Tidy's flat overlay (if the pressed
+-- state is on), or Blizzard's pushed state without the square look
 function ns.ShowPressed(b, on)
     local s = skins[b]
     local st = s and s.states
-    if st and st.flat and not s.off then
-        st.push:SetShown(on and true or false)
+    if st and not s.off then
+        st.push:SetShown(on and O.pushShow and true or false)
     else
         pcall(b.SetButtonState, b, on and "PUSHED" or "NORMAL")
     end
@@ -163,7 +155,7 @@ local function FlatStates(b, s)
         -- not send OnMouseUp once a drag started (a click while moving the
         -- mouse), so a watcher also checks the mouse button itself.
         b:HookScript("OnMouseDown", function(_, mouse)
-            if st.flat and not s.off then
+            if O.pushShow and not s.off then
                 st.push:Show()
                 pushed[st] = { b = b, mouse = mouse }
                 pushWatch:SetScript("OnUpdate", PushTick)
@@ -177,27 +169,22 @@ local function FlatStates(b, s)
         end
         if type(b.SetChecked) == "function" then
             hooksecurefunc(b, "SetChecked", function(_, on)
-                st.check:SetShown(st.flat and not s.off and on and true or false)
+                st.check:SetShown(O.checkShow and not s.off and on and true or false)
             end)
         end
     end
-    local natives = { b:GetHighlightTexture(), b:GetPushedTexture(), b.GetCheckedTexture and b:GetCheckedTexture() }
-    st.flat = O.states ~= "blizzard"
-    if st.flat then
-        local function C(t, c) t:SetColorTexture(c.r, c.g, c.b, c.a or 1) end
-        C(st.hover, O.hoverColor)
-        C(st.push, O.pushColor)
-        C(st.check, O.checkColor)
-        st.hover:SetAlpha(1)
-        st.check:SetShown(b.GetChecked and b:GetChecked() and true or false)
-        for i = 1, 3 do Hide(s, natives[i]) end
-    else
-        -- "Blizzard": the game's own frames, ours off
-        st.hover:SetAlpha(0)
-        st.push:Hide()
-        st.check:Hide()
-        for i = 1, 3 do Unhide(s, natives[i]) end
-    end
+    -- Blizzard's own frames stay hidden with the square look; each state
+    -- shows its flat overlay only if it is on
+    local function C(t, c) t:SetColorTexture(c.r, c.g, c.b, c.a or 1) end
+    C(st.hover, O.hoverColor)
+    C(st.push, O.pushColor)
+    C(st.check, O.checkColor)
+    st.hover:SetAlpha(O.hoverShow and 1 or 0)
+    if not O.pushShow then st.push:Hide() end
+    st.check:SetShown(O.checkShow and b.GetChecked and b:GetChecked() and true or false)
+    Hide(s, b:GetHighlightTexture())
+    Hide(s, b:GetPushedTexture())
+    if b.GetCheckedTexture then Hide(s, b:GetCheckedTexture()) end
 end
 
 local function IconOf(f)
