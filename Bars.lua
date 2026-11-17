@@ -256,10 +256,10 @@ local ON_PAGE = [[
 local LAB = LibStub("LibActionButton-1.0")
 -- enough pages for the vehicle / override / temp shapeshift bars, whose
 -- page numbers depend on the client (31-33 on Forever)
-local PAGES = math.max(18,
-    C_ActionBar.GetVehicleBarIndex() or 0,
-    C_ActionBar.GetOverrideBarIndex() or 0,
-    C_ActionBar.GetTempShapeshiftBarIndex() or 0)
+local function PageCount()
+    return math.max(18, C_ActionBar.GetVehicleBarIndex(), C_ActionBar.GetOverrideBarIndex(),
+        C_ActionBar.GetTempShapeshiftBarIndex())
+end
 -- Short form of a key: SHIFT-1 -> S1, BUTTON4 -> M4, NUMPAD3 -> N3...
 local SHORT = {
     { "ALT%-", "A" }, { "CTRL%-", "C" }, { "SHIFT%-", "S" }, { "META%-", "M" },
@@ -908,7 +908,7 @@ local function CreateButton(header, id, i)
         end
         CapSwipe(b.cooldown, 0, 0, 0, 1)
     end
-    for page = 1, PAGES do b:SetState(page, "action", (page - 1) * 12 + i) end
+    for page = 1, PageCount() do b:SetState(page, "action", (page - 1) * 12 + i) end
     b:SetState(0, "action", (id - 1) * 12 + i)
     return b
 end
