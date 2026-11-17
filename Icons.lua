@@ -408,6 +408,33 @@ end
 -------------------------------------------------------------------------------
 -- Item buttons (bags, bank, loot, merchant, character, quest rewards...)
 -------------------------------------------------------------------------------
+-- Bag slots show SlotHighlightTexture while their bag is open (or empty):
+-- with the square look it is hidden and the flat "active" overlay mirrors
+-- it, like an active action button. Hooked once per button.
+local function ActiveSlot(b, s)
+    local t = b.SlotHighlightTexture
+    if not t then return end
+    Hide(s, t)
+    if not s.syncActive then
+        s.syncActive = function()
+            local st = s.states
+            if st then st.check:SetShown(O.checkShow and not s.off and t:IsShown() and true or false) end
+        end
+        hooksecurefunc(t, "Show", s.syncActive)
+        hooksecurefunc(t, "Hide", s.syncActive)
+        if t.SetShown then hooksecurefunc(t, "SetShown", s.syncActive) end
+    end
+    s.syncActive()
+end
+
+-- Same hover / pressed / active look as the action buttons. Blizzard puts
+-- its highlight back when a bag slot redraws (UpdateTextures), so this is
+-- redone with the zoom.
+local function ItemStates(b, s)
+    FlatStates(b, s)
+    ActiveSlot(b, s)
+end
+
 local function SkinItem(b)
     if not b then return end
     local s = skins[b]
@@ -415,6 +442,7 @@ local function SkinItem(b)
     -- (SetTexCoord 0, 1, 0, 1), so the zoom is put back
     if s and not s.off then
         ZoomSkin(s)
+        ItemStates(b, s)
         return
     end
     if not On("items") then return end
@@ -426,6 +454,42 @@ local function SkinItem(b)
     Hide(s, b.NormalTexture)
     -- the quality border is shown only for good items: follow it
     FollowColor(b, s, b.IconBorder, true)
+    ItemStates(b, s)
+end
+
+-- Bag bar: drawn before Tidy starts (so the item hook misses it), and the
+-- backpack and key ring set their icon in UpdateTextures, never through
+-- SetItemButtonTexture. Every button redraws there: hooked once.
+local BAG_BUTTONS = { "MainMenuBarBackpackButton", "CharacterBag0Slot", "CharacterBag1Slot",
+    "CharacterBag2Slot", "CharacterBag3Slot", "CharacterReagentBag0Slot", "KeyRingButton" }
+
+-- Blizzard's dividers on the right edge of each bag (BagsBar:UpdateDividers)
+-- are drawn for its round slots: hidden with the square look (by alpha, the
+-- bar acquires and places them itself)
+local function BagDividers()
+    local bar = BagsBar
+    if not bar then return end
+    local a = On("items") and 0 or 1
+    for _, key in ipairs({ "HorizontalDividersPool", "VerticalDividersPool" }) do
+        local pool = bar[key]
+        if pool then
+            for d in pool:EnumerateActive() do d:SetAlpha(a) end
+        end
+    end
+end
+
+local function BagBar()
+    BagDividers()
+    for _, n in ipairs(BAG_BUTTONS) do
+        local b = _G[n]
+        if b then
+            if not hooked[b] and type(b.UpdateTextures) == "function" then
+                hooked[b] = true
+                hooksecurefunc(b, "UpdateTextures", SkinItem)
+            end
+            SkinItem(b)
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -438,7 +502,8 @@ function ns.ApplyIcons()
             ZoomSkin(s)
             Place(s)
             Paint(s)
-            if s.kind == "action" then FlatStates(s.frame, s) end
+            if s.kind == "action" then FlatStates(s.frame, s)
+            elseif s.kind == "item" then ItemStates(s.frame, s) end
         end
     end
 end
@@ -451,6 +516,7 @@ function ns.RefreshIcons()
     end
     SkinAllActionButtons()
     PlayerAuras()
+    BagBar()
     for f, s in pairs(skins) do
         if s.off and On(s.cat) then
             if s.kind == "item" then SkinItem(f)
@@ -490,6 +556,9 @@ ns.Module(function()
 
     if type(SetItemButtonTexture) == "function" then
         hooksecurefunc("SetItemButtonTexture", SkinItem)
+    end
+    if BagsBar and type(BagsBar.UpdateDividers) == "function" then
+        hooksecurefunc(BagsBar, "UpdateDividers", BagDividers)
     end
 
     local ev = CreateFrame("Frame")

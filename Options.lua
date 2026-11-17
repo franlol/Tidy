@@ -596,7 +596,8 @@ local function BuildButtons(container)
     local function DG() return ns.defaults.bars.buttons end
     local function DI() return ns.defaults.icons end
     -- hover / pressed / active are drawn by the square look
-    local function Square() return I().enabled and I().actionbars and true or false end
+    -- the flat states are drawn on square action buttons and item buttons
+    local function Square() return I().enabled and (I().actionbars or I().items) and true or false end
     local flatOn = function() return G().castVFX and G().castStyle == "flat" end
 
     Tabbed(container, "buttons", {
@@ -665,7 +666,7 @@ local function BuildButtons(container)
                 end
             end
             -- drawn by the square look; without it, Blizzard's own
-            local SQUARE = { icons = true, enable = Square, note = L["Needs square icons on action bars (Icons page)."] }
+            local SQUARE = { icons = true, enable = Square, note = L["Needs the square style (Icons page)."] }
             LookTab(left, right, L["States"], {
                 State(L["Hover"], I, "hoverShow", "hoverColor", function(p) Overlay(p, I().hoverColor) end, SQUARE),
                 State(L["Pressed"], I, "pushShow", "pushColor", function(p) Overlay(p, I().pushColor) end, SQUARE),

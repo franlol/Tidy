@@ -322,8 +322,8 @@ ns.translations.esES = {
         "Línea brillante en el borde del relleno.",
     ["Blizzard style has no preview: it only plays on a real cast."] =
         "El estilo Blizzard no tiene vista previa: solo se ve en un lanzamiento real.",
-    ["Needs square icons on action bars (Icons page)."] =
-        "Requiere iconos cuadrados en las barras de acción (página Iconos).",
+    ["Needs the square style (Icons page)."] =
+        "Requiere el estilo cuadrado (página Iconos).",
     ["Resets every setting in this tab."] =
         "Restablece todos los ajustes de esta pestaña.",
     ["Resets the look. Where is kept."] =
