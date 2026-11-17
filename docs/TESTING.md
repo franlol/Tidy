@@ -25,7 +25,7 @@ One pass, in order. Note the number of anything that fails (and paste any Lua er
 16. Bags: **Only the backpack**, **Keyring**. Extra button: **Hide the artwork** (needs an extra button).
 
 ## Buttons — tabs Behaviour (with casting) · States · Timers · Flashes · Texts
-Each look tab: list on the left (check = on/off, swatch = color), the picked one on the right with a sample button, **Defaults** under the list (only that tab).
+Each look tab: list on the left (check = on/off, swatch = color), the picked one on the right with 5 sample buttons (the first spells of your bar 1, bright spell icons where it has fewer), **Defaults** under the list (only that tab).
 17. Tooltips always / out of combat / never. Behaviour **Defaults**: tooltips, lock and casting back.
 18. **Lock buttons**: spells can't be dragged off (Shift+drag can).
 19. Drag a spell between buttons: it moves, it is **not** cast.

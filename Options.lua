@@ -399,20 +399,45 @@ local PREVIEW = 44
 
 local function Paint(t, c) t:SetColorTexture(c.r, c.g, c.b, c.a or 1) end
 
--- Sample button: an icon with the pieces the real buttons use. draw(p)
--- puts one look on it with the current settings.
-local function Preview(parent, draw)
-    local r = UI.Row(parent, PREVIEW + 12)
-    local p = CreateFrame("Frame", nil, r)
+-- Sample icons: the first spells on your bar 1 (action slots 1-12); where it
+-- has fewer, bright spells of every client (Fireball, Frostbolt, Holy
+-- Light, Rejuvenation, Arcane Intellect), asked to the game; the question
+-- mark if one is missing
+local SAMPLES = 5
+local SAMPLE_SPELLS = { 133, 116, 635, 774, 1459 }
+local SAMPLE_GAP = 8
+
+local function SpellIcon(id)
+    local ok, tex
+    if C_Spell and C_Spell.GetSpellTexture then ok, tex = pcall(C_Spell.GetSpellTexture, id) end
+    if not (ok and tex) and GetSpellTexture then ok, tex = pcall(GetSpellTexture, id) end
+    return ok and tex or nil
+end
+
+local function SampleIcons()
+    local list = {}
+    for slot = 1, 12 do
+        if #list == SAMPLES then break end
+        local ok, tex = pcall(C_ActionBar.GetActionTexture, slot)
+        if ok and tex then list[#list + 1] = tex end
+    end
+    for _, id in ipairs(SAMPLE_SPELLS) do
+        if #list == SAMPLES then break end
+        list[#list + 1] = SpellIcon(id) or "Interface\\Icons\\INV_Misc_QuestionMark"
+    end
+    return list
+end
+
+-- One sample button: an icon with the pieces the real buttons use
+local function SampleButton(parent)
+    local p = CreateFrame("Frame", nil, parent)
     p:SetSize(PREVIEW, PREVIEW)
-    p:SetPoint("TOP", 0, -6)
     local edge = p:CreateTexture(nil, "BACKGROUND")
     edge:SetPoint("TOPLEFT", -1, 1)
     edge:SetPoint("BOTTOMRIGHT", 1, -1)
     edge:SetColorTexture(0, 0, 0, 1)
     p.icon = p:CreateTexture(nil, "ARTWORK")
     p.icon:SetAllPoints()
-    p.icon:SetTexture("Interface\\Icons\\INV_Sword_04")
     p.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     p.cd = CreateFrame("Cooldown", nil, p, "CooldownFrameTemplate")
     p.cd:SetAllPoints()
@@ -441,16 +466,34 @@ local function Preview(parent, draw)
     p.border:SetPoint("CENTER")
     p.border:SetSize(PREVIEW * 1.75, PREVIEW * 1.75)
     p.text = top:CreateFontString(nil, "OVERLAY")
+    return p
+end
+
+-- A row of sample buttons, centered. draw(p) puts one look on each with the
+-- current settings.
+local function Preview(parent, draw)
+    local r = UI.Row(parent, PREVIEW + 12)
+    local width = SAMPLES * PREVIEW + (SAMPLES - 1) * SAMPLE_GAP
+    local list = {}
+    for i = 1, SAMPLES do
+        local p = SampleButton(r)
+        p:SetPoint("TOPLEFT", r, "TOP", -width / 2 + (i - 1) * (PREVIEW + SAMPLE_GAP), -6)
+        list[i] = p
+    end
     r.Refresh = function()
-        p.icon:SetVertexColor(1, 1, 1, 1)
-        p.cd.loop = nil
-        p.cd:Clear()
-        p.fill:Hide()
-        p.overlay:Hide()
-        p.flash:Hide()
-        p.border:Hide()
-        p.text:Hide()
-        draw(p)
+        local icons = SampleIcons()
+        for i, p in ipairs(list) do
+            p.icon:SetTexture(icons[i])
+            p.icon:SetVertexColor(1, 1, 1, 1)
+            p.cd.loop = nil
+            p.cd:Clear()
+            p.fill:Hide()
+            p.overlay:Hide()
+            p.flash:Hide()
+            p.border:Hide()
+            p.text:Hide()
+            draw(p)
+        end
     end
     table.insert(UI.widgets, r)
     return r
