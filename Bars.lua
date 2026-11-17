@@ -391,12 +391,37 @@ function ns.FitIcon(b, z)
     -- re-anchored every time: LibActionButton moves the cooldown and the
     -- highlight back to its own sizes when the action changes
     icon:ClearAllPoints()
+    local iw, ih = w, h
     if f.mode == "contain" then
         local m = math.min(w, h)
+        iw, ih = m, m
         icon:SetSize(m, m)
         icon:SetPoint("CENTER", b, "CENTER")
     else
         icon:SetAllPoints(b)
+    end
+    -- Blizzard's frame art (46x45) and round mask are drawn for a 45 px
+    -- icon at a fixed size: scaled with the icon (default style; the
+    -- square style hides both)
+    local frame = b.NormalTexture
+    if frame then
+        frame:ClearAllPoints()
+        frame:SetPoint("TOPLEFT", icon, "TOPLEFT")
+        frame:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", iw / 45, 0)
+    end
+    local mask = b.IconMask
+    if mask then
+        -- its own size, read once before it is ever changed
+        if not b.tidyMaskSize then
+            local mw, mh = mask:GetSize()
+            if mw > 0 and mh > 0 then b.tidyMaskSize = { mw, mh } end
+        end
+        local base = b.tidyMaskSize
+        if base then
+            mask:ClearAllPoints()
+            mask:SetPoint("CENTER", icon, "CENTER")
+            mask:SetSize(base[1] * iw / 45, base[2] * ih / 45)
+        end
     end
     -- the cooldown covers the icon; highlight, pressed, checked, flash and
     -- the equipped border cover the whole button (its size never changes)

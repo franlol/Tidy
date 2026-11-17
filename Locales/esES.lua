@@ -228,6 +228,8 @@ ns.translations.esES = {
     ["Spells can't be dragged off. Shift-drag still works."] =
         "No se pueden sacar hechizos arrastrando. Mayús + arrastrar sí.",
     ["Style"] = "Estilo",
+    ["Default"] = "Predeterminado",
+    ["Square"] = "Cuadrado",
     ["Interrupted"] = "Interrumpido",
     ["Cast on key down"] = "Lanzar al pulsar la tecla",
     ["Game setting: also affects Blizzard's bars."] =

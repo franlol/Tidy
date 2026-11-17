@@ -816,7 +816,13 @@ local function BuildIcons(container)
     local on = function() return O().enabled end
 
     local where = page:Add(1, UI.Card(page.content, L["Where"], L["Square icons with a flat border."]))
-    where:Add(UI.Switch(where, L["Enabled"], IB("enabled")))
+    -- the style is the module switch: Default is Blizzard's look
+    where:Add(UI.Segmented(where, L["Style"], { { "default", L["Default"] }, { "square", L["Square"] } },
+        function() return O().enabled and "square" or "default" end,
+        function(v)
+            O().enabled = v == "square"
+            ns.RefreshIcons()
+        end))
     for _, def in ipairs({
         { "actionbars", "Action bars", "Tidy and Blizzard bars, pet and stance bars." },
         { "playerAuras", "Your buffs and debuffs" },
