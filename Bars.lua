@@ -607,21 +607,17 @@ local function Flash(b, key, mark)
 end
 
 -- Any other reason (no target, wrong target, facing, moving...): the game's
--- red error right after a press flashes that button. Not while only the
--- global cooldown runs (pressing during it gives "not ready yet").
+-- red error right after a press flashes that button, unless that press
+-- already flashed (on cooldown, global cooldown...: the error is the same news)
 local ERROR_WINDOW = 0.4
 local lastPress, lastPressT
-local function GCDRunning()
-    local gcd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(61304)
-    return gcd and Readable(gcd.isActive) and gcd.isActive or false
-end
 local errorWatch = CreateFrame("Frame")
 errorWatch:RegisterEvent("UI_ERROR_MESSAGE")
 errorWatch:SetScript("OnEvent", function()
     local b = lastPress
     if not b or not B or GetTime() - lastPressT > ERROR_WINDOW then return end
     lastPress = nil
-    if b.tidyAnswered or GCDRunning() then return end
+    if b.tidyAnswered then return end
     Flash(b, "failPress")
 end)
 
@@ -655,21 +651,24 @@ local function FlashEmpty(b)
     f.anim:Play()
 end
 
-local function PressFeedback(b, key)
-    local ok, has = pcall(b.HasAction, b)
+-- b: the button pressed. q: what is asked about its action (b itself for
+-- Tidy's buttons; a Query for Blizzard's pet / stance / extra buttons)
+local function PressFeedback(b, q)
+    q = q or b
+    local ok, has = pcall(q.HasAction, q)
     if not ok then return end
     if not has then
-        if key then FlashEmpty(b) end
+        FlashEmpty(b)
         return
     end
-    local cd = OnCooldown(b)
+    local cd = OnCooldown(q)
     if cd == "cd" then
         Flash(b, "cdPress")
     elseif cd == "gcd" then
         Flash(b, "gcdPress")
-    elseif CannotUse(b) then
+    elseif CannotUse(q) then
         Flash(b, "failPress")
-    elseif IsActive(b) then
+    elseif IsActive(q) then
         Flash(b, "activePress")
     end
 end
@@ -930,7 +929,101 @@ local function OnPreClick(self, mouse, down)
         if key then KeyPressed(self, true) end
         self.tidyDownSeen = true
     end
-    PressFeedback(self, key)
+    PressFeedback(self)
+end
+
+-------------------------------------------------------------------------------
+-- The same press flashes on Blizzard's pet, stance and extra buttons (moved
+-- by Tidy). Each is asked through the game's own functions for that kind of
+-- button. Mouse: a PreClick hook. Keys: their bindings do not click, so the
+-- functions the bindings call are hooked (Bindings_Camelot.xml).
+-------------------------------------------------------------------------------
+local Query = {}
+Query.__index = Query
+function Query:HasAction() return self.has() end
+function Query:GetCooldownInfo()
+    local spell = self.spell and self.spell()
+    return spell and C_Spell.GetSpellCooldown(spell) or nil
+end
+function Query:IsUsable() return self.usable() end
+function Query:IsCurrentlyActive() return self.active() end
+
+local function PetQuery(id)
+    local function Info(n) return (select(n, GetPetActionInfo(id))) end
+    return setmetatable({
+        has = function() return Info(1) ~= nil end,
+        spell = function() return Info(7) end,
+        usable = function() return GetPetActionSlotUsable(id) end,
+        active = function() return Info(4) end,
+        outOfRange = Info(8) and Readable(Info(9)) and Info(9) == false,
+    }, Query)
+end
+
+local function StanceQuery(id)
+    local function Info(n) return (select(n, GetShapeshiftFormInfo(id))) end
+    return setmetatable({
+        has = function() return Info(1) ~= nil end,
+        spell = function() return Info(4) end,
+        usable = function() return Info(3) end,
+        active = function() return Info(2) end,
+    }, Query)
+end
+
+local AB = C_ActionBar
+local function ExtraQuery(b)
+    local action = b.action
+    local q = setmetatable({
+        has = function() return action and AB.HasAction(action) end,
+        usable = function() return AB.IsUsableAction(action) end,
+        active = function() return AB.IsCurrentAction(action) end,
+        outOfRange = action and Readable(AB.IsActionInRange(action)) and AB.IsActionInRange(action) == false,
+    }, Query)
+    function q:GetCooldownInfo() return action and AB.GetActionCooldown(action) end
+    return q
+end
+
+local function BlizzardPress(b, makeQuery, arg)
+    if not ns.barsActive or not b or not b:IsVisible() then return end
+    lastPress, lastPressT = b, GetTime()
+    b.tidyAnswered = nil
+    local ok, q = pcall(makeQuery, arg)
+    if ok then PressFeedback(b, q) end
+end
+
+-- a click can come on press and on release: one answer per press
+local function OnBlizzardClick(b, down, makeQuery, arg)
+    if down == false and b.tidyDownSeen then
+        b.tidyDownSeen = nil
+        return
+    end
+    if down then b.tidyDownSeen = true end
+    BlizzardPress(b, makeQuery, arg)
+end
+
+for i = 1, 10 do
+    local pet = _G["PetActionButton" .. i]
+    if pet then
+        -- right click turns autocast on / off: not a cast
+        pet:HookScript("PreClick", function(self, mouse, down)
+            if mouse == "LeftButton" then OnBlizzardClick(self, down, PetQuery, self:GetID()) end
+        end)
+    end
+end
+if PetActionBar and PetActionBar.PetActionButtonDown then
+    hooksecurefunc(PetActionBar, "PetActionButtonDown", function(self, id)
+        BlizzardPress(self.actionButtons and self.actionButtons[id], PetQuery, id)
+    end)
+end
+-- the stance buttons and their keys both go through StanceBar:Select
+if StanceBar and StanceBar.Select then
+    hooksecurefunc(StanceBar, "Select", function(self, id)
+        BlizzardPress(self.actionButtons and self.actionButtons[id], StanceQuery, id)
+    end)
+end
+-- (mouse only: Forever has no extra button binding)
+local extra = ExtraActionBarFrame and ExtraActionBarFrame.button
+if extra then
+    extra:HookScript("PreClick", function(self, _, down) OnBlizzardClick(self, down, ExtraQuery, self) end)
 end
 
 local function CreateButton(header, id, i)
