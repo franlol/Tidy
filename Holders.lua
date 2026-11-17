@@ -374,6 +374,8 @@ local function LayoutGroup(h, c, def)
         end
     end
     HideSamples(h, n + 1)
+    -- buttons (or samples) laid out, for the options' fill controls
+    h.count = empty and math.max(1, #sources) or #shown
 end
 
 -- Width of Blizzard's XP bar as it is drawn: its main bar, or else the
@@ -797,6 +799,12 @@ end
 
 function ns.ReleaseHolders()
     for _, id in ipairs(ns.HOLDER_IDS) do ns.ReleaseHolder(id) end
+end
+
+-- Buttons a group holder lays out now (nil before its first layout)
+function ns.HolderCount(id)
+    local h = holders[id]
+    return h and h.count
 end
 
 -- Holders that exist in this game version (for the options)

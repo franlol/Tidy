@@ -246,7 +246,8 @@ local function BuildBars(container)
             -- each direction only matters with more than one column / row
             local function Count()
                 local c = ns.BarConfig(selected)
-                return IsAction() and c.buttons or 12
+                if IsAction() then return c.buttons end
+                return ns.HolderCount(selected) or 12
             end
             local function SeveralCols()
                 return HasRows() and Count() > ns.BarConfig(selected).rows
