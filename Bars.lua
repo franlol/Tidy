@@ -14,9 +14,10 @@ local _, ns = ...
 local L = ns.L
 
 local BUTTON = 45 -- size of a Blizzard action button
--- Every action page a bar can use. Page 11 is left out: it is the game's
--- bonus bar 5 (C_ActionBar.GetBonusBarIndexForSlot(121) returns 11).
-local BAR_IDS = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15 }
+-- Every action page a bar can use. Left out, the game's own pages:
+-- 11 is bonus bar 5 (C_ActionBar.GetBonusBarIndexForSlot(121) returns 11),
+-- 12 is the shaman totem bar (C_ActionBar.GetMultiCastBarIndex()).
+local BAR_IDS = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15 }
 ns.BAR_IDS = BAR_IDS
 
 -- Blizzard binding names for each bar (their keys are reused here)
