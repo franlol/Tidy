@@ -18,7 +18,8 @@ local L = ns.L
 
 local UI = LibStub("LibFlatyUI-1.0"):New({ accent = { 0.44, 0.76, 1 } })
 UI.OnChange = function() UI.RefreshAll() end
-local STRINGS = { confirm = "Click again to confirm", search = "Search...", accept = "Accept", cancel = "Cancel" }
+local STRINGS = { confirm = "Click again to confirm", search = "Search...", accept = "Accept", cancel = "Cancel",
+    reset = "Reset" }
 UI.strings = setmetatable({}, { __index = function(_, key) return L[STRINGS[key]] end })
 
 local win
@@ -302,9 +303,8 @@ local function BuildBars(container)
                 end
                 if ns.barsActive then ns.ApplyBar(selected) if IsAction() then ns.UpdateBinds() end end
                 UI.RefreshAll()
-            end, "danger" } }, { enableIf = active,
+            end, "danger", confirm = true } }, { enableIf = active,
                 tip = L["Resets every setting of this bar, position included."] })
-            UI.Confirm(reset.buttons[1])
             card:Add(reset)
 
             -- options only one bar has (greyed out for the rest)
@@ -568,8 +568,7 @@ local function LookTab(left, right, title, items, keys)
         ApplyAllBars()
         ns.ApplyIcons()
         UI.RefreshAll()
-    end, "danger" } }, { tip = L["Resets every setting in this tab."] })
-    UI.Confirm(reset.buttons[1])
+    end, "danger", confirm = true } }, { tip = L["Resets every setting in this tab."] })
     card:Add(reset)
 
     for i, it in ipairs(items) do
@@ -652,8 +651,7 @@ local function BuildButtons(container)
                 for k, v in pairs(ns.Copy(ns.defaults.bars.casting)) do t[k] = v end
                 ApplyAllBars()
                 UI.RefreshAll()
-            end, "danger" } }, { tip = L["Resets every setting in this tab."] })
-            UI.Confirm(reset.buttons[1])
+            end, "danger", confirm = true } }, { tip = L["Resets every setting in this tab."] })
             card:Add(reset)
         end },
 
@@ -864,8 +862,7 @@ local function BuildIcons(container)
         for k, v in pairs(keep) do ns.P.icons[k] = v end
         ns.ApplyIcons()
         UI.RefreshAll()
-    end, "danger" } }, { tip = L["Resets the look. Where is kept."] })
-    UI.Confirm(reset.buttons[1])
+    end, "danger", confirm = true } }, { tip = L["Resets the look. Where is kept."] })
     look:Add(reset)
 end
 
@@ -896,30 +893,33 @@ local function BuildProfiles(container)
         UI.RefreshAll()
     end, { tip = L["Type a name, press Enter. Starts with default settings."] }))
 
+    -- actions, no pick-then-apply: the button lists the other profiles, the
+    -- one picked is confirmed in a dialog (it replaces or removes a lot)
     card = page:Add(1, UI.Card(page.content, L["Copy and reset"]))
-    local copy = {}
-    card:Add(UI.Dropdown(card, L["Copy from"], function() return ProfileList(true) end,
-        function() return copy.from end, function(v) copy.from = v end))
+    local function HasOthers() return #ProfileList(true) > 0 end
     card:Add(UI.Buttons(card, {
-        { L["Copy into this profile"], function()
-            if copy.from then ns.CopyProfile(copy.from) UI.RefreshAll() end
+        { L["Copy from"] .. "...", function(self)
+            UI.Menu(self, ProfileList(true), function(name)
+                UI.Dialog(L["This replaces every setting of the profile in use. Continue?"], L["Copy"], function()
+                    ns.CopyProfile(name)
+                    UI.RefreshAll()
+                end)
+            end)
         end },
-    }, { enableIf = function() return copy.from ~= nil end }))
-    local reset = UI.Buttons(card, {
-        { L["Reset this profile"], function() ns.ResetProfile() UI.RefreshAll() end, "danger" },
-    })
-    UI.Confirm(reset.buttons[1])
-    card:Add(reset)
-    local del = {}
-    card:Add(UI.Dropdown(card, L["Delete profile"], function() return ProfileList(true) end,
-        function() return del.name end, function(v) del.name = v end))
-    local delBtn = UI.Buttons(card, {
-        { L["Delete"], function()
-            if del.name then ns.DeleteProfile(del.name) del.name = nil UI.RefreshAll() end
+    }, { enableIf = HasOthers }))
+    card:Add(UI.Buttons(card, {
+        { L["Reset this profile"], function() ns.ResetProfile() UI.RefreshAll() end, "danger", confirm = true },
+    }))
+    card:Add(UI.Buttons(card, {
+        { L["Delete profile"] .. "...", function(self)
+            UI.Menu(self, ProfileList(true), function(name)
+                UI.Dialog(L["Delete the profile \"%s\"?"]:format(name), L["Delete"], function()
+                    ns.DeleteProfile(name)
+                    UI.RefreshAll()
+                end)
+            end)
         end, "danger" },
-    }, { enableIf = function() return del.name ~= nil end })
-    UI.Confirm(delBtn.buttons[1])
-    card:Add(delBtn)
+    }, { enableIf = HasOthers }))
 
     card = page:Add(2, UI.Card(page.content, L["Share"], L["Export this profile as text, or paste one to import it."]))
     local box = card:Add(UI.CodeBox(card, 160))
@@ -944,13 +944,13 @@ local function BuildProfiles(container)
     -- presets are actions: one button each, asking to confirm
     card = page:Add(2, UI.Card(page.content, L["Presets"],
         L["Sets position, rows, padding and scale of bars 1 and 3-6. Nothing else changes."]))
-    local presets = UI.Buttons(card, {
-        { L["Blizzard-like"], function() ns.ApplyPreset("blizzard") UI.RefreshAll() end, "danger" },
-        { L["Compact"], function() ns.ApplyPreset("compact") UI.RefreshAll() end, "danger" },
-        { L["Split"], function() ns.ApplyPreset("split") UI.RefreshAll() end, "danger" },
-    }, { enableIf = active })
-    for _, b in ipairs(presets.buttons) do UI.Confirm(b) end
-    card:Add(presets)
+    -- three buttons in a row: the full "Click again to confirm" does not fit
+    local sure = L["Sure?"]
+    card:Add(UI.Buttons(card, {
+        { L["Blizzard-like"], function() ns.ApplyPreset("blizzard") UI.RefreshAll() end, "danger", confirm = sure },
+        { L["Compact"], function() ns.ApplyPreset("compact") UI.RefreshAll() end, "danger", confirm = sure },
+        { L["Split"], function() ns.ApplyPreset("split") UI.RefreshAll() end, "danger", confirm = sure },
+    }, { enableIf = active }))
 end
 
 -------------------------------------------------------------------------------

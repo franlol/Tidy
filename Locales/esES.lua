@@ -56,6 +56,10 @@ ns.translations.esES = {
     ["Reset this profile"] = "Restablecer este perfil",
     ["Delete profile"] = "Borrar perfil",
     ["Delete"] = "Borrar",
+    ["Delete the profile \"%s\"?"] = "¿Borrar el perfil \"%s\"?",
+    ["Copy"] = "Copiar",
+    ["Sure?"] = "¿Seguro?",
+    ["Reset"] = "Restablecer",
     ["Share"] = "Compartir",
     ["Export this profile as text, or paste one to import it."] =
         "Exporta este perfil como texto, o pega uno para importarlo.",
