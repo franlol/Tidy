@@ -934,6 +934,29 @@ for _, e in ipairs({ "SPELL_UPDATE_COOLDOWN", "ACTIONBAR_UPDATE_COOLDOWN", "SPEL
 end
 readyWatch:SetScript("OnEvent", function() ReadyCheck() end)
 
+-------------------------------------------------------------------------------
+-- Active state ("checked") on every copy of an action: LibActionButton
+-- leaves it to the game for buttons registered as action UI buttons, and
+-- the game only updates the one pressed (a queued next-swing spell on
+-- another bar stayed unlit). Refreshed here like Blizzard's own buttons do.
+-------------------------------------------------------------------------------
+local function Flag(b, method)
+    local ok, v = pcall(b[method], b)
+    return ok and Readable(v) and v and true or false
+end
+
+local stateWatch = CreateFrame("Frame")
+for _, e in ipairs({ "ACTIONBAR_UPDATE_STATE", "CURRENT_SPELL_CAST_CHANGED" }) do
+    pcall(stateWatch.RegisterEvent, stateWatch, e)
+end
+stateWatch:SetScript("OnEvent", function()
+    ForTidyButtons(function(b)
+        if b._state_type == "action" and b:HasAction() then
+            b:SetChecked(Flag(b, "IsCurrentlyActive") or Flag(b, "IsAutoRepeat"))
+        end
+    end)
+end)
+
 -- A key held on the button: the pressed look until it is released (at most
 -- KEY_HOLD seconds: a release can go to another binding if a modifier
 -- changed meanwhile)
