@@ -46,25 +46,10 @@ local OUTLINES = function()
     return { { "", L["None"] }, { "OUTLINE", L["Outline"] }, { "THICKOUTLINE", L["Thick outline"] } }
 end
 
--- Blizzard's fonts, plus LibSharedMedia's if another addon loads it
+-- LibFlatyUI's fonts ("Flaty: ..."), the game's, and LibSharedMedia's when
+-- another addon loads it; each drawn in its font
 local function Fonts()
-    local list = {
-        { "Fonts\\FRIZQT__.TTF", "Friz Quadrata" }, { "Fonts\\ARIALN.TTF", "Arial Narrow" },
-        { "Fonts\\skurri.ttf", "Skurri" }, { "Fonts\\MORPHEUS.ttf", "Morpheus" },
-    }
-    local lsm = LibStub("LibSharedMedia-3.0", true)
-    if lsm then
-        local seen = {}
-        for _, o in ipairs(list) do seen[o[1]:lower()] = true end
-        local extra = {}
-        for name, path in pairs(lsm:HashTable("font")) do
-            if type(path) == "string" and not seen[path:lower()] then extra[#extra + 1] = { path, name } end
-        end
-        table.sort(extra, function(a, b) return a[2] < b[2] end)
-        for _, o in ipairs(extra) do list[#list + 1] = o end
-    end
-    for _, o in ipairs(list) do o[3] = o[1] end -- each option drawn in its font
-    return list
+    return UI.MediaList("font")
 end
 
 -------------------------------------------------------------------------------
@@ -503,7 +488,7 @@ local function Tint(p, c) p.icon:SetVertexColor(c.r, c.g, c.b, c.a or 1) end
 local function Overlay(p, c) Paint(p.overlay, c) p.overlay:Show() end
 local function SampleText(p, t, text, color)
     local c = color or t.color
-    p.text:SetFont(t.font, t.size, t.outline)
+    p.text:SetFont(ns.FontPath(t.font), t.size, t.outline)
     p.text:SetTextColor(c.r, c.g, c.b, c.a or 1)
     p.text:ClearAllPoints()
     p.text:SetPoint(t.point, p, t.point, t.x, t.y)
@@ -778,7 +763,7 @@ local function BuildButtons(container)
                     draw = function(p) SampleText(p, T(), SAMPLE[key]) end,
                     extra = function(card, on)
                         local fg, fs = TB("font")
-                        card:Add(UI.Dropdown(card, L["Font"], Fonts, fg, fs, { enableIf = on }))
+                        card:Add(UI.Dropdown(card, L["Font"], Fonts, function() return ns.FontPath(fg()) end, fs, { enableIf = on }))
                         local zg, zs = TB("size")
                         card:Add(UI.Slider(card, L["Size"], 6, 30, 1, zg, zs, { format = UI.px, enableIf = on }))
                         local og, os = TB("outline")

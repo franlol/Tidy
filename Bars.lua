@@ -286,7 +286,7 @@ end
 local function TextConfig(t)
     local p = t.point
     return {
-        font = { font = t.font, size = t.size, flags = t.outline },
+        font = { font = ns.FontPath(t.font), size = t.size, flags = t.outline },
         color = { t.color.r, t.color.g, t.color.b, t.color.a or 1 },
         position = { anchor = p, relAnchor = p, offsetX = t.x, offsetY = t.y },
         justifyH = p:find("LEFT") and "LEFT" or (p:find("RIGHT") and "RIGHT" or "CENTER"),
@@ -338,14 +338,14 @@ local function StyleCountdown(b)
     local c = t.color
     if cd.SetCountdownFont then
         countdownFont = countdownFont or CreateFont("TidyCountdownFont")
-        countdownFont:SetFont(t.font, t.size, t.outline)
+        countdownFont:SetFont(ns.FontPath(t.font), t.size, t.outline)
         countdownFont:SetTextColor(c.r, c.g, c.b, c.a or 1)
         cd:SetCountdownFont("TidyCountdownFont")
     end
     local fs = cd.GetCountdownFontString and cd:GetCountdownFontString()
     if fs then
         if not cd.SetCountdownFont then
-            fs:SetFont(t.font, t.size, t.outline)
+            fs:SetFont(ns.FontPath(t.font), t.size, t.outline)
             fs:SetTextColor(c.r, c.g, c.b, c.a or 1)
         end
         fs:ClearAllPoints()

@@ -17,6 +17,13 @@ local L = ns.L
 ns.version = (C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata)(ADDON, "Version") or ""
 if ns.version:find("^@") then ns.version = "dev" end
 
+-- A saved font path ready to use (LibFlatyUI finds its own fonts in the copy
+-- that runs); the game's font when the file's addon is not loaded
+local Flaty = LibStub("LibFlatyUI-1.0")
+function ns.FontPath(path)
+    return Flaty.ResolveMedia(path) or STANDARD_TEXT_FONT
+end
+
 ns.defaults = {
     icons = {
         enabled = true,
