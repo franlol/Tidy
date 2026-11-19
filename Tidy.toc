@@ -8,9 +8,6 @@
 ## X-Curse-Project-ID: 1799496
 ## Version: @project-version@
 ## IconTexture: Interface\AddOns\Tidy\Media\Icon
-## AddonCompartmentFunc: Tidy_OnCompartmentClick
-## AddonCompartmentFuncOnEnter: Tidy_OnCompartmentEnter
-## AddonCompartmentFuncOnLeave: Tidy_OnCompartmentLeave
 ## SavedVariables: TidyDB
 
 Libs\LibStub\LibStub.lua
