@@ -112,7 +112,7 @@ ns.defaults = {
 
 -- Account-wide (not in profiles)
 local ACCOUNT = {
-    minimap = { hide = false, angle = 200 },
+    minimap = { hide = false, minimapPos = 200 },
 }
 
 -- Fills the missing keys of t with the defaults (without touching the rest)

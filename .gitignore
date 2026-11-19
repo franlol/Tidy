@@ -3,3 +3,7 @@ Libs/LibFlatyUI-1.0/
 
 .DS_Store
 Thumbs.db
+
+# Fetched by the packager (.pkgmeta externals)
+Libs/LibDataBroker-1.1/
+Libs/LibDBIcon-1.0/
